@@ -1,12 +1,13 @@
 import 'dotenv/config';
 import { spawnSync } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import pg from 'pg';
 import { migrationUrl } from './migration-url.mjs';
 
 const connectionString = migrationUrl(process.env);
 if (!connectionString) throw new Error('DATABASE_CONNECTION_NOT_CONFIGURED');
 const client = new pg.Client({ connectionString, connectionTimeoutMillis: 15000 });
-const required = ['Prospect','Client','Policy','Quote','Payment','Renewal','Claim','Document','Activity','WebhookEvent','AgentRun'];
+const required = ['Prospect','Client','Policy','Quote','Payment','Renewal','Claim','Document','Activity','WebhookEvent','AgentRun','AccessGrant','AuthUser','AuthSession','AuthAccount','AuthVerification','AuthRateLimit','AccessAudit'];
 const scrub = text => {
   let safe = text;
   for (const value of [connectionString, process.env.DIRECT_URL, process.env.DATABASE_URL, process.env.DATA_URL]) {
@@ -33,7 +34,21 @@ try {
   if (missing.length) throw new Error('EXPECTED_TABLES_MISSING');
   const pending = await client.query('SELECT count(*)::int AS count FROM "_prisma_migrations" WHERE finished_at IS NULL AND rolled_back_at IS NULL');
   if (pending.rows[0].count) throw new Error('MIGRATION_INCOMPLETE');
-  console.log('AJ_DATABASE_VERIFIED: 11 application tables and completed migrations.');
+  const primary = process.env.AJ_SUPERADMIN_EMAIL?.trim().toLowerCase();
+  const admins = [...new Set((process.env.AJ_ADMIN_EMAILS ?? '').split(',').map(value => value.trim().toLowerCase()).filter(Boolean))];
+  if(primary) {
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(primary) || admins.some(email => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) throw new Error('AUTH_EMAIL_CONFIGURATION_INVALID');
+    await client.query('BEGIN');
+    try {
+      await client.query('INSERT INTO "AccessGrant" (id,email,role,enabled,"updatedAt") VALUES ($1,$2,\'SUPERADMIN\',true,NOW()) ON CONFLICT (email) DO UPDATE SET role=\'SUPERADMIN\',enabled=true,"updatedAt"=NOW()', [randomUUID(),primary]);
+      for(const email of admins.filter(email => email !== primary)) {
+        await client.query('INSERT INTO "AccessGrant" (id,email,role,enabled,"updatedAt") VALUES ($1,$2,\'ADMIN\',true,NOW()) ON CONFLICT (email) DO NOTHING', [randomUUID(),email]);
+      }
+      await client.query('COMMIT');
+    } catch(error) { await client.query('ROLLBACK'); throw error; }
+    console.log('Initial access grants configured without changing existing secondary users.');
+  }
+  console.log('AJ_DATABASE_VERIFIED: 18 application tables and completed migrations.');
 } catch (error) {
   const code = error && typeof error === 'object' && 'code' in error ? error.code : undefined;
   const known = error instanceof Error && /^(DATABASE_|POSTGRESQL_|MIGRATION_|EXPECTED_)/.test(error.message) ? error.message : 'DATABASE_CONNECTION_OR_QUERY_FAILED';

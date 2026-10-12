@@ -2,14 +2,27 @@ import 'server-only';
 import { timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
-export function authorize(request: Request) {
+import { currentUser } from './session';
+import { getAuth } from './auth';
+import { hasRole, trustedMutation, type AccessRole } from './access-policy';
+export async function authorize(request: Request, minimum: AccessRole = 'USER') {
   const token = process.env.AJ_API_TOKEN;
-  if (!token) return NextResponse.json({ error: 'API_NOT_CONFIGURED' }, { status: 503 });
-  const expected = Buffer.from('Bearer ' + token);
-  const actual = Buffer.from(request.headers.get('authorization') ?? '');
-  if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) {
-    return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  const authorization = request.headers.get('authorization');
+  if (authorization) {
+    if (!token) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+    const expected = Buffer.from('Bearer ' + token);
+    const actual = Buffer.from(authorization);
+    if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+    if (minimum === 'SUPERADMIN') return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
+    return;
   }
+  if (!getAuth()) return NextResponse.json({ error: 'AUTH_NOT_CONFIGURED' }, { status: 503 });
+  if (!trustedMutation(request, process.env.BETTER_AUTH_URL!)) return NextResponse.json({ error: 'INVALID_ORIGIN' }, { status: 403 });
+  try {
+    const user = await currentUser(request.headers);
+    if (!user) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+    if (!hasRole(user.role, minimum)) return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
+  } catch { return NextResponse.json({ error: 'SERVICE_UNAVAILABLE' }, { status: 503 }); }
 }
 export function apiError(error: unknown) {
   if (error instanceof ZodError) return NextResponse.json({ error: 'INVALID_INPUT', issues: error.issues }, { status: 400 });

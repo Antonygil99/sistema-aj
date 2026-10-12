@@ -16,7 +16,7 @@ npm run db:seed
 npm run dev
 ~~~
 
-Abrir http://localhost:3000. Si usas PostgreSQL existente, omite db:up y ajusta DATABASE_URL. Edita AJ_API_TOKEN en .env con un valor aleatorio; nunca enviarlo al navegador ni usar prefijo NEXT_PUBLIC_. La interfaz demo funciona sin base de datos; las API CRM requieren PostgreSQL, migración y token. Lato se descarga desde Google Fonts en el navegador y tiene alternativa Arial si no hay red.
+Abrir http://localhost:3000. Si usas PostgreSQL existente, omite db:up y ajusta DATABASE_URL. Edita AJ_API_TOKEN en .env con un valor aleatorio; nunca enviarlo al navegador ni usar prefijo NEXT_PUBLIC_. La pantalla de acceso funciona sin credenciales; para entrar al CRM se requiere configurar Google, PostgreSQL y los grants de acceso. Las API admiten una sesión autorizada o un token interno de servidor. Lato se descarga desde Google Fonts en el navegador y tiene alternativa Arial si no hay red.
 
 ## Scripts
 
@@ -46,7 +46,7 @@ docs/                  Arquitectura y próximos pasos
 
 ## API base
 
-Todas las rutas CRM y de agentes requieren Authorization: Bearer <AJ_API_TOKEN>. Token ausente en servidor: 503; token inválido: 401. Este mecanismo permite uso interno desde servidor; implementar sesiones y permisos por usuario antes de conectar una interfaz real.
+Las rutas CRM y de agentes admiten sesiones de Google autorizadas o Authorization: Bearer <AJ_API_TOKEN> para integración interna desde servidor. Las altas requieren rol ADMIN; la gestión de accesos requiere una sesión SUPERADMIN. Los cambios desde el navegador validan el origen exacto.
 
 | Ruta | Comportamiento |
 | --- | --- |
@@ -84,7 +84,7 @@ El Método AJ todavía requiere documentación del negocio: no se inventaron reg
 
 ## Alcance y siguientes pasos
 
-Esta entrega prepara la base; incluye listados/altas mediante API, relaciones y validación. Las pantallas de módulos son espacios iniciales. Pendientes: captura/edición/búsqueda en interfaz, autenticación y roles, auditoría de acciones, archivos en almacenamiento privado (Document guarda solo metadatos), worker WhatsApp, adaptador eve, observabilidad y políticas de respaldo. No desplegar la API interna con datos reales antes de completar autenticación y permisos.
+Esta entrega prepara la base; incluye listados/altas mediante API, relaciones y validación. Las pantallas de módulos son espacios iniciales. Pendientes: captura/edición/búsqueda en interfaz y auditoría de operaciones CRM, archivos en almacenamiento privado (Document guarda solo metadatos), worker WhatsApp, adaptador eve, observabilidad y políticas de respaldo. Antes de usar datos reales, completar las pantallas operativas y las reglas de acceso por expediente.
 
 Referencias: [Next.js](https://nextjs.org/docs/app), [Prisma PostgreSQL](https://www.prisma.io/docs/orm/v7/core-concepts/supported-databases/postgresql), [Meta Webhooks](https://developers.facebook.com/documentation/business-messaging/whatsapp/webhooks/create-webhook-endpoint), [eve](https://eve.dev/docs).
 
@@ -93,3 +93,13 @@ Referencias: [Next.js](https://nextjs.org/docs/app), [Prisma PostgreSQL](https:/
 DATABASE_URL es el nombre recomendado para la conexión pooled. Se acepta DATA_URL como nombre heredado para conservar secretos ya guardados en Vercel. DIRECT_URL permite indicar la conexión directa para migraciones. Para Prisma Postgres, si no se especifica DIRECT_URL, se convierte exclusivamente el host documentado pooled.db.prisma.io a db.prisma.io conservando credenciales, base y opciones TLS; otros proveedores no se transforman.
 
 npm run db:verify-deploy comprueba la conexión, se detiene ante una base con tablas ajenas sin historial Prisma, aplica únicamente migraciones pendientes y verifica las once tablas de aplicación y el historial. No borra tablas ni inserta datos de ejemplo. Requiere una URL PostgreSQL TCP; las URLs de Accelerate no son compatibles con el adaptador pg de esta base. Este comando es explícito y no se añadió al build habitual.
+
+## Inicio de sesión y roles
+
+Better Auth 1.7 integra Google OAuth en /api/auth/callback/google. Registrar en Google Cloud el URI exacto de producción y guardar GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET en Vercel Production. BETTER_AUTH_URL contiene el origen canónico de la app; BETTER_AUTH_SECRET debe ser un secreto aleatorio de al menos 32 caracteres. No se configuraron contraseñas locales: su recuperación corresponde a Google.
+
+AJ_SUPERADMIN_EMAIL define la identidad principal. AJ_ADMIN_EMAILS enumera, separados por coma, los administradores iniciales. Sus direcciones se guardan fuera del repositorio público. La ejecución explícita db:verify-deploy crea los grants iniciales sin reactivar cuentas que luego fueron deshabilitadas. El superadmin puede gestionar usuarios desde /usuarios; los administradores operan el CRM y los usuarios solo consultan. Los cambios de acceso se auditan. La cuenta principal no puede desactivarse ni modificarse desde esa interfaz.
+
+Las rutas CRM y de agentes aceptan sesiones autorizadas además del token interno opcional. Los cambios con cookies exigen Origin igual a BETTER_AUTH_URL. Todas las pantallas del CRM validan sesión del lado servidor. El registro de usuarios y la creación de sesiones rechazan cuentas no autorizadas o no verificadas por Google. Revocar un acceso invalida las sesiones existentes. No se admiten enlaces entre proveedores ni cambios de correo.
+
+Resend y los correos de bienvenida se integrarán en una etapa posterior, con remitente verificado; no se enviaron correos. WhatsApp y la ejecución de IA siguen pendientes. El dashboard aún conserva sus métricas ilustrativas.

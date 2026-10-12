@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 type Context = { params: Promise<{ module: string }> };
 function lookup(key: string) { return Object.hasOwn(services, key) ? services[key as keyof typeof services] : undefined; }
 export async function GET(request: Request, context: Context) {
-  const denied = authorize(request); if (denied) return denied;
+  const denied = await authorize(request); if (denied) return denied;
   const service = lookup((await context.params).module);
   if (!service) return NextResponse.json({ error: 'MODULE_NOT_FOUND' }, { status: 404 });
   try {
@@ -18,7 +18,7 @@ export async function GET(request: Request, context: Context) {
   } catch (error) { return apiError(error); }
 }
 export async function POST(request: Request, context: Context) {
-  const denied = authorize(request); if (denied) return denied;
+  const denied = await authorize(request, 'ADMIN'); if (denied) return denied;
   const service = lookup((await context.params).module);
   if (!service) return NextResponse.json({ error: 'MODULE_NOT_FOUND' }, { status: 404 });
   try { return NextResponse.json({ data: await service.create(await request.json()) }, { status: 201 }); }
