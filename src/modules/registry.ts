@@ -1,0 +1,10 @@
+import * as prospectos from './prospectos/service';
+import * as clientes from './clientes/service';
+import * as polizas from './polizas/service';
+import * as cotizaciones from './cotizaciones/service';
+import * as pagos from './pagos/service';
+import * as renovaciones from './renovaciones/service';
+import * as siniestros from './siniestros/service';
+import * as documentos from './documentos/service';
+import * as actividades from './actividades/service';
+export const services = { prospectos, clientes, polizas, cotizaciones, pagos, renovaciones, siniestros, documentos, actividades };

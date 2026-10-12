@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+datasource db {
+  provider = "postgresql"
+}
+enum ProspectStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  WON
+  LOST
+}
+enum PolicyStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+}
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+}
+enum RenewalStatus {
+  PENDING
+  CONTACTED
+  RENEWED
+  LOST
+}
+enum ClaimStatus {
+  OPEN
+  IN_REVIEW
+  CLOSED
+}
+enum ActivityStatus {
+  PENDING
+  DONE
+}
+model Prospect {
+  id        String @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  source    String @default("manual")
+  status    ProspectStatus @default(NEW)
+  notes     String?
+  quotes    Quote[]
+  activities Activity[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([status, createdAt])
+}
+model Client {
+  id        String @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  taxId     String?
+  policies  Policy[]
+  quotes    Quote[]
+  documents Document[]
+  activities Activity[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([name])
+}
+model Policy {
+  id          String @id @default(cuid())
+  number      String @unique
+  clientId    String
+  client      Client @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  insurer     String
+  product     String
+  premium     Decimal @db.Decimal(12, 2)
+  currency    String @default("MXN")
+  startDate   DateTime
+  endDate     DateTime
+  status      PolicyStatus @default(ACTIVE)
+  payments    Payment[]
+  renewals    Renewal[]
+  claims      Claim[]
+  documents   Document[]
+  activities  Activity[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@index([clientId])
+  @@index([status, endDate])
+}
+model Quote {
+  id         String @id @default(cuid())
+  reference  String @unique
+  prospectId String?
+  prospect   Prospect? @relation(fields: [prospectId], references: [id], onDelete: Restrict)
+  clientId   String?
+  client     Client? @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  product    String
+  amount     Decimal @db.Decimal(12, 2)
+  currency   String @default("MXN")
+  status     QuoteStatus @default(DRAFT)
+  validUntil DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  @@index([prospectId])
+  @@index([clientId])
+}
+model Payment {
+  id        String @id @default(cuid())
+  policyId  String
+  policy    Policy @relation(fields: [policyId], references: [id], onDelete: Restrict)
+  amount    Decimal @db.Decimal(12, 2)
+  currency  String @default("MXN")
+  dueDate   DateTime
+  paidAt    DateTime?
+  status    PaymentStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([policyId])
+  @@index([status, dueDate])
+}
+model Renewal {
+  id        String @id @default(cuid())
+  policyId  String
+  policy    Policy @relation(fields: [policyId], references: [id], onDelete: Restrict)
+  dueDate   DateTime
+  status    RenewalStatus @default(PENDING)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([policyId, dueDate])
+}
+model Claim {
+  id          String @id @default(cuid())
+  reference   String @unique
+  policyId    String
+  policy      Policy @relation(fields: [policyId], references: [id], onDelete: Restrict)
+  description String
+  occurredAt  DateTime
+  status      ClaimStatus @default(OPEN)
+  documents   Document[]
+  activities  Activity[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@index([policyId, status])
+}
+model Document {
+  id         String @id @default(cuid())
+  name       String
+  storageKey String @unique
+  mimeType   String
+  clientId   String?
+  client     Client? @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  policyId   String?
+  policy     Policy? @relation(fields: [policyId], references: [id], onDelete: Restrict)
+  claimId    String?
+  claim      Claim? @relation(fields: [claimId], references: [id], onDelete: Restrict)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  @@index([clientId])
+  @@index([policyId])
+  @@index([claimId])
+}
+model Activity {
+  id         String @id @default(cuid())
+  title      String
+  description String?
+  dueDate    DateTime?
+  status     ActivityStatus @default(PENDING)
+  prospectId String?
+  prospect   Prospect? @relation(fields: [prospectId], references: [id], onDelete: Restrict)
+  clientId   String?
+  client     Client? @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  policyId   String?
+  policy     Policy? @relation(fields: [policyId], references: [id], onDelete: Restrict)
+  claimId    String?
+  claim      Claim? @relation(fields: [claimId], references: [id], onDelete: Restrict)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  @@index([status, dueDate])
+  @@index([prospectId])
+  @@index([clientId])
+  @@index([policyId])
+  @@index([claimId])
+}
+model WebhookEvent {
+  id          String @id @default(cuid())
+  payloadHash String @unique
+  provider    String @default("whatsapp")
+  payload     Json
+  processedAt DateTime?
+  createdAt   DateTime @default(now())
+  @@index([processedAt, createdAt])
+}
+model AgentRun {
+  id         String @id @default(cuid())
+  agent      String
+  status     String @default("PENDING")
+  input      Json
+  output     Json?
+  error      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  @@index([status, createdAt])
+}
