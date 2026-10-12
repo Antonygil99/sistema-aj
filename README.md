@@ -87,3 +87,9 @@ El Método AJ todavía requiere documentación del negocio: no se inventaron reg
 Esta entrega prepara la base; incluye listados/altas mediante API, relaciones y validación. Las pantallas de módulos son espacios iniciales. Pendientes: captura/edición/búsqueda en interfaz, autenticación y roles, auditoría de acciones, archivos en almacenamiento privado (Document guarda solo metadatos), worker WhatsApp, adaptador eve, observabilidad y políticas de respaldo. No desplegar la API interna con datos reales antes de completar autenticación y permisos.
 
 Referencias: [Next.js](https://nextjs.org/docs/app), [Prisma PostgreSQL](https://www.prisma.io/docs/orm/v7/core-concepts/supported-databases/postgresql), [Meta Webhooks](https://developers.facebook.com/documentation/business-messaging/whatsapp/webhooks/create-webhook-endpoint), [eve](https://eve.dev/docs).
+
+## Conexión hospedada y creación de tablas
+
+DATABASE_URL es el nombre recomendado para la conexión pooled. Se acepta DATA_URL como nombre heredado para conservar secretos ya guardados en Vercel. DIRECT_URL permite indicar la conexión directa para migraciones. Para Prisma Postgres, si no se especifica DIRECT_URL, se convierte exclusivamente el host documentado pooled.db.prisma.io a db.prisma.io conservando credenciales, base y opciones TLS; otros proveedores no se transforman.
+
+npm run db:verify-deploy comprueba la conexión, se detiene ante una base con tablas ajenas sin historial Prisma, aplica únicamente migraciones pendientes y verifica las once tablas de aplicación y el historial. No borra tablas ni inserta datos de ejemplo. Requiere una URL PostgreSQL TCP; las URLs de Accelerate no son compatibles con el adaptador pg de esta base. Este comando es explícito y no se añadió al build habitual.
