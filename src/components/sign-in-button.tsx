@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { FcGoogle } from 'react-icons/fc';
 import { authClient } from '@/lib/auth-client';
 export function SignInButton({ available }: { available: boolean }) {
   const [pending, setPending] = useState(false);
@@ -11,5 +12,5 @@ export function SignInButton({ available }: { available: boolean }) {
       if (result.error) { setError('No fue posible iniciar sesión. Comprueba que tu cuenta esté autorizada.'); setPending(false); }
     } catch { setError('No fue posible conectar. Inténtalo de nuevo.'); setPending(false); }
   }
-  return <><button className="button google-button" disabled={!available || pending} onClick={signIn}><span aria-hidden="true">G</span>{pending ? 'Conectando…' : 'Continuar con Google'}</button>{error ? <p role="alert">{error}</p> : null}</>;
+  return <><button className="google-button" disabled={!available || pending} onClick={signIn}><FcGoogle aria-hidden="true" size={22}/>{pending ? 'Conectando…' : 'Continuar con Google'}</button>{error ? <p role="alert">{error}</p> : null}</>;
 }
