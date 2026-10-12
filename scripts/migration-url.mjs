@@ -1,4 +1,4 @@
-/** @param {{ DIRECT_URL?: string, DATABASE_URL?: string, DATA_URL?: string }} env */
+/** @param {Record<string, string | undefined>} env */
 export function migrationUrl(env) {
   const value = env.DIRECT_URL || env.DATABASE_URL || env.DATA_URL;
   if (!value) return undefined;
