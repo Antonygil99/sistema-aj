@@ -57,8 +57,11 @@ Las rutas CRM y de agentes admiten sesiones de Google autorizadas o Authorizatio
 | POST /api/agents/route | Selecciona un agente por tema; no ejecuta IA |
 | GET /api/whatsapp/webhook | Desafío de verificación Meta |
 | POST /api/whatsapp/webhook | Firma HMAC + persistencia idempotente del payload |
+| GET /api/documents?q=&take=&skip= | Listado y búsqueda de documentos por nombre |
+| POST /api/documents | Carga multipart a R2 privado (ADMIN); máximo 4 MiB |
+| GET /api/documents/{id}/download | Redirección 303 a un enlace firmado de 60 segundos |
 
-Módulos: prospectos, clientes, polizas, cotizaciones, pagos, renovaciones, siniestros, documentos, actividades. Fechas: ISO 8601 con zona horaria. Importes: texto decimal positivo como "1250.00"; moneda: código de tres letras, MXN por defecto. El schema.ts de cada módulo define los campos aceptados. Las relaciones deben referenciar IDs existentes. Campos desconocidos se rechazan.
+Módulos: prospectos, clientes, polizas, cotizaciones, pagos, renovaciones, siniestros, documentos, actividades. Fechas: ISO 8601 con zona horaria. Importes: texto decimal positivo como "1250.00"; moneda: código de tres letras, MXN por defecto. El schema.ts de cada módulo define los campos aceptados. Las relaciones deben referenciar IDs existentes. Campos desconocidos se rechazan. POST /api/crm/documentos responde 405: los documentos solo se registran mediante la carga verificada de /api/documents.
 
 ~~~powershell
 $headers = @{ Authorization = "Bearer $env:AJ_API_TOKEN" }
@@ -84,7 +87,7 @@ El Método AJ todavía requiere documentación del negocio: no se inventaron reg
 
 ## Alcance y siguientes pasos
 
-Esta entrega prepara la base; incluye listados/altas mediante API, relaciones y validación. Las pantallas de módulos son espacios iniciales. Pendientes: captura/edición/búsqueda en interfaz y auditoría de operaciones CRM, archivos en almacenamiento privado (Document guarda solo metadatos), worker WhatsApp, adaptador eve, observabilidad y políticas de respaldo. Antes de usar datos reales, completar las pantallas operativas y las reglas de acceso por expediente.
+Esta entrega prepara la base; incluye listados/altas mediante API, relaciones y validación. Las pantallas de módulos son espacios iniciales, excepto Documentos: carga, búsqueda y descarga privada con Cloudflare R2 (ver docs/documentos-r2.md). Pendientes: captura/edición/búsqueda en interfaz y auditoría de operaciones CRM, worker WhatsApp, adaptador eve, observabilidad y políticas de respaldo. Antes de usar datos reales, completar las pantallas operativas y las reglas de acceso por expediente.
 
 Referencias: [Next.js](https://nextjs.org/docs/app), [Prisma PostgreSQL](https://www.prisma.io/docs/orm/v7/core-concepts/supported-databases/postgresql), [Meta Webhooks](https://developers.facebook.com/documentation/business-messaging/whatsapp/webhooks/create-webhook-endpoint), [eve](https://eve.dev/docs).
 

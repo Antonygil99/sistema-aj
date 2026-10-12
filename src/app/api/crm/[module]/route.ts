@@ -19,7 +19,10 @@ export async function GET(request: Request, context: Context) {
 }
 export async function POST(request: Request, context: Context) {
   const denied = await authorize(request, 'ADMIN'); if (denied) return denied;
-  const service = lookup((await context.params).module);
+  const moduleSlug = (await context.params).module;
+  // Only the verified upload flow may register stored documents.
+  if (moduleSlug === 'documentos') return NextResponse.json({ error: 'USE_DOCUMENT_UPLOAD' }, { status: 405, headers: { Allow: 'GET' } });
+  const service = lookup(moduleSlug);
   if (!service) return NextResponse.json({ error: 'MODULE_NOT_FOUND' }, { status: 404 });
   try { return NextResponse.json({ data: await service.create(await request.json()) }, { status: 201 }); }
   catch (error) { return apiError(error); }
