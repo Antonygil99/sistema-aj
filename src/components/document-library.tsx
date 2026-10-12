@@ -12,7 +12,7 @@ const errors: Record<string, string> = {
   UNAUTHORIZED: 'Tu sesión terminó. Vuelve a entrar con Google.',
   FORBIDDEN: 'Tu cuenta tiene permiso de consulta. Para subir archivos necesitas ser administrador.',
 };
-export function DocumentLibrary({ initial, initialTotal, options, canUpload, configured }: { initial: DocumentRow[]; initialTotal: number; options: DocumentOption[]; canUpload: boolean; configured: boolean }) {
+export function DocumentLibrary({ initial, initialTotal, options, canUpload, configured, configurationMessage }: { initial: DocumentRow[]; initialTotal: number; options: DocumentOption[]; canUpload: boolean; configured: boolean; configurationMessage?: string }) {
   const [rows, setRows] = useState(initial);
   const [total, setTotal] = useState(initialTotal);
   const [skip, setSkip] = useState(0);
@@ -59,7 +59,7 @@ export function DocumentLibrary({ initial, initialTotal, options, canUpload, con
   }
   return <>
     <p className="notice">Archivos privados del equipo. Usuarios: consulta y descarga. Administradores: carga de archivos. Máximo 4 MB por archivo.</p>
-    {!configured ? <p role="alert" className="notice">El almacenamiento no está disponible. Un administrador debe revisar la configuración de R2.</p> : null}
+    {!configured ? <p role="alert" className="notice">{configurationMessage || 'El almacenamiento no está disponible. Un administrador debe revisar la configuración de R2.'}</p> : null}
     {canUpload ? <section className="document-panel" aria-labelledby="upload-heading"><h2 id="upload-heading">Añadir un archivo</h2><form className="access-form" onSubmit={upload}>
       <label>Archivo<input ref={fileRef} type="file" accept={accept} required disabled={busy || !configured} aria-describedby="file-help"/></label>
       <label>Expediente<select value={attachment} onChange={event => setAttachment(event.target.value)} disabled={busy || !configured}><option value="">Archivo general del equipo</option>{options.map(option => <option key={`${option.kind}:${option.id}`} value={`${option.kind}:${option.id}`}>{option.label}</option>)}</select></label>

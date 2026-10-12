@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { documentFiles, type DocumentRepository, type FileStorage, type StoredDocument } from '../src/modules/documentos/file-operations';
 import { boundedFormData, FileError, MAX_FILE_BYTES, MAX_REQUEST_BYTES, validateFile } from '../src/modules/documentos/file-policy';
-import { createR2, r2Configuration } from '../src/integrations/r2/client';
+import { createR2, r2Configuration, r2Status } from '../src/integrations/r2/client';
 
 const pdf = Buffer.from('%PDF-1.7\nTest document\n%%EOF');
 function fixture() {
@@ -76,4 +76,19 @@ test('R2 rechaza endpoints ajenos y la firma caduca en 60 segundos con descarga 
     assert.match(url.searchParams.get('response-content-disposition')!, /^attachment;/);
     assert.equal(url.href.includes(env.R2_SECRET_ACCESS_KEY), false);
   } finally { storage.client.destroy(); }
+});
+test('acepta el endpoint del bucket y espacios de copia sin aceptar rutas ajenas', () => {
+  const config = r2Configuration({ ...env, R2_ENDPOINT: ` ${env.R2_ENDPOINT}/test-bucket/ \n`, R2_BUCKET_NAME: ' test-bucket ', R2_ACCESS_KEY_ID: ' test-key ', R2_SECRET_ACCESS_KEY: ' test-secret ' });
+  assert.equal(config.endpoint, env.R2_ENDPOINT);
+  assert.equal(config.bucket, 'test-bucket');
+  assert.equal(config.credentials.accessKeyId, 'test-key');
+  assert.throws(() => r2Configuration({ ...env, R2_ENDPOINT: env.R2_ENDPOINT + '/another-bucket' }), /R2_ENDPOINT_INVALID/);
+});
+test('el diagnóstico identifica el campo inválido sin revelar valores privados', () => {
+  const invalid = r2Status({ ...env, R2_ENDPOINT: 'private-invalid-value' });
+  assert.equal(invalid.configured, false);
+  assert.match(invalid.message, /R2_ENDPOINT/);
+  assert.equal(invalid.message.includes('private-invalid-value'), false);
+  assert.match(r2Status({ ...env, R2_BUCKET_NAME: 'Bad Bucket' }).message, /R2_BUCKET_NAME/);
+  assert.equal(r2Status({ ...env, R2_SECRET_ACCESS_KEY: ' ' }).configured, false);
 });
