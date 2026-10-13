@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import Link from 'next/link';
 import { Add, Archive, ArrowRight, ArrowRotateLeft, Category, Edit2, Eye, MessageText, Refresh2, RowVertical, SearchNormal1, Trash } from 'iconsax-reactjs';
 import { currencies, formToBody, resources, rowToForm, type Field, type ResourceSlug, type Row, type Tone } from '@/modules/resources/config';
@@ -20,7 +20,7 @@ type Filters = { q: string; status: string; archived: boolean };
 const PAGE = 20;
 const nestedKey = (field: Field) => field.name.replace(/Id$/, '');
 // Generic CRM table: search, filters, active/archived views, create/edit modal, archive/restore, permanent delete.
-export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuery = '', openId, initialView = 'list' }: { slug: ResourceSlug; initial: Page; canEdit: boolean; canDelete: boolean; initialQuery?: string; openId?: string; initialView?: 'list' | 'board' }) {
+export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuery = '', openId, initialView = 'list', toolbarStart }: { slug: ResourceSlug; initial: Page; canEdit: boolean; canDelete: boolean; initialQuery?: string; openId?: string; initialView?: 'list' | 'board'; toolbarStart?: ReactNode }) {
   const config = resources[slug];
   // A global-search result arrives with ?open=<id>: start with that record's card open.
   const [initialRow] = useState(() => openId ? initial.data.find(row => row.id === openId) ?? null : null);
@@ -163,6 +163,7 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
   const statusOf = (row: Row) => typeof row.status === 'string' && config.statuses ? { label: config.statuses[row.status] ?? row.status, tone: config.statusTones?.[row.status] ?? 'neutral' } : null;
   return <div className="resource">
     <div className="resource-toolbar">
+      {toolbarStart}
       <div className="segmented" role="tablist" aria-label="Vista">
         <button type="button" role="tab" aria-selected={!applied.archived} disabled={loading} onClick={() => { const next = { ...draft, archived: false }; setDraft(next); void load(0, next, false, boardTake); }}>Activos</button>
         <button type="button" role="tab" aria-selected={applied.archived} disabled={loading} onClick={() => { const next = { ...draft, archived: true }; setDraft(next); void load(0, next); }}>Archivados</button>
