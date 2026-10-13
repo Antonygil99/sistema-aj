@@ -66,7 +66,6 @@ model Client {
   policies  Policy[]
   quotes    Quote[]
   documents Document[]
-  folders   DocumentFolder[]
   activities Activity[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -80,7 +79,6 @@ model Policy {
   insurer     String
   product     String
   premium     Decimal @db.Decimal(12, 2)
-  paymentFrequency String?
   currency    String @default("MXN")
   startDate   DateTime
   endDate     DateTime
@@ -156,8 +154,6 @@ model Document {
   name       String
   storageKey String @unique
   mimeType   String
-  folderId   String?
-  folder     DocumentFolder? @relation(fields: [folderId], references: [id], onDelete: Restrict)
   clientId   String?
   client     Client? @relation(fields: [clientId], references: [id], onDelete: Restrict)
   policyId   String?
@@ -169,21 +165,6 @@ model Document {
   @@index([clientId])
   @@index([policyId])
   @@index([claimId])
-  @@index([folderId])
-}
-model DocumentFolder {
-  id String @id @default(cuid())
-  name String
-  parentId String?
-  parent DocumentFolder? @relation("FolderTree", fields: [parentId], references: [id], onDelete: Restrict)
-  children DocumentFolder[] @relation("FolderTree")
-  clientId String?
-  client Client? @relation(fields: [clientId], references: [id], onDelete: Restrict)
-  documents Document[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  @@index([parentId])
-  @@index([clientId])
 }
 model Activity {
   id         String @id @default(cuid())
