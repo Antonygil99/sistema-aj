@@ -63,5 +63,7 @@ export async function apiFetch<T = unknown>(url: string, init: RequestInit & { j
     signalSecurity(code);
     throw new ApiError(code, response.status, code === 'INVALID_INPUT' ? issueMessage(body.issues, labels) : messageFor(code), body.issues ?? []);
   }
+  // Refresh the visible module's KPIs after a successful business mutation, without resetting forms.
+  if (typeof window !== 'undefined' && rest.method && !['GET','HEAD'].includes(rest.method.toUpperCase()) && /^\/api\/(crm|dossiers|policies|documents|folders|products)(\/|$)/.test(url)) window.dispatchEvent(new CustomEvent('aj:metrics-changed'));
   return body;
 }

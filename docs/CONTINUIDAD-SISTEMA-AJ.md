@@ -1,6 +1,6 @@
 # Sistema AJ — continuidad del proyecto
 
-Actualizado: 12 de octubre de 2026. Documento para continuar el trabajo con Claude o cualquier desarrollador. No contiene credenciales ni correos privados de las cuentas autorizadas.
+Actualizado: 13 de octubre de 2026. Documento para continuar el trabajo con Claude o cualquier desarrollador. No contiene credenciales ni correos privados de las cuentas autorizadas.
 
 ## 1. Objetivo y alcance acordado
 
@@ -203,3 +203,7 @@ Agentes previstos: coordinador/Método AJ, ventas, siniestros, renovaciones y ad
 Antes de editar, revisar el estado de Git y los cambios de Claude u otro colaborador. Preservar archivos existentes; no reinicializar el repositorio, resetear bases, reemplazar configuración de producción ni sembrar demos en la cartera real. Reportar por separado pruebas locales, integración con servicios y validación manual del usuario.
 
 Iconografía del CRM: Iconsax, variante Linear, mediante iconsax-reactjs. Mantener esta familia al añadir controles y módulos. El icono oficial de Google del login permanece sin cambios.
+
+## KPIs por módulo y notas de voz del cliente
+
+Los once módulos tienen cuatro KPIs reales, con definición visible, ámbito y actualización tras cambios. En Pólizas y Renovaciones se añadió radar a 60 días; en Pagos, radar de recibos por confirmar en el mes. La falta de calendarios conciliados se muestra como pendiente de datos, sin afirmar que la cobranza está al día. Los audios confirman el modelo de una póliza con varios recibos y priorizan avisos de renovación 30/20/10 días y pagos 20/10/0. Calendario y envío automático siguen pendientes. Ver docs/kpis-y-proceso.md para las fórmulas, el proceso y los límites. Audios y transcripciones completas permanecen fuera del repositorio público.
