@@ -158,3 +158,5 @@ Agentes previstos: coordinador/Método AJ, ventas, siniestros, renovaciones y ad
 8. Conectar agentes y Método AJ con evidencia del negocio, trazabilidad y herramientas acotadas.
 
 Antes de editar, revisar el estado de Git y los cambios de Claude u otro colaborador. Preservar archivos existentes; no reinicializar el repositorio, resetear bases, reemplazar configuración de producción ni sembrar demos en la cartera real. Reportar por separado pruebas locales, integración con servicios y validación manual del usuario.
+
+Iconografía del CRM: Iconsax, variante Linear, mediante iconsax-reactjs. Mantener esta familia al añadir controles y módulos. El icono oficial de Google del login permanece sin cambios.

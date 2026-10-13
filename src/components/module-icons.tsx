@@ -1,14 +1,14 @@
-import type { IconType } from 'react-icons';
-import { LuCalculator, LuCalendarCheck, LuCreditCard, LuFolderOpen, LuRefreshCw, LuShieldCheck, LuSiren, LuUserPlus, LuUsers } from 'react-icons/lu';
+import type { Icon as IconType } from 'iconsax-reactjs';
+import { Calculator, CalendarTick, Card, FolderOpen, Refresh2, ShieldTick, Warning2, UserAdd, People } from 'iconsax-reactjs';
 import type { ModuleSlug } from '@/modules/catalog';
 export const moduleIcons: Record<ModuleSlug, IconType> = {
-  prospectos: LuUserPlus,
-  clientes: LuUsers,
-  polizas: LuShieldCheck,
-  cotizaciones: LuCalculator,
-  pagos: LuCreditCard,
-  renovaciones: LuRefreshCw,
-  siniestros: LuSiren,
-  documentos: LuFolderOpen,
-  actividades: LuCalendarCheck,
+  prospectos: UserAdd,
+  clientes: People,
+  polizas: ShieldTick,
+  cotizaciones: Calculator,
+  pagos: Card,
+  renovaciones: Refresh2,
+  siniestros: Warning2,
+  documentos: FolderOpen,
+  actividades: CalendarTick,
 };
