@@ -17,7 +17,7 @@ type Listing = { data: DocumentRow[]; folders: FolderRow[]; total: number };
 const accept = '.pdf,.jpg,.jpeg,.png,.webp,.mp3,.ogg,.wav,.mp4';
 const PAGE = 20;
 const kindLabel = (mime: string) => mime === 'application/pdf' ? 'PDF' : mime.startsWith('image/') ? 'Imagen' : mime.startsWith('audio/') ? 'Audio' : mime.startsWith('video/') ? 'Video' : 'Archivo';
-export function DocumentLibrary({ initial, initialTotal, initialFolders, options, canUpload, canDelete, configured, configurationMessage, clientId = null, clientName }: { initial: DocumentRow[]; initialTotal: number; initialFolders: FolderRow[]; options: DocumentOption[]; canUpload: boolean; canDelete: boolean; configured: boolean; configurationMessage?: string; clientId?: string | null; clientName?: string }) {
+export function DocumentLibrary({ initial, initialTotal, initialFolders, options, canUpload, canDelete, configured, configurationMessage, clientId = null, clientName, initialFolderId = null }: { initialFolderId?: string | null; initial: DocumentRow[]; initialTotal: number; initialFolders: FolderRow[]; options: DocumentOption[]; canUpload: boolean; canDelete: boolean; configured: boolean; configurationMessage?: string; clientId?: string | null; clientName?: string }) {
   const router = useRouter();
   const toast = useToast();
   const confirm = useConfirm();
@@ -25,7 +25,7 @@ export function DocumentLibrary({ initial, initialTotal, initialFolders, options
   const [rows, setRows] = useState(initial);
   const [folders, setFolders] = useState(initialFolders);
   const [total, setTotal] = useState(initialTotal);
-  const [folderId, setFolderId] = useState<string | null>(null);
+  const [folderId, setFolderId] = useState<string | null>(initialFolderId);
   const [skip, setSkip] = useState(0);
   const [query, setQuery] = useState('');
   const [activeQuery, setActiveQuery] = useState('');
@@ -40,7 +40,7 @@ export function DocumentLibrary({ initial, initialTotal, initialFolders, options
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const areaRef = useRef<HTMLElement>(null);
-  const position = useRef({ folderId: null as string | null, skip: 0, query: '' });
+  const position = useRef({ folderId: initialFolderId, skip: 0, query: '' });
   const path: FolderRow[] = [];
   for (let ancestor = folders.find(folder => folder.id === folderId), seen = new Set<string>(); ancestor && !seen.has(ancestor.id); ancestor = folders.find(folder => folder.id === ancestor?.parentId)) { seen.add(ancestor.id); path.unshift(ancestor); }
   const visibleFolders = folders.filter(folder => folder.parentId === folderId && (!activeQuery || folder.name.toLocaleLowerCase().includes(activeQuery.toLocaleLowerCase())));

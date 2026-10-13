@@ -11,6 +11,7 @@ import { ConfirmProvider } from './ui/confirm';
 import { UploadProvider } from './ui/upload-manager';
 import { NotificationCenter } from './ui/notifications';
 import { MobileNav } from './ui/mobile-nav';
+import { CommandSearch } from './ui/command-search';
 const groups: { label: string; slugs: ModuleSlug[] }[] = [
   { label: 'Relaciones', slugs: ['prospectos', 'clientes', 'cotizaciones'] },
   { label: 'Operación', slugs: ['polizas', 'pagos', 'renovaciones', 'siniestros'] },
@@ -34,7 +35,7 @@ export function WorkspaceShell({ children, user }: { children: ReactNode; user: 
       </nav>
       <div className="sidebar-account"><p className="nav-label sidebar-label">Tu cuenta</p><div className="account-summary"><span className="account-avatar" aria-hidden="true">{initials}</span><div className="sidebar-label account-name"><strong>{user.name}</strong><small>{roles[user.role]}</small></div></div><div className="account-signout"><SignOutButton/></div></div>
     </aside>
-    <div className="main workspace-main"><header className="workspace-topbar"><div className="workspace-breadcrumb"><Link href="/">Espacio AJ</Link><ArrowRight3 aria-hidden="true"/><span>{title}</span></div><div className="workspace-access"><span className="access-dot"/><span className="access-label">Acceso privado</span><NotificationCenter/></div></header><main id="workspace-content" tabIndex={-1} className="workspace-content">{children}</main><footer className="workspace-footer"><span>Sistema AJ</span><span>Seguros, relaciones y seguimiento.</span></footer></div>
+    <div className="main workspace-main"><header className="workspace-topbar"><div className="workspace-breadcrumb"><Link href="/">Espacio AJ</Link><ArrowRight3 aria-hidden="true"/><span>{title}</span></div><div className="workspace-access"><span className="access-dot"/><span className="access-label">Acceso privado</span><NotificationCenter/><CommandSearch role={user.role}/></div></header><main id="workspace-content" tabIndex={-1} className="workspace-content">{children}</main><footer className="workspace-footer"><span>Sistema AJ</span><span>Seguros, relaciones y seguimiento.</span></footer></div>
     <MobileNav groups={groups} user={{ name: user.name, role: user.role, roleLabel: roles[user.role] }}/>
     </UploadProvider></ConfirmProvider></ToastProvider><div id="workspace-portal" className="workspace-portal"/>
   </div>;

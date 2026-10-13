@@ -15,17 +15,19 @@ type Filters = { q: string; status: string; archived: boolean };
 const PAGE = 20;
 const nestedKey = (field: Field) => field.name.replace(/Id$/, '');
 // Generic CRM table: search, filters, active/archived views, create/edit modal, archive/restore, permanent delete.
-export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuery = '' }: { slug: ResourceSlug; initial: Page; canEdit: boolean; canDelete: boolean; initialQuery?: string }) {
+export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuery = '', openId }: { slug: ResourceSlug; initial: Page; canEdit: boolean; canDelete: boolean; initialQuery?: string; openId?: string }) {
   const config = resources[slug];
+  // A global-search result arrives with ?open=<id>: start with that record's card open.
+  const [initialRow] = useState(() => openId ? initial.data.find(row => row.id === openId) ?? null : null);
   const [page, setPage] = useState(initial);
   const [skip, setSkip] = useState(0);
   const [draft, setDraft] = useState<Filters>({ q: initialQuery, status: '', archived: false });
   const [applied, setApplied] = useState<Filters>({ q: initialQuery, status: '', archived: false });
   const [loading, setLoading] = useState(false);
-  const [editing, setEditing] = useState<Row | 'new' | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [values, setValues] = useState<Record<string, string>>({});
-  const [labels, setLabels] = useState<Record<string, string>>({});
+  const [editing, setEditing] = useState<Row | 'new' | null>(initialRow);
+  const [modalOpen, setModalOpen] = useState(Boolean(initialRow));
+  const [values, setValues] = useState<Record<string, string>>(() => rowToForm(config, initialRow));
+  const [labels, setLabels] = useState<Record<string, string>>(() => relationLabels(config.fields, initialRow));
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
   const toast = useToast();
@@ -48,12 +50,17 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
     window.addEventListener('aj:remote-change', onRemote);
     return () => window.removeEventListener('aj:remote-change', onRemote);
   }, [slug, modalOpen, load, skip, applied]);
+  useEffect(() => {
+    if (!openId) return;
+    // Drop ?open from the address so a refresh does not reopen the card.
+    const url = new URL(window.location.href); url.searchParams.delete('open'); window.history.replaceState(null, '', url);
+  }, [openId]);
   useLayoutEffect(() => { if (listRef.current) riseIn(listRef.current.querySelectorAll('[data-row]'), 0.03); }, [page]);
   function openEditor(row: Row | 'new') {
     setEditing(row); setFormError('');
     const record = row === 'new' ? null : row;
     setValues(rowToForm(config, record));
-    setLabels(Object.fromEntries(config.fields.filter(field => field.type === 'relation').map(field => { const nested = record?.[nestedKey(field)] as Row | undefined; return [field.name, nested && field.relation ? labelFor(field, nested) : '']; })));
+    setLabels(relationLabels(config.fields, record));
     setModalOpen(true);
   }
   async function save(event: FormEvent<HTMLFormElement>) {
@@ -152,6 +159,9 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
       </form>
     </Modal>
   </div>;
+}
+function relationLabels(fields: Field[], record: Row | null) {
+  return Object.fromEntries(fields.filter(field => field.type === 'relation').map(field => { const nested = record?.[nestedKey(field)] as Row | undefined; return [field.name, nested && field.relation ? labelFor(field, nested) : '']; }));
 }
 function labelFor(field: Field, nested: Row) {
   if (field.relation === 'polizas') return [nested.number, (nested.client as Row | undefined)?.name].filter(Boolean).join(' · ');

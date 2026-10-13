@@ -33,6 +33,11 @@ export async function listResource(slug: ResourceSlug, input: unknown) {
   ]);
   return { data, total, take: query.take, skip: query.skip };
 }
+// Global search: a few active matches per table, without counting.
+export async function searchResource(slug: ResourceSlug, q: string, take = 5) {
+  const { where } = listFilter(slug, { q, take });
+  return delegate(getDb(), slug).findMany({ where, take, orderBy: [...definitions[slug].orderBy, { id: 'desc' }], ...withInclude(slug) });
+}
 export async function findResource(slug: ResourceSlug, id: string) {
   return delegate(getDb(), slug).findUnique({ where: { id }, ...withInclude(slug) });
 }

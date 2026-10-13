@@ -59,6 +59,7 @@ Las rutas CRM y de agentes admiten sesiones de Google autorizadas o Authorizatio
 | PATCH /api/crm/{modulo}/{id} | Ficha completa + expectedUpdatedAt (ADMIN); los opcionales omitidos se limpian. Conflicto de versión: 409 RECORD_CHANGED |
 | POST /api/crm/{modulo}/{id}/archive | Archiva o restaura con `{ "archived": true }` o `false` (ADMIN) |
 | DELETE /api/crm/{modulo}/{id} | Borrado definitivo (SUPERADMIN) solo sin información vinculada; si no, 409 HAS_RELATIONS |
+| GET /api/search?q= | Búsqueda global (mínimo 2 letras): registros de todos los módulos, archivos, carpetas y, para el superadmin, accesos |
 | GET /api/notifications?since= | Novedades de otras personas del equipo y recordatorios (recibos vencidos, renovaciones de la semana) |
 | GET /api/agents | Catálogo de cinco agentes |
 | POST /api/agents/route | Selecciona un agente por tema; no ejecuta IA |
