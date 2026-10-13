@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Add, Folder2, FolderOpen, RowVertical, SearchNormal1 } from 'iconsax-reactjs';
+import { Add, Folder2, FolderOpen, SearchNormal1 } from 'iconsax-reactjs';
 import { getDb } from '@/lib/db';
 import { requireUser } from '@/lib/session';
 import { hasRole } from '@/lib/access-policy';
@@ -7,7 +7,7 @@ import { coverageState } from '@/modules/clientes/dossier-policy';
 import { formatDate, formatMoney } from '@/modules/resources/config';
 import { EmptyState } from './ui/empty-state';
 import { LinkPending } from './ui/link-pending';
-import { ViewLink } from './ui/view-link';
+import { ClientViewSwitch } from './client-view-switch';
 const PAGE = 24;
 export async function DossiersPage({ query = '', page = 0 }: { query?: string; page?: number }) {
   const user = await requireUser();
@@ -22,7 +22,7 @@ export async function DossiersPage({ query = '', page = 0 }: { query?: string; p
   ]);
   const newButton = canEdit ? <Link className="button" href="/crm/clientes/nuevo"><Add aria-hidden="true"/>Nuevo expediente</Link> : null;
   return <>
-    <div className="resource-toolbar"><span className="resource-count">{total} expediente{total === 1 ? '' : 's'}</span><ViewLink className="button button-soft" href="/crm/clientes?view=list" remember={{ clientes: 'list' }}><RowVertical aria-hidden="true"/>Lista, archivo y edición</ViewLink>{newButton}</div>
+    <div className="resource-toolbar"><ClientViewSwitch current="dossiers"/><span className="resource-count">{total} expediente{total === 1 ? '' : 's'}</span>{newButton}</div>
     <form className="resource-filters"><label className="search-field"><SearchNormal1 aria-hidden="true"/><span className="sr-only">Buscar expediente</span><input name="q" type="search" defaultValue={q} placeholder="Nombre, correo o teléfono" maxLength={100}/></label><button className="button button-soft">Buscar</button></form>
     {clients.length ? <div className="dossier-grid">{clients.map((client, index) => {
       const next = client.policies.flatMap(policy => policy.payments.map(payment => ({ ...payment, currency: policy.currency }))).sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())[0];

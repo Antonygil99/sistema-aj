@@ -29,3 +29,13 @@ node scripts/import-policy-register.mjs C:\ruta-privada\datos-preparados.json --
 La migración de `Policy.sourceData` es aditiva. Los campos de captura opcionales `coverage`, `vehicle`, `plates` y `vehicleUse`, añadidos en paralelo por otro colaborador, se rellenan si están disponibles; la procedencia conserva esos datos independientemente de esas columnas.
 
 Se ejecutaron esquema, lint, tipos, 54 pruebas existentes y compilación local. La validación de importación fue contra la base configurada real, seguida de simulación idempotente. Falta conciliación del consolidado de movimientos pagados con pólizas originales y los casos del reporte privado.
+
+## Mantenimiento posterior (13 de octubre de 2026)
+
+- Tony compartió una exportación en PDF de la misma hoja («Base de Datos - Control de Póli»): tiene las mismas 496 filas que el Excel ya importado, así que no hubo pólizas nuevas que cargar.
+- `scripts/policy-maintenance.mjs --renewals=60 --clean-details --apply` creó 58 renovaciones pendientes (pólizas activas que vencen en los próximos 60 días) y limpió 58 valores de relleno copiados a placas, vehículo y uso (S/N, SN, N/E, SINDATO, *, XXX000, «—»…). Una segunda simulación dio cero cambios.
+- Siguen sin póliza 21 números del archivo, retenidos para decisión de negocio:
+  - misma póliza con dos vigencias (anterior y actual): 738829, 734971, 404981, 1003338 y 5773066;
+  - filas repetidas con diferencias: Y00-1-1-72382 (prima y forma de pago distintas), 109470 y 6370089897 (solo cambia la redacción);
+  - estatus o tipo especial: VI0002894721 (vida en UDI), Y00-1-1-70298 (inactiva), 6370077171 (sustituida), 100-0000083251-02 (vencida) y las tres cotizaciones de renovación sin número;
+  - nombres o datos por confirmar: E1001270360-1, 4102500079918, 6370067781, 2353304, 1050689, ZUR-112398765, 1003570 y 492494.

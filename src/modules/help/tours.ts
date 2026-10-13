@@ -46,7 +46,7 @@ function moduleTour(slug: ModuleSlug): Tour {
     intro('Cada cliente tiene un expediente con sus pólizas, recibos y documentos.'),
     { targets: ['.dossier-grid .dossier-card'], title: 'Expedientes', body: 'Cada carpeta es un cliente. Ábrela para ver sus pólizas, su entrega activa, sus recibos y sus documentos.' },
     { targets: ['.resource-toolbar a[href="/crm/clientes/nuevo"]'], title: 'Nuevo expediente', body: 'Un asistente de 4 pasos crea al cliente, su primera póliza y su calendario de recibos de una sola vez.' },
-    { targets: ['.resource-toolbar a[href*="view=list"]', '.back[href*="view=dossiers"]'], title: 'Expedientes o lista', body: 'La lista sirve para editar datos de contacto y archivar. Recordamos la vista que elijas.' },
+    { targets: ['.resource-toolbar .segmented[aria-label="Forma de ver"]'], title: 'Expedientes o lista', body: 'La lista sirve para editar datos de contacto y archivar. Recordamos la vista que elijas.' },
     // In the list view the generic archive, search and open steps apply; the dossier view skips them.
     ...tableSteps('clientes').filter((_, index) => index !== 1),
   ] };

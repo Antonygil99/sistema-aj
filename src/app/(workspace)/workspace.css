@@ -324,3 +324,6 @@
 /* Tema oscuro: ajustes que los tokens no cubren (ilustraciones con trazos oscuros) */
 .workspace[data-theme=dark] .empty-state img{filter:invert(.9) hue-rotate(180deg) saturate(.85)}
 @media(prefers-color-scheme:dark){.workspace[data-theme=system] .empty-state img{filter:invert(.9) hue-rotate(180deg) saturate(.85)}}
+
+/* Selector de vista dentro de la barra de herramientas (Clientes): mismo tamaño que los botones del resto */
+.workspace .resource-toolbar .segmented a{font-size:13px}.workspace .resource-toolbar .segmented a svg{width:15px;height:15px}
