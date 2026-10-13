@@ -29,7 +29,8 @@ function toCard(row: PolicyRow): DeliveryCard {
 }
 // Active, non-archived policies, optionally only those of one responsible.
 export async function deliveryBoard(ownerEmail?: string | null) {
-  const rows = await getDb().policy.findMany({ where: { archivedAt: null, status: 'ACTIVE', ...(ownerEmail ? { ownerEmail } : {}) }, orderBy: [{ startDate: 'desc' }, { id: 'desc' }], take: 300, select: policySelect });
+  // Every active policy belongs on the board (stage counts come from these rows); the cap only guards against runaway data.
+  const rows = await getDb().policy.findMany({ where: { archivedAt: null, status: 'ACTIVE', ...(ownerEmail ? { ownerEmail } : {}) }, orderBy: [{ startDate: 'desc' }, { id: 'desc' }], take: 2000, select: policySelect });
   return (rows as unknown as PolicyRow[]).map(toCard);
 }
 export async function deliveryCard(id: string) {
