@@ -12,13 +12,15 @@ import { useToast } from './ui/toast';
 import { gsap, isMobile, prefersReducedMotion, riseIn } from './ui/motion';
 import { useDrag } from './ui/use-drag';
 import { initials, teammateLabel, useTeam, type Teammate } from './ui/use-team';
+import { usePreferences } from './ui/preferences';
+import { isViewKey } from '@/modules/preferences';
 import { productLineLabels } from '@/modules/resources/config';
 type Page = { data: Row[]; total: number };
 type Filters = { q: string; status: string; archived: boolean };
 const PAGE = 20;
 const nestedKey = (field: Field) => field.name.replace(/Id$/, '');
 // Generic CRM table: search, filters, active/archived views, create/edit modal, archive/restore, permanent delete.
-export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuery = '', openId }: { slug: ResourceSlug; initial: Page; canEdit: boolean; canDelete: boolean; initialQuery?: string; openId?: string }) {
+export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuery = '', openId, initialView = 'list' }: { slug: ResourceSlug; initial: Page; canEdit: boolean; canDelete: boolean; initialQuery?: string; openId?: string; initialView?: 'list' | 'board' }) {
   const config = resources[slug];
   // A global-search result arrives with ?open=<id>: start with that record's card open.
   const [initialRow] = useState(() => openId ? initial.data.find(row => row.id === openId) ?? null : null);
@@ -45,7 +47,9 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
   const confirm = useConfirm();
   const listRef = useRef<HTMLDivElement>(null);
   const fieldLabels = Object.fromEntries(config.fields.map(field => [field.name, field.label]));
-  const [view, setView] = useState<'list' | 'board'>(config.board ? 'board' : 'list');
+  const [view, setView] = useState<'list' | 'board'>(config.board ? initialView : 'list');
+  const { update: updatePreferences } = usePreferences();
+  const chooseView = (next: 'list' | 'board') => { setView(next); if (isViewKey(slug)) updatePreferences({ views: { [slug]: next } }); };
   const load = useCallback(async (nextSkip: number, filters: Filters, quiet = false, take = PAGE) => {
     if (!quiet) setLoading(true);
     try {
@@ -164,8 +168,8 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
         <button type="button" role="tab" aria-selected={applied.archived} disabled={loading} onClick={() => { const next = { ...draft, archived: true }; setDraft(next); void load(0, next); }}>Archivados</button>
       </div>
       {config.board && !applied.archived ? <div className="segmented" role="group" aria-label="Forma de ver">
-        <button type="button" aria-pressed={view === 'board'} onClick={() => { setView('board'); const next = { ...draft, status: '' }; setDraft(next); void load(0, next, false, 100); }}><Category aria-hidden="true"/>Embudo</button>
-        <button type="button" aria-pressed={view === 'list'} onClick={() => { setView('list'); void load(0, applied); }}><RowVertical aria-hidden="true"/>Lista</button>
+        <button type="button" aria-pressed={view === 'board'} onClick={() => { chooseView('board'); const next = { ...draft, status: '' }; setDraft(next); void load(0, next, false, 100); }}><Category aria-hidden="true"/>Embudo</button>
+        <button type="button" aria-pressed={view === 'list'} onClick={() => { chooseView('list'); void load(0, applied); }}><RowVertical aria-hidden="true"/>Lista</button>
       </div> : null}
       <span className="resource-count">{page.total} {page.total === 1 ? config.singular : config.plural}</span>
       {canEdit ? <button type="button" className="button" onClick={() => openEditor('new')}><Add aria-hidden="true"/>Nuev{config.article === 'una' ? 'a' : 'o'} {config.singular}</button> : <span className="badge">Acceso de consulta</span>}

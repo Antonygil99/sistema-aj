@@ -10,6 +10,7 @@ import { Modal } from './ui/modal';
 import { riseIn } from './ui/motion';
 import { useToast } from './ui/toast';
 import { useUploads } from './ui/upload-manager';
+import { usePreferences } from './ui/preferences';
 export type DocumentRow = { id: string; name: string; mimeType: string; folderId: string | null; createdAt: string; updatedAt: string; client: { name: string } | null; policy: { number: string } | null; claim: { reference: string } | null };
 export type FolderRow = { id: string; name: string; parentId: string | null; clientId: string | null; updatedAt: string };
 export type DocumentOption = { id: string; label: string; kind: 'clientId' | 'policyId' | 'claimId' };
@@ -29,7 +30,9 @@ export function DocumentLibrary({ initial, initialTotal, initialFolders, options
   const [skip, setSkip] = useState(0);
   const [query, setQuery] = useState('');
   const [activeQuery, setActiveQuery] = useState('');
-  const [view, setView] = useState<'grid' | 'list'>('grid');
+  const { preferences, update: updatePreferences } = usePreferences();
+  const [view, setViewState] = useState<'grid' | 'list'>(preferences.views.documentos ?? 'grid');
+  const setView = (next: 'grid' | 'list') => { setViewState(next); updatePreferences({ views: { documentos: next } }); };
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [attachment, setAttachment] = useState('');

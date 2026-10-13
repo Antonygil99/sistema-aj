@@ -1,9 +1,10 @@
 'use client';
 import { useEffect, useId, useRef, useState, type MouseEvent } from 'react';
 import Link from 'next/link';
-import { ArrowRight2, UserOctagon } from 'iconsax-reactjs';
+import { ArrowRight2, Chart, MessageQuestion, UserOctagon } from 'iconsax-reactjs';
 import { Avatar } from './ui/avatar';
 import { SignOutButton } from './sign-out-button';
+import { useTours } from './ui/tours';
 export type AccountUser = { name: string; email: string; image: string | null; role: 'USER' | 'ADMIN' | 'SUPERADMIN' };
 // Sidebar account row (photo, name, email). Opens a small menu beside the sidebar with the role and account actions.
 // The menu is position: fixed so the scrollable sidebar never clips it, also in compact mode.
@@ -13,6 +14,7 @@ export function AccountMenu({ user, roleLabel }: { user: AccountUser; roleLabel:
   const panel = useRef<HTMLDivElement>(null);
   const menuId = useId();
   const focusFirst = useRef(false);
+  const { openHelp } = useTours();
   const open = place !== null;
   function toggle(event: MouseEvent) {
     if (open) { setPlace(null); return; }
@@ -46,6 +48,8 @@ export function AccountMenu({ user, roleLabel }: { user: AccountUser; roleLabel:
         <Avatar name={user.name} email={user.email} image={user.image} size={40}/>
         <div className="account-menu-identity"><strong>{user.name}</strong><span>{user.email}</span><small className="account-role">{roleLabel}</small></div>
       </div>
+      <button type="button" className="account-menu-item" onClick={() => { setPlace(null); openHelp(); }}><MessageQuestion aria-hidden="true"/>Centro de ayuda</button>
+      <button type="button" className="account-menu-item" disabled aria-describedby={`${menuId}-soon`}><Chart aria-hidden="true"/>Reportes<span className="soon-pill" id={`${menuId}-soon`}>Próximamente</span></button>
       {user.role === 'SUPERADMIN' ? <Link className="account-menu-item" href="/usuarios" onClick={() => setPlace(null)}><UserOctagon aria-hidden="true"/>Usuarios y accesos</Link> : null}
       <SignOutButton className="account-menu-item"/>
     </div> : null}

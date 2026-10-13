@@ -60,6 +60,7 @@ Las rutas CRM y de agentes admiten sesiones de Google autorizadas o Authorizatio
 | POST /api/crm/{modulo}/{id}/archive | Archiva o restaura con `{ "archived": true }` o `false` (ADMIN) |
 | DELETE /api/crm/{modulo}/{id} | Borrado definitivo (SUPERADMIN) solo sin información vinculada; si no, 409 HAS_RELATIONS |
 | GET /api/team | Personas del equipo para asignar responsable |
+| PATCH /api/preferences | Preferencias de la persona que inició sesión: vista elegida por módulo y recorridos guiados (activados y vistos) |
 | POST/DELETE /api/products/{id}/image | Sube o quita la imagen de un producto (ADMIN); GET la muestra con un enlace firmado |
 | GET /api/policies/delivery-board | Pólizas activas con su etapa de entrega activa |
 | GET/PATCH /api/policies/{id}/delivery | Entrega activa de una póliza: fecha, checklist de 5 puntos, posible referido y seguimientos 7/30/90 (PATCH ADMIN con expectedUpdatedAt) |
