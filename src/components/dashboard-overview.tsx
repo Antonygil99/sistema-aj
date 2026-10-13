@@ -6,6 +6,7 @@ import type { DashboardMetrics } from '@/modules/metrics/server';
 import { compactMoney, ratio, type Delta } from '@/modules/metrics/period';
 import { moduleIcons } from '@/components/module-icons';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Avatar } from '@/components/ui/avatar';
 // Funnel stages are ordered, so they share one validated green ramp (dataviz --ordinal, light and dark themes):
 // the values live in theme.css as --funnel-1…5.
 const money = (byCurrency: Record<string, number>) => Object.entries(byCurrency).filter(([, value]) => value > 0).map(([currency, value]) => compactMoney(value, currency)).join(' + ') || compactMoney(0);
@@ -13,9 +14,10 @@ function DeltaLine({ value }: { value: Delta }) {
   const Icon = value.direction === 'up' ? ArrowUp2 : value.direction === 'down' ? ArrowDown2 : Minus;
   return <span className={`metric-delta is-${value.direction}`}><Icon aria-hidden="true"/>{value.text}</span>;
 }
-export type Teammate = { email: string; name: string };
+export type Teammate = { email: string; name: string; image: string | null };
 // Presentational dashboard: receives already computed metrics (owner null = whole team).
-export function DashboardOverview({ m, owner, me, teammates }: { m: DashboardMetrics; owner: string | null; me: string; teammates: Teammate[] }) {
+export function DashboardOverview({ m, owner, me: viewer, teammates }: { m: DashboardMetrics; owner: string | null; me: Teammate; teammates: Teammate[] }) {
+  const me = viewer.email;
   const funnelTotal = m.funnel.reduce((total, stage) => total + stage.count, 0);
   const funnelMax = Math.max(1, ...m.funnel.map(stage => stage.count));
   const scope = owner === me ? 'Tus números' : owner ? `Números de ${teammates.find(item => item.email === owner)?.name ?? owner}` : 'Todo el equipo';
@@ -24,8 +26,8 @@ export function DashboardOverview({ m, owner, me, teammates }: { m: DashboardMet
     <div className="overview-section-label"><h2>Tu operación en {m.period.label}</h2>
       <nav className="segmented" aria-label="Ver números de">
         <Link href="/?owner=all" aria-current={owner === null ? 'page' : undefined}>Todo el equipo</Link>
-        <Link href="/?owner=me" aria-current={owner === me ? 'page' : undefined}>Míos</Link>
-        {teammates.map(item => <Link key={item.email} href={`/?owner=${encodeURIComponent(item.email)}`} aria-current={owner === item.email ? 'page' : undefined}>{item.name}</Link>)}
+        <Link href="/?owner=me" aria-current={owner === me ? 'page' : undefined}><Avatar name={viewer.name} email={me} image={viewer.image} size={22}/>Míos</Link>
+        {teammates.map(item => <Link key={item.email} href={`/?owner=${encodeURIComponent(item.email)}`} aria-current={owner === item.email ? 'page' : undefined} title={item.email}><Avatar name={item.name} email={item.email} image={item.image} size={22}/>{item.name}</Link>)}
       </nav>
     </div>
     <section className="metrics" aria-label={`Indicadores · ${scope}`}>

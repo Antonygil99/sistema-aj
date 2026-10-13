@@ -10,7 +10,11 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const owner = ownerParam === 'me' ? me : ownerParam && ownerParam !== 'all' ? normalizeEmail(ownerParam).slice(0, 254) : null;
   const db = getDb();
   const [m, grants] = await Promise.all([dashboardMetrics(owner), db.accessGrant.findMany({ where: { enabled: true, role: { in: ['ADMIN', 'SUPERADMIN'] } }, select: { email: true } })]);
-  const names = await db.authUser.findMany({ where: { email: { in: grants.map(grant => grant.email) } }, select: { email: true, name: true } });
-  const teammates = grants.filter(grant => grant.email !== me).map(grant => ({ email: grant.email, name: names.find(item => normalizeEmail(item.email) === grant.email)?.name?.split(' ')[0] ?? grant.email }));
-  return <DashboardOverview m={m} owner={owner} me={me} teammates={teammates}/>;
+  const profiles = await db.authUser.findMany({ where: { email: { in: grants.map(grant => grant.email), mode: 'insensitive' } }, select: { email: true, name: true, image: true } });
+  // Name and Google photo appear after a teammate's first sign-in; until then the chip shows initials and the email's user part.
+  const teammates = grants.filter(grant => grant.email !== me).map(grant => {
+    const profile = profiles.find(item => normalizeEmail(item.email) === grant.email);
+    return { email: grant.email, name: profile?.name?.split(' ')[0] || grant.email.split('@')[0], image: profile?.image ?? null };
+  });
+  return <DashboardOverview m={m} owner={owner} me={{ email: me, name: user.name, image: user.image }} teammates={teammates}/>;
 }
