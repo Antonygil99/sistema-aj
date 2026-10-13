@@ -44,5 +44,6 @@ The dashboard metrics are illustrative placeholders, not real portfolio data.
 - README.md: setup, env vars, API contract and error codes, hosted DB and Google OAuth configuration.
 - docs/arquitectura.md: CRM flow, WhatsApp/AI pipeline, production hardening backlog.
 - docs/documentos-r2.md: R2 document flow details, env var formats, error codes, and the documents backlog (4 MiB limit, no delete, per-record permissions).
+- docs/CONTINUIDAD-SISTEMA-AJ.md: full agreed product scope, implementation status, service configuration and remaining work. Prospects/clients now have real capture/search/detail/edit screens; PATCH requires expectedUpdatedAt for optimistic concurrency. The dashboard still uses illustrative metrics.
 
 Production runs on Vercel at https://crm.segurosaleyjoel.com (`BETTER_AUTH_URL` must match it exactly; pushing to `main` deploys).

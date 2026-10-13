@@ -2,9 +2,9 @@
 
 ## Flujo CRM
 
-Next.js entrega la interfaz y Route Handlers en el mismo proyecto. Cada módulo separa catálogo de UI, entrada validada (Zod) y servicio de persistencia (Prisma/PostgreSQL). Los endpoints usan un token de servidor común como protección provisional para desarrollo. El navegador muestra únicamente datos ficticios.
+Next.js entrega la interfaz y Route Handlers en el mismo proyecto. Cada módulo separa catálogo de UI, entrada validada (Zod) y servicio de persistencia (Prisma/PostgreSQL). Las rutas usan sesiones Google autorizadas o un token interno de servidor opcional. Prospectos/clientes muestran datos reales y admiten captura, búsqueda y edición; Documentos usa R2 privado. Solo los indicadores del dashboard siguen siendo ilustrativos.
 
-Prospecto → cotización → cliente → póliza → pagos / renovaciones / siniestros. El cambio prospecto-cliente y la emisión aún requieren un servicio transaccional específico. Documentos y actividades se enlazan a expedientes. IDs internos son CUID; importes usan Decimal(12,2); restricciones relacionales impiden eliminaciones accidentales de entidades referenciadas. Los servicios actuales implementan alta y listado, sin borrado.
+Prospecto → cotización → cliente → póliza → pagos / renovaciones / siniestros. El cambio prospecto-cliente y la emisión aún requieren un servicio transaccional específico. Documentos y actividades se enlazan a expedientes. IDs internos son CUID; importes usan Decimal(12,2); restricciones relacionales impiden eliminaciones accidentales de entidades referenciadas. Prospectos/clientes incluyen edición completa con control de versión updatedAt; los otros servicios CRM implementan alta/listado, sin borrado.
 
 ## WhatsApp e IA
 
@@ -20,4 +20,4 @@ Solicitar documentos del método: fases, criterios de calificación, guiones apr
 
 ## Producción
 
-Implementar identidad de usuario, permisos por expediente/rol, auditoría, límites de tamaño y tasa en proxy, almacenamiento privado con URLs temporales, copias de seguridad, retención de inbox y monitorización. El webhook limita el cuerpo a 1 MiB después de lectura: un proxy debe imponer el límite antes de cargarlo en memoria. Las llamadas externas deben salir de un flujo con consentimiento, aprobación e idempotencia. No se conecta infraestructura de producción en esta entrega.
+Producción ya conecta Google, PostgreSQL y R2 privado con URLs temporales. Roles y auditoría de accesos están implementados. Pendientes: permisos por expediente, auditoría CRM, límites de tasa, copias de seguridad, retención de inbox y monitorización. El webhook limita el cuerpo a 1 MiB después de lectura: un proxy debe imponer el límite antes de cargarlo en memoria. Las llamadas externas deben salir de un flujo con consentimiento, aprobación e idempotencia. Ver docs/CONTINUIDAD-SISTEMA-AJ.md para el estado completo.

@@ -40,11 +40,11 @@ Variables de servidor (Vercel Production y `.env` local):
 
 | Variable | Formato |
 | --- | --- |
-| `R2_ENDPOINT` | `https://<account-id de 32 caracteres hex>.r2.cloudflarestorage.com` (se aceptan las variantes `.eu` y `.fedramp`), sin ruta ni puerto |
+| `R2_ENDPOINT` | `https://<account-id de 32 caracteres hex>.r2.cloudflarestorage.com` (variantes `.eu` y `.fedramp`); también admite `/nombre-del-bucket` si coincide exactamente con el bucket configurado. Se eliminan espacios externos. Sin puerto ni parámetros |
 | `R2_BUCKET_NAME` | Nombre del bucket privado |
 | `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | Token de API de R2 con permiso de lectura y escritura de objetos, limitado a ese bucket |
 
-Si falta alguna variable, la pantalla muestra la biblioteca, pero la carga y la descarga aparecen como no disponibles (`r2Ready()`). El bucket no debe tener acceso público ni dominio público. Los enlaces firmados se abren directamente en el navegador, así que el bucket no necesita reglas CORS.
+Si falta alguna variable o el formato es inválido, la pantalla muestra la biblioteca con carga/descarga deshabilitadas. `storageStatus()` informa una causa sanitizada al administrador, sin revelar valores. El bucket no debe tener acceso público ni dominio público. La carga pasa por el servidor y los enlaces firmados se abren directamente en el navegador; este flujo no necesita reglas CORS del bucket. El usuario confirmó una carga y descarga real en producción el 12 de octubre de 2026.
 
 ## Errores específicos
 

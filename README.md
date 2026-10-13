@@ -1,6 +1,8 @@
 # Sistema AJ
 
-Base full-stack de CRM de seguros con Next.js App Router, TypeScript, Prisma 7 y PostgreSQL. Interfaz en español, estilo oscuro con acento verde y fuente Lato. El dashboard presenta datos ilustrativos; no consulta ni representa tu cartera real.
+Base full-stack de CRM de seguros con Next.js App Router, TypeScript, Prisma 7 y PostgreSQL. Interfaz en español, diseño editorial crema, verde y ámbar, títulos Baskervville y texto Clarity City. Prospectos y clientes permiten alta, consulta, búsqueda y edición; Documentos permite carga y descarga privada en R2. El dashboard todavía presenta datos ilustrativos.
+
+Para continuar el proyecto, consultar [CONTINUIDAD-SISTEMA-AJ.md](docs/CONTINUIDAD-SISTEMA-AJ.md).
 
 ## Inicio en Windows (PowerShell)
 
@@ -53,6 +55,8 @@ Las rutas CRM y de agentes admiten sesiones de Google autorizadas o Authorizatio
 | GET /api/health | Estado de aplicación; no comprueba PostgreSQL |
 | GET /api/crm/{modulo}?take=20&skip=0 | Listado paginado (máximo 100), total y registros |
 | POST /api/crm/{modulo} | Crea un registro validado; 201 |
+| GET /api/crm/{prospectos o clientes}/{id} | Consulta de ficha; cualquier rol autorizado |
+| PATCH /api/crm/{prospectos o clientes}/{id} | Ficha editable completa + expectedUpdatedAt; ADMIN. Conflicto de versión: 409 RECORD_CHANGED |
 | GET /api/agents | Catálogo de cinco agentes |
 | POST /api/agents/route | Selecciona un agente por tema; no ejecuta IA |
 | GET /api/whatsapp/webhook | Desafío de verificación Meta |
@@ -87,7 +91,7 @@ El Método AJ todavía requiere documentación del negocio: no se inventaron reg
 
 ## Alcance y siguientes pasos
 
-Esta entrega prepara la base; incluye listados/altas mediante API, relaciones y validación. Las pantallas de módulos son espacios iniciales, excepto Documentos: carga, búsqueda y descarga privada con Cloudflare R2 (ver docs/documentos-r2.md). Pendientes: captura/edición/búsqueda en interfaz y auditoría de operaciones CRM, worker WhatsApp, adaptador eve, observabilidad y políticas de respaldo. Antes de usar datos reales, completar las pantallas operativas y las reglas de acceso por expediente.
+Prospectos y clientes ya tienen alta, búsqueda, ficha y edición en interfaz. Las demás pantallas CRM siguen siendo espacios iniciales, excepto Documentos, que permite trabajar con archivos privados en R2 (ver docs/documentos-r2.md). Pendientes: pantallas restantes, dashboard real, conversión de prospecto a cliente, auditoría de operaciones CRM, permisos por expediente, worker WhatsApp, adaptador de IA, observabilidad y políticas de respaldo.
 
 Referencias: [Next.js](https://nextjs.org/docs/app), [Prisma PostgreSQL](https://www.prisma.io/docs/orm/v7/core-concepts/supported-databases/postgresql), [Meta Webhooks](https://developers.facebook.com/documentation/business-messaging/whatsapp/webhooks/create-webhook-endpoint), [eve](https://eve.dev/docs).
 
@@ -95,7 +99,9 @@ Referencias: [Next.js](https://nextjs.org/docs/app), [Prisma PostgreSQL](https:/
 
 DATABASE_URL es el nombre recomendado para la conexión pooled. Se acepta DATA_URL como nombre heredado para conservar secretos ya guardados en Vercel. DIRECT_URL permite indicar la conexión directa para migraciones. Para Prisma Postgres, si no se especifica DIRECT_URL, se convierte exclusivamente el host documentado pooled.db.prisma.io a db.prisma.io conservando credenciales, base y opciones TLS; otros proveedores no se transforman.
 
-npm run db:verify-deploy comprueba la conexión, se detiene ante una base con tablas ajenas sin historial Prisma, aplica únicamente migraciones pendientes y verifica las once tablas de aplicación y el historial. No borra tablas ni inserta datos de ejemplo. Requiere una URL PostgreSQL TCP; las URLs de Accelerate no son compatibles con el adaptador pg de esta base. Este comando es explícito y no se añadió al build habitual.
+npm run db:verify-deploy comprueba la conexión, se detiene ante una base con tablas ajenas sin historial Prisma, aplica únicamente migraciones pendientes y verifica las dieciocho tablas de aplicación y el historial. No borra tablas ni inserta datos de ejemplo. Requiere una URL PostgreSQL TCP; las URLs de Accelerate no son compatibles con el adaptador pg de esta base. Este comando es explícito y no se añadió al build habitual.
+
+npm run crm:smoke ejecuta una prueba integrada después de compilar, con PostgreSQL configurado. Usa una instancia local temporal de Next y un token interno efímero; comprueba altas, búsqueda, ficha, edición, limpieza de campos opcionales, rechazo de ediciones antiguas y protección anónima. Solo crea y retira dos registros de prueba con nombres únicos. No inicia sesión como un usuario real ni modifica su acceso.
 
 ## Inicio de sesión y roles
 

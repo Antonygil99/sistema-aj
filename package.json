@@ -22,7 +22,8 @@
     "db:up": "docker compose up -d db",
     "db:down": "docker compose stop db",
     "check": "npm run db:validate && npm run lint && npm run typecheck && npm test && npm run build",
-    "db:verify-deploy": "node scripts/migrate-deploy.mjs"
+    "db:verify-deploy": "node scripts/migrate-deploy.mjs",
+    "crm:smoke": "tsx scripts/crm-smoke.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1149.0",
