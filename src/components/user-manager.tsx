@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Add } from 'iconsax-reactjs';
 import { FcGoogle } from 'react-icons/fc';
+import { Avatar } from './ui/avatar';
 import { apiFetch } from './ui/client-api';
 import { useConfirm } from './ui/confirm';
 import { Modal } from './ui/modal';
@@ -53,11 +54,9 @@ export function UserManager({ initial }: { initial: Grant[] }) {
 }
 // Google profile photo (or initials before the first sign-in) with the Google mark on top.
 function GoogleAccount({ grant }: { grant: Grant }) {
-  const initials = (grant.name || grant.email).replace(/@.*/, '').split(/[\s._-]+/).filter(Boolean).slice(0, 2).map(part => part.charAt(0)).join('').toUpperCase() || '?';
   return <div className="google-account">
     <span className="google-avatar">
-      {/* eslint-disable-next-line @next/next/no-img-element -- remote Google avatar; next/image would need a remote host allowlist */}
-      {grant.image ? <img src={grant.image} alt="" width={34} height={34} referrerPolicy="no-referrer" loading="lazy"/> : <span aria-hidden="true">{initials}</span>}
+      <Avatar name={grant.name} email={grant.email} image={grant.image} size={34}/>
       <span className="google-mark" title="Cuenta de Google"><FcGoogle aria-hidden="true"/></span>
     </span>
     <span className="google-account-text">{grant.name ? <strong>{grant.name}</strong> : null}<span>{grant.email}</span>{!grant.name ? <small>Aún no ha iniciado sesión</small> : null}</span>

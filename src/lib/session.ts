@@ -13,7 +13,7 @@ export async function currentUser(requestHeaders: Headers) {
   const grant = await getDb().accessGrant.findUnique({ where: { email: normalizeEmail(session.user.email) } });
   const role = permittedRole(grant, session.user.emailVerified, session.user.email, process.env.AJ_SUPERADMIN_EMAIL);
   if (!role) return null;
-  return { id: session.user.id, name: session.user.name, email: session.user.email, role };
+  return { id: session.user.id, name: session.user.name, email: session.user.email, image: session.user.image ?? null, role };
 }
 export const pageUser = cache(async () => currentUser(await headers()));
 export async function requireUser(minimum: AccessRole = 'USER') {
