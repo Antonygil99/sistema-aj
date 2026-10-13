@@ -1,5 +1,5 @@
 'use client';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ArrowRight3, Category, SidebarLeft, SidebarRight, UserOctagon } from 'iconsax-reactjs';
@@ -21,6 +21,12 @@ const roles = { USER: 'Usuario', ADMIN: 'Administrador', SUPERADMIN: 'Superadmin
 export function WorkspaceShell({ children, user }: { children: ReactNode; user: { name: string; role: keyof typeof roles } }) {
   const pathname = usePathname();
   const [compact, setCompact] = useState(false);
+  // After client-side navigation, move focus to the new content so keyboard and screen-reader users start there.
+  const firstRender = useRef(true);
+  useEffect(() => {
+    if (firstRender.current) { firstRender.current = false; return; }
+    document.getElementById('workspace-content')?.focus({ preventScroll: true });
+  }, [pathname]);
   const current = modules.find(item => pathname === `/crm/${item.slug}` || pathname.startsWith(`/crm/${item.slug}/`));
   const title = current?.label ?? (pathname === '/usuarios' ? 'Usuarios y accesos' : 'Resumen');
   const initials = user.name.trim().split(/\s+/).slice(0, 2).map(part => part.charAt(0)).join('').toUpperCase() || 'AJ';

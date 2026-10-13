@@ -6,6 +6,7 @@ import { checklist, completedChecks, followUpSchedule, followUps, stages, type C
 import { formatDate } from '@/modules/resources/config';
 import { apiFetch, ApiError } from './ui/client-api';
 import { EmptyState } from './ui/empty-state';
+import { useConfirm } from './ui/confirm';
 import { Modal } from './ui/modal';
 import { riseIn } from './ui/motion';
 import { useToast } from './ui/toast';
@@ -27,6 +28,7 @@ export function DeliveryBoard({ initial, canEdit, me, initialOwner, openId }: { 
   const [saving, setSaving] = useState(false);
   const team = useTeam();
   const toast = useToast();
+  const confirm = useConfirm();
   const boardRef = useRef<HTMLDivElement>(null);
   const visible = owner ? cards.filter(card => card.ownerEmail === owner) : cards;
   const overdue = visible.filter(card => card.next?.overdue).length;
@@ -43,6 +45,12 @@ export function DeliveryBoard({ initial, canEdit, me, initialOwner, openId }: { 
     const url = new URL(window.location.href); url.searchParams.delete('open'); window.history.replaceState(null, '', url);
   }, [openId]);
   useLayoutEffect(() => { if (boardRef.current) riseIn(boardRef.current.querySelectorAll('.delivery-card'), 0.02); }, [owner, cards.length]);
+  const dirty = open && canEdit && !saving && Boolean(selected && draft) && JSON.stringify(draft) !== JSON.stringify(selected ? toDraft(selected) : null);
+  async function requestClose() {
+    if (saving) return;
+    if (dirty && !await confirm({ title: 'Descartar cambios', message: 'La entrega tiene cambios sin guardar. Si cierras, se perderán.', confirmLabel: 'Descartar cambios', cancelLabel: 'Seguir editando', tone: 'danger' })) return;
+    setOpen(false);
+  }
   function openCard(card: DeliveryCard) { setSelected(card); setDraft(toDraft(card)); setOpen(true); }
   async function save() {
     if (!selected || !draft || !canEdit) return;
@@ -87,10 +95,10 @@ export function DeliveryBoard({ initial, canEdit, me, initialOwner, openId }: { 
       </button>)}{!items.length ? <p className="delivery-empty">Sin pólizas aquí</p> : null}</div>
     </section>; })}</div>
     : <EmptyState illustration="polizas" title={owner ? 'Sin pólizas activas para este responsable' : 'Aún no hay pólizas activas'} message={owner ? 'Cambia el filtro para ver las del resto del equipo.' : 'Cuando registres una póliza, aparecerá aquí lista para su entrega activa.'} action={owner ? <button type="button" className="button button-soft" onClick={() => setOwner(null)}>Ver todas</button> : <Link className="button" href="/crm/clientes/nuevo">Nuevo expediente</Link>}/>}
-    <Modal open={open} onClose={() => setOpen(false)} busy={saving} size="lg" className="delivery-modal"
+    <Modal open={open} onClose={() => void requestClose()} busy={saving} size="lg" className="delivery-modal"
       title={selected ? `Entrega activa · ${selected.number}` : 'Entrega activa'}
       description={selected ? `${selected.client.name} · ${selected.catalogProduct?.name ?? selected.product} · Responsable: ${teammateLabel(team, selected.ownerEmail)}` : undefined}
-      footer={<>{selected ? <Link className="text-button" href={`/crm/clientes/${encodeURIComponent(selected.client.id)}`}>Ver expediente</Link> : null}<span className="modal-footer-spacer"/><button type="button" className="text-button" disabled={saving} onClick={() => setOpen(false)}>{canEdit ? 'Cancelar' : 'Cerrar'}</button>{canEdit ? <button type="button" className="button" disabled={saving} onClick={() => void save()}>{saving ? 'Guardando…' : 'Guardar'}</button> : null}</>}>
+      footer={<>{selected ? <Link className="text-button" href={`/crm/clientes/${encodeURIComponent(selected.client.id)}`}>Ver expediente</Link> : null}<span className="modal-footer-spacer"/><button type="button" className="text-button" disabled={saving} onClick={() => void requestClose()}>{canEdit ? 'Cancelar' : 'Cerrar'}</button>{canEdit ? <button type="button" className="button" disabled={saving} onClick={() => void save()}>{saving ? 'Guardando…' : 'Guardar'}</button> : null}</>}>
       {selected && draft && stage ? <div className="delivery-form">
         <blockquote className="delivery-guide"><MessageText aria-hidden="true"/><span><small>Mensaje guía · {stage.label}</small>{stage.message}</span></blockquote>
         <section><h3>1. Entrega</h3>

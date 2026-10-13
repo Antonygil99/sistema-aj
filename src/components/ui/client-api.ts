@@ -1,7 +1,8 @@
 'use client';
 // Browser-side API calls: one place for JSON handling, Spanish error messages and security signals.
+export type Issue = { code?: string; message?: string; path?: (string | number)[] };
 export class ApiError extends Error {
-  constructor(public readonly code: string, public readonly status: number, message: string) { super(message); }
+  constructor(public readonly code: string, public readonly status: number, message: string, public readonly issues: Issue[] = []) { super(message); }
 }
 export const errorMessages: Record<string, string> = {
   INVALID_INPUT: 'Revisa los datos marcados e inténtalo de nuevo.',
@@ -36,7 +37,6 @@ export const errorMessages: Record<string, string> = {
   NETWORK: 'Sin conexión con el servidor. Revisa tu red.',
 };
 export const securityCodes = new Set(['UNAUTHORIZED', 'FORBIDDEN', 'INVALID_ORIGIN']);
-type Issue = { code?: string; message?: string; path?: (string | number)[] };
 // Custom (business) issues are already written in Spanish; Zod's built-in ones are not, so name the field instead.
 export function issueMessage(issues: Issue[] | undefined, labels: Record<string, string> = {}) {
   const issue = issues?.[0];
@@ -59,7 +59,7 @@ export async function apiFetch<T = unknown>(url: string, init: RequestInit & { j
   if (!response.ok) {
     const code = body.error ?? 'SERVICE_UNAVAILABLE';
     signalSecurity(code);
-    throw new ApiError(code, response.status, code === 'INVALID_INPUT' ? issueMessage(body.issues, labels) : messageFor(code));
+    throw new ApiError(code, response.status, code === 'INVALID_INPUT' ? issueMessage(body.issues, labels) : messageFor(code), body.issues ?? []);
   }
   return body;
 }

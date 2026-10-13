@@ -13,7 +13,8 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
   const settle = (value: boolean) => { resolver.current?.(value); resolver.current = null; setOpen(false); };
   return <ConfirmContext.Provider value={confirm}>{children}
     <Modal open={open} onClose={() => settle(false)} title={options?.title ?? ''} size="sm" tone={options?.tone ?? 'default'}
-      footer={<><button type="button" className="text-button" onClick={() => settle(false)}>{options?.cancelLabel ?? 'Cancelar'}</button><button type="button" className={options?.tone === 'danger' ? 'button button-danger' : 'button'} data-autofocus onClick={() => settle(true)}>{options?.confirmLabel}</button></>}>
+      // Destructive confirmations start on the safe choice, so a reflexive Enter never deletes anything.
+      footer={<><button type="button" className="text-button" data-autofocus={options?.tone === 'danger' || undefined} onClick={() => settle(false)}>{options?.cancelLabel ?? 'Cancelar'}</button><button type="button" className={options?.tone === 'danger' ? 'button button-danger' : 'button'} data-autofocus={options?.tone !== 'danger' || undefined} onClick={() => settle(true)}>{options?.confirmLabel}</button></>}>
       <p className="confirm-message">{options?.message}</p>
     </Modal>
   </ConfirmContext.Provider>;

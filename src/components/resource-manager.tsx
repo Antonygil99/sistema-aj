@@ -8,7 +8,7 @@ import { EmptyState, type Illustration } from './ui/empty-state';
 import { Modal } from './ui/modal';
 import { RelationPicker } from './ui/relation-picker';
 import { useToast } from './ui/toast';
-import { gsap, riseIn } from './ui/motion';
+import { gsap, isMobile, prefersReducedMotion, riseIn } from './ui/motion';
 import { useDrag } from './ui/use-drag';
 import { initials, teammateLabel, useTeam, type Teammate } from './ui/use-team';
 import { productLineLabels } from '@/modules/resources/config';
@@ -32,6 +32,10 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
   const [labels, setLabels] = useState<Record<string, string>>(() => relationLabels(config.fields, initialRow));
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
+  // Errors shown under each field (from local checks or the API's validation issues).
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  // Snapshot of the form when it opened, to warn before discarding unsaved changes.
+  const [snapshot, setSnapshot] = useState(() => JSON.stringify(rowToForm(config, initialRow)));
   const toast = useToast();
   const team = useTeam();
   // Catalog images are chosen in the form and uploaded right after the record is saved.
@@ -67,17 +71,20 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
     const record = row === 'new' ? null : row;
     setValues(rowToForm(config, record));
     setLabels(relationLabels(config.fields, record));
-    setImageFile(null); setRemoveImage(false);
+    setImageFile(null); setRemoveImage(false); setFieldErrors({});
+    setSnapshot(JSON.stringify(rowToForm(config, record)));
     setModalOpen(true);
   }
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!editing || saving || !canEdit) return;
     const body = formToBody(config, values);
-    if (body.phone && !/^\+?[1-9]\d{7,14}$/.test(body.phone)) { setFormError('El teléfono debe tener entre 8 y 15 dígitos; puede iniciar con +.'); return; }
-    for (const field of config.fields) if (field.type === 'money' && body[field.name] && !/^\d{1,10}(\.\d{1,2})?$/.test(body[field.name])) { setFormError(`Revisa el campo «${field.label}»: usa un importe como 1250.00.`); return; }
+    const local: Record<string, string> = {};
+    if (body.phone && !/^\+?[1-9]\d{7,14}$/.test(body.phone)) local.phone = fieldMessages.tel;
+    for (const field of config.fields) if (field.type === 'money' && body[field.name] && !/^\d{1,10}(\.\d{1,2})?$/.test(body[field.name])) local[field.name] = fieldMessages.money;
+    if (Object.keys(local).length) { showFieldErrors(local, 'Corrige los campos marcados.'); return; }
     const modifying = editing !== 'new';
-    setSaving(true); setFormError('');
+    setSaving(true); setFormError(''); setFieldErrors({});
     try {
       const saved = await apiFetch<{ data: Row }>(`/api/crm/${slug}${modifying ? '/' + encodeURIComponent(editing.id) : ''}`, { method: modifying ? 'PATCH' : 'POST', json: modifying ? { ...body, expectedUpdatedAt: editing.updatedAt } : body, labels: fieldLabels });
       if (config.imageUpload && saved.data?.id && (imageFile || (removeImage && modifying))) {
@@ -91,9 +98,22 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
       await load(modifying ? skip : 0, modifying ? applied : { ...applied, archived: false });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'No se pudo guardar.';
-      setFormError(message);
+      const byField = error instanceof ApiError ? issuesByField(error.issues, config.fields) : {};
+      if (Object.keys(byField).length) showFieldErrors(byField, 'Corrige los campos marcados.');
+      else setFormError(message);
       if (error instanceof ApiError && error.code === 'RECORD_CHANGED') toast({ kind: 'warning', title: 'Cambios en paralelo', message: 'Tu borrador sigue en el formulario. Recarga para ver la versión actual.', action: { label: 'Recargar', onClick: () => void reloadEditing() } });
     } finally { setSaving(false); }
+  }
+  function showFieldErrors(errors: Record<string, string>, summary: string) {
+    setFieldErrors(errors); setFormError(summary);
+    // Move focus to the first invalid field so keyboard and screen-reader users land on the problem.
+    requestAnimationFrame(() => document.querySelector<HTMLElement>(`#form-${slug} [aria-invalid="true"]`)?.focus());
+  }
+  const dirty = modalOpen && canEdit && !saving && (JSON.stringify(values) !== snapshot || Boolean(imageFile) || removeImage);
+  async function requestClose() {
+    if (saving) return;
+    if (dirty && !await confirm({ title: 'Descartar cambios', message: 'Tienes cambios sin guardar en esta ficha. Si la cierras, se perderán.', confirmLabel: 'Descartar cambios', cancelLabel: 'Seguir editando', tone: 'danger' })) return;
+    setModalOpen(false);
   }
   async function reloadEditing() {
     if (!editing || editing === 'new') return;
@@ -151,25 +171,25 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
               {canEdit ? <button type="button" className="icon-button" aria-label={`${row.archivedAt ? 'Restaurar' : 'Archivar'} ${config.title(row)}`} onClick={act.archive}>{row.archivedAt ? <ArrowRotateLeft aria-hidden="true"/> : <Archive aria-hidden="true"/>}</button> : null}
               {act.remove ? <button type="button" className="icon-button is-danger" aria-label={`Eliminar ${config.title(row)}`} onClick={act.remove}><Trash aria-hidden="true"/></button> : null}</td>
           </tr>; })}</tbody></table></div>
-        <ul className="resource-cards">{page.data.map(row => <SwipeCard key={row.id} row={row} config={config} status={statusOf(row)} canEdit={canEdit} {...actions(row)}/>)}</ul>
+        <ul className="resource-cards">{page.data.map((row, index) => <SwipeCard key={row.id} row={row} config={config} status={statusOf(row)} canEdit={canEdit} hint={index === 0} {...actions(row)}/>)}</ul>
       </> : <EmptyState illustration={(filtered ? 'busqueda' : config.illustration) as Illustration}
         title={filtered ? 'Sin coincidencias' : applied.archived ? `No hay ${config.plural} archivad${config.article === 'una' ? 'as' : 'os'}` : config.emptyTitle}
         message={filtered ? 'Prueba con otra búsqueda o quita los filtros.' : applied.archived ? 'Lo que archives aparecerá aquí para restaurarlo cuando lo necesites.' : config.emptyMessage}
         action={filtered ? <button type="button" className="button button-soft" onClick={() => { const next = { q: '', status: '', archived: applied.archived }; setDraft(next); void load(0, next); }}>Limpiar filtros</button> : canEdit && !applied.archived ? <button type="button" className="button" onClick={() => openEditor('new')}><Add aria-hidden="true"/>Registrar {config.article} {config.singular}</button> : undefined}/>}
     </div>
     {page.total > PAGE ? <div className="document-pagination"><button type="button" className="text-button" disabled={loading || skip === 0} onClick={() => void load(Math.max(0, skip - PAGE), applied)}>Anterior</button><span>{skip + 1}–{Math.min(skip + PAGE, page.total)} de {page.total}</span><button type="button" className="text-button" disabled={loading || skip + PAGE >= page.total} onClick={() => void load(skip + PAGE, applied)}>Siguiente</button></div> : null}
-    <Modal open={modalOpen} onClose={() => setModalOpen(false)} busy={saving} size="lg"
+    <Modal open={modalOpen} onClose={() => void requestClose()} busy={saving} size="lg"
       title={editing === 'new' ? `Nuev${config.article === 'una' ? 'a' : 'o'} ${config.singular}` : readOnly ? capitalize(config.singular) : `Editar ${config.singular}`}
       description={editingRow?.archivedAt ? 'Archivado: restáuralo para poder editarlo.' : editingRow ? `Registrado el ${new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium' }).format(new Date(editingRow.createdAt))}` : 'Los campos marcados con * son obligatorios.'}
       footer={<>{editingRow && canEdit ? <button type="button" className="text-button" disabled={saving} onClick={() => void setArchived(editingRow, !editingRow.archivedAt)}>{editingRow.archivedAt ? <><ArrowRotateLeft aria-hidden="true"/>Restaurar</> : <><Archive aria-hidden="true"/>Archivar</>}</button> : null}
         {editingRow && canDelete ? <button type="button" className="text-button is-danger" disabled={saving} onClick={() => void remove(editingRow)}><Trash aria-hidden="true"/>Eliminar</button> : null}
         <span className="modal-footer-spacer"/>
-        <button type="button" className="text-button" disabled={saving} onClick={() => setModalOpen(false)}>{readOnly ? 'Cerrar' : 'Cancelar'}</button>
+        <button type="button" className="text-button" disabled={saving} onClick={() => void requestClose()}>{readOnly ? 'Cerrar' : 'Cancelar'}</button>
         {!readOnly ? <button type="submit" form={`form-${slug}`} className="button" disabled={saving}>{saving ? 'Guardando…' : 'Guardar'}</button> : null}</>}>
       <form id={`form-${slug}`} className="resource-form" onSubmit={save} noValidate={false}>
         {config.fields.filter(field => !field.showWhen || field.showWhen.values.includes(values[field.showWhen.field] ?? '')).map((field, index) => <FieldInput key={field.name} field={field} value={values[field.name] ?? ''} label={labels[field.name] ?? ''} disabled={readOnly || saving} autoFocus={index === 0 && !readOnly && field.type !== 'image'}
-          team={team} image={field.type === 'image' ? { current: removeImage || !editingRow ? null : config.image?.(editingRow) ?? null, file: imageFile, onFile: file => { setImageFile(file); setRemoveImage(false); }, onRemove: () => { setImageFile(null); setRemoveImage(true); } } : undefined}
-          onChange={(value, label, related) => { setValues(current => ({ ...current, [field.name]: value, ...(related && config.prefill ? config.prefill(field.name, related, current) : {}) })); if (label !== undefined) setLabels(current => ({ ...current, [field.name]: label })); }}/>)}
+          team={team} error={fieldErrors[field.name]} image={field.type === 'image' ? { current: removeImage || !editingRow ? null : config.image?.(editingRow) ?? null, file: imageFile, onFile: file => { setImageFile(file); setRemoveImage(false); }, onRemove: () => { setImageFile(null); setRemoveImage(true); } } : undefined}
+          onChange={(value, label, related) => { if (fieldErrors[field.name]) setFieldErrors(current => { const next = { ...current }; delete next[field.name]; return next; }); setValues(current => ({ ...current, [field.name]: value, ...(related && config.prefill ? config.prefill(field.name, related, current) : {}) })); if (label !== undefined) setLabels(current => ({ ...current, [field.name]: label })); }}/>)}
         {formError ? <p role="alert" className="form-error">{formError}</p> : null}
       </form>
     </Modal>
@@ -186,9 +206,10 @@ function labelFor(field: Field, nested: Row) {
 function capitalize(text: string) { return text.charAt(0).toUpperCase() + text.slice(1); }
 function StatusPill({ label, tone }: { label: string; tone: Tone }) { return <span className={`status-pill tone-${tone}`}>{label}</span>; }
 type ImageControl = { current: string | null; file: File | null; onFile: (file: File) => void; onRemove: () => void };
-function FieldInput({ field, value, label, disabled, autoFocus, onChange, team, image }: { field: Field; value: string; label: string; disabled: boolean; autoFocus: boolean; onChange: (value: string, label?: string, related?: Row) => void; team: Teammate[]; image?: ImageControl }) {
+function FieldInput({ field, value, label, disabled, autoFocus, onChange, team, image, error }: { field: Field; value: string; label: string; disabled: boolean; autoFocus: boolean; onChange: (value: string, label?: string, related?: Row) => void; team: Teammate[]; image?: ImageControl; error?: string }) {
   const title = <>{field.label}{field.required ? <span aria-hidden="true"> *</span> : <span className="optional">Opcional</span>}</>;
-  const common = { disabled, required: field.required, 'data-autofocus': autoFocus || undefined };
+  const describedBy = [error ? `${field.name}-error` : '', field.hint ? `${field.name}-hint` : ''].filter(Boolean).join(' ') || undefined;
+  const common = { disabled, required: field.required, 'data-autofocus': autoFocus || undefined, 'aria-invalid': error ? true : undefined, 'aria-describedby': describedBy };
   let control;
   if (field.type === 'image' && image) return <div className="form-field is-wide"><span className="form-label">{field.label}<span className="optional">Opcional</span></span><ImageField control={image} disabled={disabled}/>{field.hint ? <small className="form-hint">{field.hint}</small> : null}</div>;
   if (field.type === 'relation' && field.relation) control = <RelationPicker relation={field.relation} value={value} initialLabel={label} label={field.label} required={field.required} disabled={disabled} onChange={(id, text, row) => onChange(id, text, row)}/>;
@@ -198,14 +219,15 @@ function FieldInput({ field, value, label, disabled, autoFocus, onChange, team, 
   else control = <input {...common} value={value} maxLength={field.maxLength} placeholder={field.placeholder}
     type={field.type === 'money' ? 'text' : field.type === 'date' ? 'date' : field.type} inputMode={field.type === 'money' ? 'decimal' : undefined}
     autoComplete={field.type === 'email' ? 'email' : field.type === 'tel' ? 'tel' : field.name === 'name' ? 'name' : 'off'} onChange={event => onChange(event.target.value)}/>;
-  return <div className={`form-field${field.wide || field.type === 'textarea' ? ' is-wide' : ''}`}>
+  return <div className={`form-field${field.wide || field.type === 'textarea' ? ' is-wide' : ''}${error ? ' is-invalid' : ''}`}>
     {field.type === 'relation' ? <span className="form-label">{title}</span> : null}
     {field.type === 'relation' ? control : <label><span className="form-label">{title}</span>{control}</label>}
-    {field.hint ? <small className="form-hint">{field.hint}</small> : null}
+    {error ? <small id={`${field.name}-error`} className="field-error">{error}</small> : null}
+    {field.hint ? <small id={`${field.name}-hint`} className="form-hint">{field.hint}</small> : null}
   </div>;
 }
 // Mobile card: swipe left to reveal the actions, tap to open.
-function SwipeCard({ row, config, status, canEdit, edit, archive, remove }: { row: Row; config: (typeof resources)[ResourceSlug]; status: { label: string; tone: Tone } | null; canEdit: boolean; edit: () => void; archive: () => void; remove?: () => void }) {
+function SwipeCard({ row, config, status, canEdit, edit, archive, remove, hint = false }: { row: Row; config: (typeof resources)[ResourceSlug]; status: { label: string; tone: Tone } | null; canEdit: boolean; edit: () => void; archive: () => void; remove?: () => void; hint?: boolean }) {
   const content = useRef<HTMLDivElement>(null);
   const [revealed, setRevealed] = useState(false);
   const [active, setActive] = useState(false);
@@ -216,6 +238,14 @@ function SwipeCard({ row, config, status, canEdit, edit, archive, remove }: { ro
     onMove: ({ dx }) => { dragged.current = true; setActive(true); if (content.current && width) gsap.set(content.current, { x: Math.max(-width - 24, Math.min(0, (revealed ? -width : 0) + dx)) }); },
     onEnd: ({ dx, vx }) => { const open = width > 0 && ((revealed ? -width : 0) + dx < -width / 2 || vx < -0.5); setRevealed(open); if (content.current) gsap.to(content.current, { x: open ? -width : 0, duration: 0.28, ease: 'power3.out', onComplete: () => setActive(open) }); },
   });
+  // Once per session, the first card peeks left to show that actions hide behind it.
+  useEffect(() => {
+    if (!hint || !width || !content.current || !isMobile() || prefersReducedMotion()) return;
+    try { if (sessionStorage.getItem('aj:swipe-hint')) return; sessionStorage.setItem('aj:swipe-hint', '1'); } catch { return; }
+    const el = content.current;
+    const peek = gsap.timeline({ delay: 0.9, onStart: () => setActive(true), onComplete: () => setActive(false) }).to(el, { x: -56, duration: 0.35, ease: 'power2.out' }).to(el, { x: 0, duration: 0.45, ease: 'back.out(1.7)', delay: 0.35 });
+    return () => { peek.kill(); gsap.set(el, { x: 0 }); };
+  }, [hint, width]);
   const [first, ...rest] = config.columns;
   return <li className={`swipe-card${active ? ' is-active' : ''}`} data-row>
     {width ? <div className="swipe-actions" aria-hidden={!revealed}>{canEdit ? <button type="button" tabIndex={revealed ? 0 : -1} onClick={archive}>{row.archivedAt ? <ArrowRotateLeft aria-hidden="true"/> : <Archive aria-hidden="true"/>}<span>{row.archivedAt ? 'Restaurar' : 'Archivar'}</span></button> : null}{remove ? <button type="button" className="is-danger" tabIndex={revealed ? 0 : -1} onClick={remove}><Trash aria-hidden="true"/><span>Eliminar</span></button> : null}</div> : null}
@@ -225,6 +255,7 @@ function SwipeCard({ row, config, status, canEdit, edit, archive, remove }: { ro
         <span className="swipe-meta">{rest.map(column => column.value(row)).filter(Boolean).join(' · ')}</span>
       </button>
       {status ? <StatusPill label={status.label} tone={status.tone}/> : null}
+      {width ? <span className="swipe-grip" aria-hidden="true"/> : null}
     </div>
   </li>;
 }
@@ -268,4 +299,26 @@ function CatalogCard({ row, config, team, canEdit, edit, archive, remove }: { ro
       {remove ? <button type="button" className="icon-button is-danger" aria-label={`Eliminar ${config.title(row)}`} onClick={remove}><Trash aria-hidden="true"/></button> : null}
     </footer>
   </article>;
+}
+// Spanish, field-level wording for the API's validation issues (business rules already arrive in Spanish).
+const fieldMessages = {
+  required: 'Este dato es obligatorio.', email: 'Escribe un correo válido, por ejemplo nombre@dominio.com.', tel: 'De 8 a 15 dígitos, sin espacios; puede iniciar con +.',
+  money: 'Usa un importe como 1250.00.', date: 'Elige una fecha válida.', relation: 'Elige un registro de la lista.', other: 'Revisa este dato.',
+};
+function issuesByField(issues: { code?: string; message?: string; path?: (string | number)[] }[], fields: Field[]) {
+  const result: Record<string, string> = {};
+  for (const issue of issues) {
+    const name = issue.path?.[0];
+    const field = typeof name === 'string' ? fields.find(item => item.name === name) : undefined;
+    if (!field || result[field.name]) continue;
+    result[field.name] = issue.code === 'custom' && issue.message ? issue.message
+      : issue.code === 'invalid_type' ? fieldMessages.required
+      : field.type === 'email' || field.type === 'owner' ? fieldMessages.email
+      : field.type === 'tel' ? fieldMessages.tel
+      : field.type === 'money' ? fieldMessages.money
+      : field.type === 'date' ? fieldMessages.date
+      : field.type === 'relation' ? fieldMessages.relation
+      : issue.code === 'too_small' ? fieldMessages.required : fieldMessages.other;
+  }
+  return result;
 }

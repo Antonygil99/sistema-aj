@@ -37,7 +37,7 @@ export function RelationPicker({ relation, value, initialLabel, onChange, label,
   if (value && !open) return <div className="relation-selected"><span>{selectedLabel || 'Registro vinculado'}</span>{!disabled ? <button type="button" className="icon-button" aria-label={`Quitar ${label}`} onClick={() => { onChange('', ''); setSelectedLabel(''); }}><CloseCircle aria-hidden="true"/></button> : null}</div>;
   return <div className="relation-picker" ref={box}>
     <SearchNormal1 aria-hidden="true"/>
-    <input role="combobox" aria-expanded={open} aria-controls={listId} aria-autocomplete="list" aria-activedescendant={open && options[active] ? `${listId}-${active}` : undefined}
+    <input role="combobox" aria-label={label} aria-expanded={open} aria-controls={listId} aria-autocomplete="list" aria-activedescendant={open && options[active] ? `${listId}-${active}` : undefined}
       value={query} placeholder="Buscar…" required={required && !value} disabled={disabled} autoComplete="off"
       onFocus={() => setOpen(true)} onChange={event => { setQuery(event.target.value); setOpen(true); }}
       onKeyDown={event => {

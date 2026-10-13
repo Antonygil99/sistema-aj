@@ -50,6 +50,9 @@ export function Modal({ open, onClose, title, description, children, footer, siz
   useEffect(() => {
     if (!open) return;
     function onKey(event: KeyboardEvent) {
+      // With a confirmation stacked on top, only the topmost dialog reacts.
+      const panels = document.querySelectorAll('.modal-panel');
+      if (panels[panels.length - 1] !== panel.current) return;
       if (event.key === 'Escape' && !busy) { event.stopPropagation(); closeRef.current(); }
       if (event.key !== 'Tab' || !panel.current) return;
       const items = [...panel.current.querySelectorAll<HTMLElement>(focusable)].filter(item => item.offsetParent !== null);
