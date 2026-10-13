@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { Add, Archive, ArrowRotateLeft, Edit2, Eye, Refresh2, SearchNormal1, Trash } from 'iconsax-reactjs';
+import Link from 'next/link';
+import { Add, Archive, ArrowRight, ArrowRotateLeft, Category, Edit2, Eye, MessageText, Refresh2, RowVertical, SearchNormal1, Trash } from 'iconsax-reactjs';
 import { currencies, formToBody, resources, rowToForm, type Field, type ResourceSlug, type Row, type Tone } from '@/modules/resources/config';
 import { apiFetch, ApiError } from './ui/client-api';
 import { useConfirm } from './ui/confirm';
@@ -44,10 +45,11 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
   const confirm = useConfirm();
   const listRef = useRef<HTMLDivElement>(null);
   const fieldLabels = Object.fromEntries(config.fields.map(field => [field.name, field.label]));
-  const load = useCallback(async (nextSkip: number, filters: Filters, quiet = false) => {
+  const [view, setView] = useState<'list' | 'board'>(config.board ? 'board' : 'list');
+  const load = useCallback(async (nextSkip: number, filters: Filters, quiet = false, take = PAGE) => {
     if (!quiet) setLoading(true);
     try {
-      const params = new URLSearchParams({ take: String(PAGE), skip: String(nextSkip), q: filters.q, archived: filters.archived ? '1' : '0' });
+      const params = new URLSearchParams({ take: String(take), skip: String(nextSkip), q: filters.q, archived: filters.archived ? '1' : '0' });
       if (filters.status) params.set('status', filters.status);
       const result = await apiFetch<Page>(`/api/crm/${slug}?${params}`);
       setPage(result); setSkip(nextSkip); setApplied(filters);
@@ -144,24 +146,51 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
   const actions = (row: Row) => ({ edit: () => openEditor(row), archive: () => void setArchived(row, !row.archivedAt), remove: canDelete ? () => void remove(row) : undefined });
   const editingRow = editing && editing !== 'new' ? editing : null;
   const readOnly = !canEdit || Boolean(editingRow?.archivedAt);
+  const boardTake = view === 'board' ? 100 : PAGE;
+  // Moves a record to the next board column with a full-form update (same rules and concurrency as the editor).
+  async function advance(row: Row, next: string) {
+    const body = formToBody(config, { ...rowToForm(config, row), status: next });
+    try {
+      await apiFetch(`/api/crm/${slug}/${encodeURIComponent(row.id)}`, { method: 'PATCH', json: { ...body, expectedUpdatedAt: row.updatedAt } });
+      toast({ kind: 'success', title: `${config.title(row)} avanzó`, message: config.statuses?.[next] });
+      await load(0, applied, true, boardTake);
+    } catch (error) { toast({ kind: 'error', title: 'No se pudo avanzar', message: error instanceof Error ? error.message : undefined }); }
+  }
   const statusOf = (row: Row) => typeof row.status === 'string' && config.statuses ? { label: config.statuses[row.status] ?? row.status, tone: config.statusTones?.[row.status] ?? 'neutral' } : null;
   return <div className="resource">
     <div className="resource-toolbar">
       <div className="segmented" role="tablist" aria-label="Vista">
-        <button type="button" role="tab" aria-selected={!applied.archived} disabled={loading} onClick={() => { const next = { ...draft, archived: false }; setDraft(next); void load(0, next); }}>Activos</button>
+        <button type="button" role="tab" aria-selected={!applied.archived} disabled={loading} onClick={() => { const next = { ...draft, archived: false }; setDraft(next); void load(0, next, false, boardTake); }}>Activos</button>
         <button type="button" role="tab" aria-selected={applied.archived} disabled={loading} onClick={() => { const next = { ...draft, archived: true }; setDraft(next); void load(0, next); }}>Archivados</button>
       </div>
+      {config.board && !applied.archived ? <div className="segmented" role="group" aria-label="Forma de ver">
+        <button type="button" aria-pressed={view === 'board'} onClick={() => { setView('board'); const next = { ...draft, status: '' }; setDraft(next); void load(0, next, false, 100); }}><Category aria-hidden="true"/>Embudo</button>
+        <button type="button" aria-pressed={view === 'list'} onClick={() => { setView('list'); void load(0, applied); }}><RowVertical aria-hidden="true"/>Lista</button>
+      </div> : null}
       <span className="resource-count">{page.total} {page.total === 1 ? config.singular : config.plural}</span>
       {canEdit ? <button type="button" className="button" onClick={() => openEditor('new')}><Add aria-hidden="true"/>Nuev{config.article === 'una' ? 'a' : 'o'} {config.singular}</button> : <span className="badge">Acceso de consulta</span>}
     </div>
-    <form className="resource-filters" onSubmit={event => { event.preventDefault(); void load(0, { ...draft, q: draft.q.trim() }); }}>
+    <form className="resource-filters" onSubmit={event => { event.preventDefault(); void load(0, { ...draft, q: draft.q.trim() }, false, boardTake); }}>
       <label className="search-field"><SearchNormal1 aria-hidden="true"/><span className="sr-only">Buscar</span><input type="search" value={draft.q} placeholder={config.searchHint} maxLength={100} onChange={event => setDraft({ ...draft, q: event.target.value })}/></label>
-      {config.statuses ? <label className="sr-label"><span className="sr-only">Estado</span><select value={draft.status} onChange={event => { const next = { ...draft, status: event.target.value }; setDraft(next); void load(0, next); }}><option value="">Todos los estados</option>{Object.entries(config.statuses).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label> : null}
+      {config.statuses && !(config.board && view === 'board') ? <label className="sr-label"><span className="sr-only">Estado</span><select value={draft.status} onChange={event => { const next = { ...draft, status: event.target.value }; setDraft(next); void load(0, next); }}><option value="">Todos los estados</option>{Object.entries(config.statuses).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label> : null}
       <button className="button button-soft" disabled={loading}>Buscar</button>
       <button type="button" className="icon-button" aria-label="Actualizar listado" disabled={loading} onClick={() => void load(skip, applied)}><Refresh2 aria-hidden="true" className={loading ? 'is-spinning' : ''}/></button>
     </form>
     <div ref={listRef} className="resource-list" aria-busy={loading}>
-      {page.data.length && config.layout === 'cards' ? <div className="catalog-grid">{page.data.map(row => <CatalogCard key={row.id} row={row} config={config} team={team} canEdit={canEdit} {...actions(row)}/>)}</div>
+      {page.data.length && config.board && view === 'board' && !applied.archived ? <>
+        <div className="delivery-board pipeline-board">{config.board.columns.map(column => { const items = page.data.filter(row => row.status === column); return <section key={column} className="delivery-column" aria-label={`${config.statuses?.[column] ?? column}: ${items.length}`}>
+          <header><strong>{config.statuses?.[column] ?? column}</strong><span className="delivery-count">{items.length}</span></header>
+          <div className="delivery-column-body">{items.map(row => { const progress = config.progress?.(row); const index = config.board!.columns.indexOf(column); const next = config.board!.columns[index + 1]; const owner = typeof row.ownerEmail === 'string' ? row.ownerEmail : null; return <article key={row.id} className="delivery-card pipeline-card">
+            <button type="button" className="pipeline-card-main" onClick={() => openEditor(row)}>
+              <span className="delivery-card-top"><span className="delivery-card-title"><strong>{config.title(row)}</strong><small>{config.columns[0].detail?.(row) || config.columns[1]?.value(row)}</small></span><span className="delivery-owner" title={teammateLabel(team, owner)}>{owner ? initials(teammateLabel(team, owner)) : '—'}</span></span>
+              {progress ? <><span className="delivery-progress" aria-hidden="true"><i style={{ width: `${Math.round(progress.done / progress.total * 100)}%` }}/></span><span className="delivery-card-meta">{progress.label}</span></> : null}
+            </button>
+            {canEdit && next ? <button type="button" className="text-button pipeline-advance" onClick={() => void advance(row, next)}>Pasar a {config.statuses?.[next] ?? next}<ArrowRight aria-hidden="true"/></button> : null}
+          </article>; })}{!items.length ? <p className="delivery-empty">Nadie en esta etapa</p> : null}</div>
+        </section>; })}</div>
+        <p className="lead-small">{config.board.hidden}</p>
+      </>
+      : page.data.length && config.layout === 'cards' ? <div className="catalog-grid">{page.data.map(row => <CatalogCard key={row.id} row={row} config={config} team={team} canEdit={canEdit} {...actions(row)}/>)}</div>
       : page.data.length ? <>
         <div className="table-wrap resource-table"><table><thead><tr>{config.columns.map(column => <th key={column.label}>{column.label}</th>)}{config.statuses ? <th>Estado</th> : null}<th><span className="sr-only">Acciones</span></th></tr></thead>
           <tbody>{page.data.map(row => { const status = statusOf(row); const act = actions(row); return <tr key={row.id} data-row>
@@ -177,19 +206,21 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
         message={filtered ? 'Prueba con otra búsqueda o quita los filtros.' : applied.archived ? 'Lo que archives aparecerá aquí para restaurarlo cuando lo necesites.' : config.emptyMessage}
         action={filtered ? <button type="button" className="button button-soft" onClick={() => { const next = { q: '', status: '', archived: applied.archived }; setDraft(next); void load(0, next); }}>Limpiar filtros</button> : canEdit && !applied.archived ? <button type="button" className="button" onClick={() => openEditor('new')}><Add aria-hidden="true"/>Registrar {config.article} {config.singular}</button> : undefined}/>}
     </div>
-    {page.total > PAGE ? <div className="document-pagination"><button type="button" className="text-button" disabled={loading || skip === 0} onClick={() => void load(Math.max(0, skip - PAGE), applied)}>Anterior</button><span>{skip + 1}–{Math.min(skip + PAGE, page.total)} de {page.total}</span><button type="button" className="text-button" disabled={loading || skip + PAGE >= page.total} onClick={() => void load(skip + PAGE, applied)}>Siguiente</button></div> : null}
+    {page.total > PAGE && view === 'list' ? <div className="document-pagination"><button type="button" className="text-button" disabled={loading || skip === 0} onClick={() => void load(Math.max(0, skip - PAGE), applied)}>Anterior</button><span>{skip + 1}–{Math.min(skip + PAGE, page.total)} de {page.total}</span><button type="button" className="text-button" disabled={loading || skip + PAGE >= page.total} onClick={() => void load(skip + PAGE, applied)}>Siguiente</button></div> : null}
     <Modal open={modalOpen} onClose={() => void requestClose()} busy={saving} size="lg"
       title={editing === 'new' ? `Nuev${config.article === 'una' ? 'a' : 'o'} ${config.singular}` : readOnly ? capitalize(config.singular) : `Editar ${config.singular}`}
       description={editingRow?.archivedAt ? 'Archivado: restáuralo para poder editarlo.' : editingRow ? `Registrado el ${new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium' }).format(new Date(editingRow.createdAt))}` : 'Los campos marcados con * son obligatorios.'}
       footer={<>{editingRow && canEdit ? <button type="button" className="text-button" disabled={saving} onClick={() => void setArchived(editingRow, !editingRow.archivedAt)}>{editingRow.archivedAt ? <><ArrowRotateLeft aria-hidden="true"/>Restaurar</> : <><Archive aria-hidden="true"/>Archivar</>}</button> : null}
         {editingRow && canDelete ? <button type="button" className="text-button is-danger" disabled={saving} onClick={() => void remove(editingRow)}><Trash aria-hidden="true"/>Eliminar</button> : null}
+        {editingRow && config.modalLinks ? config.modalLinks(editingRow).map(link => <Link key={link.href} className={link.primary ? 'button button-soft' : 'text-button'} href={link.href}>{link.label}</Link>) : null}
         <span className="modal-footer-spacer"/>
         <button type="button" className="text-button" disabled={saving} onClick={() => void requestClose()}>{readOnly ? 'Cerrar' : 'Cancelar'}</button>
         {!readOnly ? <button type="submit" form={`form-${slug}`} className="button" disabled={saving}>{saving ? 'Guardando…' : 'Guardar'}</button> : null}</>}>
       <form id={`form-${slug}`} className="resource-form" onSubmit={save} noValidate={false}>
-        {config.fields.filter(field => !field.showWhen || field.showWhen.values.includes(values[field.showWhen.field] ?? '')).map((field, index) => <FieldInput key={field.name} field={field} value={values[field.name] ?? ''} label={labels[field.name] ?? ''} disabled={readOnly || saving} autoFocus={index === 0 && !readOnly && field.type !== 'image'}
+        {config.guide?.(values.status ?? '') ? <blockquote className="delivery-guide form-guide"><MessageText aria-hidden="true"/><span><small>Mensaje guía · {config.statuses?.[values.status] ?? ''}</small>{config.guide(values.status ?? '')}</span></blockquote> : null}
+        {config.fields.filter(field => !field.showWhen || field.showWhen.values.includes(values[field.showWhen.field] ?? '')).flatMap((field, index) => [field.section ? <h3 key={`section-${field.name}`} className="form-section">{field.section}{config.progress ? <span className="delivery-score">{config.progress(values as unknown as Row).done}/{config.progress(values as unknown as Row).total}</span> : null}</h3> : null, <FieldInput key={field.name} field={field} value={values[field.name] ?? ''} label={labels[field.name] ?? ''} disabled={readOnly || saving} autoFocus={index === 0 && !readOnly && field.type !== 'image'}
           team={team} error={fieldErrors[field.name]} image={field.type === 'image' ? { current: removeImage || !editingRow ? null : config.image?.(editingRow) ?? null, file: imageFile, onFile: file => { setImageFile(file); setRemoveImage(false); }, onRemove: () => { setImageFile(null); setRemoveImage(true); } } : undefined}
-          onChange={(value, label, related) => { if (fieldErrors[field.name]) setFieldErrors(current => { const next = { ...current }; delete next[field.name]; return next; }); setValues(current => ({ ...current, [field.name]: value, ...(related && config.prefill ? config.prefill(field.name, related, current) : {}) })); if (label !== undefined) setLabels(current => ({ ...current, [field.name]: label })); }}/>)}
+          onChange={(value, label, related) => { if (fieldErrors[field.name]) setFieldErrors(current => { const next = { ...current }; delete next[field.name]; return next; }); setValues(current => ({ ...current, [field.name]: value, ...(related && config.prefill ? config.prefill(field.name, related, current) : {}) })); if (label !== undefined) setLabels(current => ({ ...current, [field.name]: label })); }}/>])}
         {formError ? <p role="alert" className="form-error">{formError}</p> : null}
       </form>
     </Modal>
@@ -215,7 +246,7 @@ function FieldInput({ field, value, label, disabled, autoFocus, onChange, team, 
   if (field.type === 'relation' && field.relation) control = <RelationPicker relation={field.relation} value={value} initialLabel={label} label={field.label} required={field.required} disabled={disabled} onChange={(id, text, row) => onChange(id, text, row)}/>;
   else if (field.type === 'owner') control = <select {...common} value={value} onChange={event => onChange(event.target.value)}><option value="">Sin asignar</option>{value && !team.some(member => member.email === value) ? <option value={value}>{value}</option> : null}{team.map(member => <option key={member.email} value={member.email}>{member.name ? `${member.name} · ${member.email}` : member.email}</option>)}</select>;
   else if (field.type === 'textarea') control = <textarea {...common} value={value} maxLength={field.maxLength} rows={4} onChange={event => onChange(event.target.value)}/>;
-  else if (field.type === 'select' || field.type === 'currency') control = <select {...common} value={value} onChange={event => onChange(event.target.value)}>{!field.required ? <option value="">Sin especificar</option> : null}{Object.entries(field.type === 'currency' ? currencies : field.options ?? {}).map(([key, text]) => <option key={key} value={key}>{text}</option>)}</select>;
+  else if (field.type === 'select' || field.type === 'currency') control = <select {...common} value={value} onChange={event => onChange(event.target.value)}>{!field.required ? <option value="">Sin especificar</option> : null}{Object.entries(field.type === 'currency' ? currencies : field.options ?? {}).filter(([key]) => !field.hiddenOptions?.includes(key) || key === value).map(([key, text]) => <option key={key} value={key}>{text}</option>)}</select>;
   else control = <input {...common} value={value} maxLength={field.maxLength} placeholder={field.placeholder}
     type={field.type === 'money' ? 'text' : field.type === 'date' ? 'date' : field.type} inputMode={field.type === 'money' ? 'decimal' : undefined}
     autoComplete={field.type === 'email' ? 'email' : field.type === 'tel' ? 'tel' : field.name === 'name' ? 'name' : 'off'} onChange={event => onChange(event.target.value)}/>;

@@ -3,7 +3,7 @@ import { getDb } from '@/lib/db';
 import { getR2 } from '@/integrations/r2/server';
 import { isProductImageKey } from '../documentos/file-policy';
 import type { ResourceSlug } from './config';
-import { listFilter, parseUpdate, ResourceError, schemas } from './rules';
+import { applyRules, listFilter, parseUpdate, ResourceError, schemas } from './rules';
 export { ResourceError };
 
 type Stored = Record<string, unknown> & { id: string };
@@ -15,7 +15,7 @@ type Delegate = {
 const policyWithClient = { select: { id: true, number: true, client: { select: { id: true, name: true } } } };
 const productSummary = { select: { id: true, name: true, insurer: true, imageType: true, updatedAt: true } };
 const definitions: Record<ResourceSlug, { model: string; include?: object; omit?: object; orderBy: object[] }> = {
-  prospectos: { model: 'prospect', orderBy: [{ createdAt: 'desc' }] },
+  prospectos: { model: 'prospect', include: { referredBy: { select: { id: true, name: true } }, convertedClient: { select: { id: true, name: true } } }, orderBy: [{ createdAt: 'desc' }] },
   clientes: { model: 'client', orderBy: [{ createdAt: 'desc' }] },
   polizas: { model: 'policy', include: { client: { select: { id: true, name: true } }, catalogProduct: productSummary }, orderBy: [{ endDate: 'asc' }] },
   cotizaciones: { model: 'quote', include: { client: { select: { id: true, name: true } }, prospect: { select: { id: true, name: true } } }, orderBy: [{ createdAt: 'desc' }] },
@@ -47,7 +47,7 @@ export async function findResource(slug: ResourceSlug, id: string) {
   return delegate(getDb(), slug).findUnique({ where: { id }, ...withInclude(slug) });
 }
 export async function createResource(slug: ResourceSlug, input: unknown) {
-  const data = schemas[slug].parse(input) as Record<string, unknown>;
+  const data = applyRules(slug, schemas[slug].parse(input) as Record<string, unknown>);
   // A policy from the catalog inherits the product's responsible (Ale for medical, Joel for autos) unless one was chosen.
   if (slug === 'polizas' && data.productId && !data.ownerEmail) {
     const product = await getDb().product.findUnique({ where: { id: String(data.productId) }, select: { ownerEmail: true } });
@@ -59,6 +59,8 @@ export async function createResource(slug: ResourceSlug, input: unknown) {
 export async function updateResource(slug: ResourceSlug, id: string, input: unknown) {
   const { expectedUpdatedAt, data } = parseUpdate(slug, input);
   return getDb().$transaction(async tx => {
+    // "Cliente" is only valid for a prospect that went through the conversion flow.
+    if (slug === 'prospectos' && data.status === 'CLIENTE' && !(await tx.prospect.findUnique({ where: { id }, select: { convertedClientId: true } }))?.convertedClientId) throw new ResourceError('USE_CONVERSION', 422);
     const result = await delegate(tx, slug).updateMany({ where: { id, updatedAt: expectedUpdatedAt }, data });
     if (!result.count) {
       const exists = await delegate(tx, slug).findUnique({ where: { id }, select: { id: true } });

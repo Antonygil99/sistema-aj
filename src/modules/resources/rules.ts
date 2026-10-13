@@ -1,7 +1,8 @@
 // Pure request rules for the generic CRM tables (validation, search filters, full-form updates). Unit tested.
 import { z } from 'zod';
 import { resources, type ResourceSlug } from './config';
-import { createSchema as prospectSchema } from '../prospectos/schema';
+import { createSchema as prospectSchema, updateSchema as prospectUpdateSchema } from '../prospectos/schema';
+import { applyProspectRules } from '../prospectos/pipeline';
 import { createSchema as clientSchema } from '../clientes/schema';
 import { createSchema as policySchema } from '../polizas/schema';
 import { createSchema as quoteSchema } from '../cotizaciones/schema';
@@ -18,6 +19,12 @@ export const schemas: Record<ResourceSlug, z.ZodType> = {
   prospectos: prospectSchema, clientes: clientSchema, polizas: policySchema, cotizaciones: quoteSchema,
   pagos: paymentSchema, renovaciones: renewalSchema, siniestros: claimSchema, actividades: activitySchema, productos: productSchema,
 };
+// Tables whose edit form accepts more than their create form (a converted prospect keeps CLIENTE).
+const updateSchemas: Partial<Record<ResourceSlug, z.ZodType>> = { prospectos: prospectUpdateSchema };
+// Business rules applied on every create and full-form update.
+export function applyRules(slug: ResourceSlug, data: Record<string, unknown>) {
+  return slug === 'prospectos' ? applyProspectRules(data) : data;
+}
 export const searchFields: Record<ResourceSlug, string[]> = {
   prospectos: ['name', 'email', 'phone'], clientes: ['name', 'email', 'phone', 'taxId'],
   polizas: ['number', 'insurer', 'product', 'client.name'], cotizaciones: ['reference', 'product', 'client.name', 'prospect.name'],
@@ -48,7 +55,14 @@ const version = z.object({ expectedUpdatedAt: z.iso.datetime({ offset: true }) }
 // Full-form update: requires the version the user edited; optional fields left out become null.
 export function parseUpdate(slug: ResourceSlug, input: unknown) {
   const { expectedUpdatedAt, ...rest } = version.parse(input);
-  const parsed = schemas[slug].parse(rest) as Record<string, unknown>;
-  return { expectedUpdatedAt: new Date(expectedUpdatedAt), data: { ...Object.fromEntries(resources[slug].nullable.map(name => [name, null])), ...parsed } };
+  const parsed = (updateSchemas[slug] ?? schemas[slug]).parse(rest) as Record<string, unknown>;
+  return { expectedUpdatedAt: new Date(expectedUpdatedAt), data: applyRules(slug, { ...Object.fromEntries(resources[slug].nullable.map(name => [name, null])), ...parsed }) };
 }
 export const archiveInput = z.object({ archived: z.boolean() }).strict();
+// The medical-history note is only for the advisors who operate the CRM (Ale and Joel), never for read-only accounts.
+export function redact<T extends Record<string, unknown>>(slug: ResourceSlug, row: T, role: string): T {
+  if (slug !== 'prospectos' || role !== 'USER' || !('diagMedicalHistory' in row)) return row;
+  const { diagMedicalHistory: _hidden, ...rest } = row;
+  void _hidden;
+  return rest as T;
+}

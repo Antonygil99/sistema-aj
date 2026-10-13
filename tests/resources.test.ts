@@ -6,14 +6,14 @@ import { describeEvent, eventHref } from '../src/modules/notifications';
 const version = '2026-10-12T18:00:00.000Z';
 
 test('buscar admite texto acotado, filtra estados válidos y oculta archivados por defecto', () => {
-  const { query, where } = listFilter('prospectos', { q: '  Ana  ', status: 'CONTACTED' });
+  const { query, where } = listFilter('prospectos', { q: '  Ana  ', status: 'DIAGNOSTICADO' });
   assert.equal(query.q, 'Ana');
   assert.equal(where.archivedAt, null);
-  assert.equal((where as { status?: string }).status, 'CONTACTED');
+  assert.equal((where as { status?: string }).status, 'DIAGNOSTICADO');
   assert.equal(listFilter('clientes', { archived: '1' }).where.archivedAt && 'not' in listFilter('clientes', { archived: '1' }).where.archivedAt!, true);
   assert.throws(() => listFilter('prospectos', { q: 'x'.repeat(101) }));
   assert.throws(() => listFilter('prospectos', { status: 'ADMIN' }));
-  assert.throws(() => listFilter('clientes', { status: 'NEW' }), 'clientes no tiene estados');
+  assert.throws(() => listFilter('clientes', { status: 'CURIOSO' }), 'clientes no tiene estados');
   assert.throws(() => listFilter('clientes', { role: 'SUPERADMIN' }), 'parámetros desconocidos');
 });
 
@@ -58,7 +58,7 @@ test('una ficha existente vuelve al formulario sin desplazar días ni inventar v
   const form = rowToForm(resources.pagos, row);
   assert.equal(form.dueDate, '2026-03-01');
   assert.equal(form.paidAt, '');
-  assert.equal(rowToForm(resources.prospectos, null).status, 'NEW', 'valores por defecto solo en altas');
+  assert.equal(rowToForm(resources.prospectos, null).status, 'CURIOSO', 'valores por defecto solo en altas');
 });
 
 test('cada módulo tiene título, columnas y estados con etiqueta', () => {

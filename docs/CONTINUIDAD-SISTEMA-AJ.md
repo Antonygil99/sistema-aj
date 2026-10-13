@@ -139,6 +139,14 @@ Basado en los documentos del cliente «Método aplicado a AJ Consultoría» y «
 - La ficha del cliente indica la etapa de entrega de cada póliza y enlaza a su entrega activa; el asistente de expediente permite elegir el producto del catálogo.
 - **Decisiones del cliente para siguientes etapas:** «diagnosticado» significa que respondió las 5 preguntas de diagnóstico; de antecedentes médicos solo se registra si existen, nunca el detalle, y solo los ven Ale y Joel (los únicos usuarios).
 
+### Flujo de 7 etapas: de prospecto a cliente (punto 2)
+
+- **Etapas de prospecto** (Ruta AJ 1–4): Curioso → Diagnosticado → Comparativo guiado → Emisión, más Perdido. La vista principal de Prospectos es un **embudo** con una columna por etapa, avance de diagnóstico y botón «Pasar a …»; la lista sigue disponible. Cada etapa muestra en el formulario su mensaje guía del documento del cliente.
+- **Diagnóstico de 5 preguntas** dentro del prospecto: qué le preocupa proteger, quién depende de él, qué hospital o médico usaría, IMSS/póliza actual y antecedentes médicos, y qué le dolería más. Al responder las 5 pasa solo a «Diagnosticado» (definición del cliente). De antecedentes médicos solo se registra Sí/No/No lo sabe; nunca el detalle, y no se envía a cuentas de solo consulta.
+- **Referido por**: el cliente que recomendó al prospecto; la ficha del cliente muestra cuántos referidos ha traído y de qué prospecto viene.
+- **Conversión sin recaptura**: «Convertir en cliente» abre el asistente de expediente con sus datos; al guardar se crea el cliente (con su póliza, que entra sola al tablero de Entregas) y el prospecto queda en «Cliente» enlazado a él.
+- Etapas 5–7 (entrega activa, seguimiento de uso y recomendador) viven en el tablero de Entregas.
+
 ## 8. Variables de entorno y ejecución
 
 Variables del servidor (nombres, sin valores):

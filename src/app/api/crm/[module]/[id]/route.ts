@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { authenticate, apiError } from '@/lib/api';
 import { isResourceSlug, resources, type Row } from '@/modules/resources/config';
 import { deleteResource, findResource, updateResource } from '@/modules/resources/server';
+import { redact } from '@/modules/resources/rules';
 import { recordEvent } from '@/modules/events';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,7 +18,7 @@ export async function GET(request: Request, context: Context) {
     if (!isResourceSlug(module)) return NextResponse.json({ error: 'MODULE_NOT_FOUND' }, { status: 404 });
     const data = await findResource(module, recordId.parse(id));
     if (!data) return NextResponse.json({ error: 'RECORD_NOT_FOUND' }, { status: 404 });
-    return NextResponse.json({ data }, { headers: noStore });
+    return NextResponse.json({ data: redact(module, data, auth.actor.role) }, { headers: noStore });
   } catch (error) { return apiError(error); }
 }
 export async function PATCH(request: Request, context: Context) {

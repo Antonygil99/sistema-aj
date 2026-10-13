@@ -206,3 +206,12 @@
   .workspace .swipe-grip{display:block;width:4px;height:22px;border-radius:4px;background:repeating-linear-gradient(#c3ccc7 0 3px,transparent 3px 6px);flex-shrink:0;margin-left:2px}
 }
 @media(max-width:760px){.workspace .quick-panel>a{min-height:48px}}
+/* Embudo de prospectos (Ruta AJ, etapas 1–4) */
+.workspace .pipeline-board{grid-template-columns:repeat(4,minmax(220px,1fr))}
+.workspace .pipeline-card{padding:0;gap:0}
+.workspace .pipeline-card-main{display:grid;gap:10px;width:100%;padding:12px;background:none;border:0;text-align:left;font:inherit;color:inherit}
+.workspace .pipeline-advance{justify-content:center;width:100%;border-top:1px solid var(--line);border-radius:0 0 14px 14px;min-height:38px}
+.workspace .pipeline-advance svg{width:14px;height:14px}
+.workspace .form-section{grid-column:1/-1;display:flex;align-items:center;gap:8px;margin:10px 0 0;padding-top:16px;border-top:1px solid var(--line);font-size:14px;font-weight:600}
+.workspace .form-guide{grid-column:1/-1}
+@media(max-width:760px){.workspace .pipeline-board{grid-template-columns:repeat(4,82%)}.workspace .pipeline-advance{min-height:44px}}

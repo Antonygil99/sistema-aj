@@ -35,6 +35,8 @@ export const errorMessages: Record<string, string> = {
   DOCUMENT_NOT_FOUND: 'El archivo ya no está disponible.',
   FILE_NOT_FOUND: 'El archivo no se encuentra en el almacenamiento.',
   NETWORK: 'Sin conexión con el servidor. Revisa tu red.',
+  USE_CONVERSION: 'Para pasar un prospecto a cliente usa «Convertir en cliente».',
+  ALREADY_CONVERTED: 'Este prospecto ya se convirtió en cliente.',
 };
 export const securityCodes = new Set(['UNAUTHORIZED', 'FORBIDDEN', 'INVALID_ORIGIN']);
 // Custom (business) issues are already written in Spanish; Zod's built-in ones are not, so name the field instead.

@@ -16,7 +16,8 @@ export const policyInput = z.object({
   if (p.payments.reduce((sum, row) => sum + Math.round(row.amount * 100), 0) !== Math.round(p.premium * 100)) ctx.addIssue({ code: 'custom', message: 'Los recibos deben sumar la prima total' });
   p.payments.forEach((row, i) => { if (row.dueDate < p.startDate || row.dueDate > p.endDate || (i > 0 && row.dueDate <= p.payments[i-1].dueDate)) ctx.addIssue({ code: 'custom', message: 'Vencimientos ordenados dentro de la vigencia' }); });
 });
-export const dossierInput = z.object({ client: clientSchema, policy: policyInput.optional() }).strict();
+// prospectId converts an existing prospect (Ruta AJ, etapa 4 → cliente) without retyping its data.
+export const dossierInput = z.object({ client: clientSchema, policy: policyInput.optional(), prospectId: z.string().min(1).max(100).optional() }).strict();
 const clientMessages: Record<string, string> = { name: 'Escribe el nombre del cliente.', email: 'Revisa el correo electrónico.', phone: 'Teléfono: de 8 a 15 dígitos, sin espacios; puede iniciar con +.', taxId: 'Revisa el RFC.' };
 // Spanish, field-specific feedback for the first wizard step; Zod's defaults are English.
 export function clientIssues(input: unknown) {

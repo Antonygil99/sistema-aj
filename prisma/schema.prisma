@@ -5,12 +5,19 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+// Ruta AJ: curioso → diagnosticado → comparativo guiado → emisión; CLIENTE once converted.
 enum ProspectStatus {
-  NEW
-  CONTACTED
-  QUALIFIED
-  WON
-  LOST
+  CURIOSO
+  DIAGNOSTICADO
+  COMPARATIVO
+  EMISION
+  CLIENTE
+  PERDIDO
+}
+enum MedicalHistory {
+  SI
+  NO
+  NO_SABE
 }
 enum PolicyStatus {
   ACTIVE
@@ -56,14 +63,28 @@ model Prospect {
   email     String?
   phone     String?
   source    String @default("manual")
-  status    ProspectStatus @default(NEW)
+  status    ProspectStatus @default(CURIOSO)
   notes     String?
+  ownerEmail String?
+  referredByClientId String?
+  referredBy Client? @relation("Referrals", fields: [referredByClientId], references: [id], onDelete: Restrict)
+  convertedClientId String? @unique
+  convertedClient Client? @relation("Conversions", fields: [convertedClientId], references: [id], onDelete: Restrict)
+  // Diagnosis (etapa 2): five questions. Medical history is recorded only as existence, never its detail.
+  diagProtect String?
+  diagDependents String?
+  diagCare String?
+  diagCoverage String?
+  diagMedicalHistory MedicalHistory?
+  diagPain String?
   quotes    Quote[]
   activities Activity[]
   archivedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([status, createdAt])
+  @@index([ownerEmail])
+  @@index([referredByClientId])
 }
 model Client {
   id        String @id @default(cuid())
@@ -76,6 +97,8 @@ model Client {
   documents Document[]
   folders   DocumentFolder[]
   activities Activity[]
+  referrals Prospect[] @relation("Referrals")
+  convertedFrom Prospect? @relation("Conversions")
   archivedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

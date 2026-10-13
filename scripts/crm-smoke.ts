@@ -43,7 +43,7 @@ try {
     assert.equal(results.data.some((row: { id: string }) => row.id === data.id), true, 'search finds new record');
     const expectedUpdatedAt = data.updatedAt;
     await new Promise(resolve => setTimeout(resolve, 5));
-    const update = await request(endpoint, 'PATCH', { name: names[slug], expectedUpdatedAt, ...(slug === 'prospectos' ? { source: 'verification', status: 'CONTACTED' } : { taxId: 'VERIFICATION' }) });
+    const update = await request(endpoint, 'PATCH', { name: names[slug], expectedUpdatedAt, ...(slug === 'prospectos' ? { source: 'verification', status: 'COMPARATIVO' } : { taxId: 'VERIFICATION' }) });
     assert.equal(update.status, 200, 'edit contact');
     data = (await update.json()).data;
     assert.equal(data.email, null, 'clear email');
@@ -51,7 +51,7 @@ try {
     assert.equal((await request(endpoint, 'PATCH', { name: names[slug], expectedUpdatedAt })).status, 409, 'stale edit denied');
     assert.equal((await request(endpoint)).status, 200, 'read detail');
     if (slug === 'prospectos') {
-      const filtered = await request(root + '?q=' + runId + '&status=CONTACTED');
+      const filtered = await request(root + '?q=' + runId + '&status=COMPARATIVO');
       assert.equal((await filtered.json()).total, 1, 'status filter');
     }
     const table = slug === 'prospectos' ? 'Prospect' : 'Client';

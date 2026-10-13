@@ -3,6 +3,7 @@ import { authenticate, apiError } from '@/lib/api';
 import { list as listDocuments } from '@/modules/documentos/service';
 import { isResourceSlug, resources } from '@/modules/resources/config';
 import { createResource, listResource } from '@/modules/resources/server';
+import { redact } from '@/modules/resources/rules';
 import { recordEvent } from '@/modules/events';
 import type { Row } from '@/modules/resources/config';
 export const runtime = 'nodejs';
@@ -16,7 +17,8 @@ export async function GET(request: Request, context: Context) {
     const params = Object.fromEntries(new URL(request.url).searchParams);
     if (slug === 'documentos') return NextResponse.json(await listDocuments(Number(params.take ?? 20) || 20, Number(params.skip ?? 0) || 0), { headers: noStore });
     if (!isResourceSlug(slug)) return NextResponse.json({ error: 'MODULE_NOT_FOUND' }, { status: 404 });
-    return NextResponse.json(await listResource(slug, params), { headers: noStore });
+    const result = await listResource(slug, params);
+    return NextResponse.json({ ...result, data: result.data.map(row => redact(slug, row, auth.actor.role)) }, { headers: noStore });
   } catch (error) { return apiError(error); }
 }
 export async function POST(request: Request, context: Context) {
