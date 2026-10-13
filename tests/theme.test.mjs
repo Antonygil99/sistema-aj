@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { HEX, buildTheme, contrast, darkColor, stylesheets, themeFile } from '../scripts/theme-tokens.mjs';
+import { GRADIENT_BASE, GRADIENT_CANVAS, GRADIENT_INK, HEX, buildTheme, contrast, darkColor, gradientColor, stylesheets, themeFile } from '../scripts/theme-tokens.mjs';
 
 test('el tema generado está al día con las hojas del espacio de trabajo', () => {
   // Windows checkouts may turn LF into CRLF; compare the text, not the line endings.
@@ -21,4 +21,15 @@ test('el tema oscuro invierte superficies y texto, y conserva las sombras', () =
   assert.ok(contrast(darkColor('#9b3b2a'), card) >= 4.5, 'rojo de alerta');
   assert.ok(contrast(darkColor('#5d6a63'), darkColor('#fafbfc')) >= 4.5, 'texto gris sobre el panel principal');
   assert.match(darkColor('#10201914'), /^#102019[0-9a-f]{2}$/, 'una sombra sigue siendo oscura');
+});
+
+test('el tema gradiente mantiene el texto legible sobre las tarjetas y sobre el lienzo', () => {
+  const card = gradientColor('#ffffff'), brightest = GRADIENT_CANVAS[2];
+  assert.ok(contrast(gradientColor('#1f2a25'), card) >= 7, 'texto principal');
+  assert.ok(contrast(gradientColor('#5d6a63'), card) >= 4.5, 'texto gris');
+  assert.ok(contrast(gradientColor('#1f2a25'), brightest) >= 4.5, 'texto sobre la parte más brillante del lienzo');
+  assert.ok(contrast(gradientColor('#5d6a63'), brightest) >= 4.5, 'texto gris sobre la parte más brillante del lienzo');
+  assert.ok(contrast(gradientColor('#3f6b54'), card) >= 4.5, 'acento en color base');
+  assert.ok(contrast(GRADIENT_INK, GRADIENT_BASE) >= 4.5, 'texto de los botones');
+  assert.match(readFileSync(themeFile, 'utf8'), /\.workspace\[data-theme=gradient\]\{/);
 });

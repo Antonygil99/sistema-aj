@@ -1,7 +1,7 @@
-// Keeps the workspace light/dark theme in sync. Every hex color written in the workspace stylesheets becomes a
-// token `--c-<hex>` whose light value is the original color and whose dark value is derived here (OKLab:
+// Keeps the workspace themes in sync. Every hex color written in the workspace stylesheets becomes a token
+// `--c-<hex>` whose light value is the original color and whose dark and gradient values are derived here (OKLab:
 // lightness inverted, hue kept, shadows kept dark). Page backgrounds and the shared variables have hand-picked
-// dark values. Run `npm run theme` after adding colors; `tests/theme.test.mjs` fails while anything is stale.
+// values. Run `npm run theme` after adding colors; `tests/theme.test.mjs` fails while anything is stale.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 export const stylesheets = ['src/app/(workspace)/workspace.css', 'src/app/(workspace)/help.css'];
@@ -17,9 +17,28 @@ const globalRules = [
   ['.notice', 'border-color:#efd3a6;background:#fbefd9;color:#6b4a1c'],
   [':is(.contact-form,.access-form) :is(input,select,textarea)', 'background:#ffffff'],
 ];
-// Funnel stages (dataviz ordinal ramp): light → dark on white; on the dark surface the ramp is re-stepped so
-// later stages read brighter (validated with the dataviz palette script against the dark card #161c19).
-const funnel = { light: ['#8cbf9f', '#67a37f', '#4a8764', '#336b4c', '#225137'], dark: ['#2f5c43', '#3f7a58', '#58996f', '#7bb892', '#a6d6b8'] };
+// Funnel stages (dataviz ordinal ramp): light → dark on white; on dark surfaces the ramp is re-stepped so later
+// stages read brighter (validated with the dataviz palette script against the cards #161c19 and #231725).
+const funnel = {
+  light: ['#8cbf9f', '#67a37f', '#4a8764', '#336b4c', '#225137'],
+  dark: ['#2f5c43', '#3f7a58', '#58996f', '#7bb892', '#a6d6b8'],
+  gradient: ['#7b2c87', '#9a3eab', '#b650c8', '#d464e6', '#f491fa'],
+};
+// Gradient theme: base color #FC66FF (OKLCH hue ≈ 328°), dark plum cards over a grainy gradient canvas.
+export const GRADIENT_BASE = '#fc66ff';
+export const GRADIENT_INK = '#2a0830'; // text on the base color (buttons)
+export const GRADIENT_CANVAS = ['#140a17', '#3a1046', '#8a1c9e']; // top → bottom of the main panel
+const BASE_HUE = 5.73;
+const gradientOverrides = {
+  e6efed: '#120914', f3f3f1: '#140a17', f5f5f8: '#150b18', // shell around the main panel
+  fafbfc: '#1a0e1d', ffffffb0: '#1a0e1d8c', // main panel (painted with the canvas) and its top bar
+  f6f7f8: '#120914', ffffff: '#231725', // --bg and cards (the surface the funnel ramp was validated on)
+};
+// Positive statuses keep their dark-theme green so "Activa" or "Pagado" still read as good news.
+const keepGreen = [
+  [':is(.status-pill,.reminder).tone-green', 'background:#e5f2eb;color:#2f6a49'],
+  ['.toast-success .toast-icon', 'background:#e5f2eb;color:#2f6a49'],
+];
 export const HEX = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\b/g;
 const NAMED = /(:|\s|,)(white|black)(?=[;}\s,)!])/g;
 export function normalizeHex(hex) {
@@ -43,6 +62,29 @@ const channels = hex => [0, 2, 4].map(index => parseInt(hex.slice(index, index +
 const toHex = (rgb, alpha) => '#' + rgb.map(value => Math.round(Math.min(1, Math.max(0, value)) * 255).toString(16).padStart(2, '0')).join('') + (alpha < 1 ? Math.round(alpha * 255).toString(16).padStart(2, '0') : '');
 export function luminance(hex) { const [r, g, b] = channels(normalizeHex(hex)).map(toLinear); return 0.2126 * r + 0.7152 * g + 0.0722 * b; }
 export function contrast(a, b) { const [x, y] = [luminance(a), luminance(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); }
+function fitGamut(L, chroma, hue) {
+  for (; ; chroma *= 0.92) {
+    const linear = linearRgb([L, chroma * Math.cos(hue), chroma * Math.sin(hue)]);
+    if (chroma < 0.002 || linear.every(value => value >= -0.0005 && value <= 1.0005)) return toHex(linear.map(toSrgb), 1);
+  }
+}
+// Gradient theme: like the dark theme, but grays take the base hue, the workspace greens become the base color and
+// text stays light enough (L ≥ 0.8) to read over the brightest part of the canvas, not only over cards.
+export function gradientColor(input) {
+  const hex = normalizeHex(input);
+  if (gradientOverrides[hex]) return gradientOverrides[hex];
+  const rgb = channels(hex), alpha = hex.length === 8 ? parseInt(hex.slice(6), 16) / 255 : 1;
+  const [L, a, b] = oklab(rgb.map(toLinear));
+  if (alpha < 1) return L < 0.6 ? toHex(rgb, Math.min(0.9, alpha * 1.8)) : toHex(rgb, Math.max(0.04, alpha * 0.18));
+  const chroma = Math.hypot(a, b), hue = Math.atan2(b, a);
+  // Greenish grays are neutrals here; only saturated greens are workspace accents. Other tints keep their hue.
+  const greenHue = hue > 1.9 && hue < 3.5;
+  const neutral = chroma < 0.012 || (greenHue && chroma < 0.035), green = greenHue && chroma >= 0.035;
+  if (green && L < 0.6) return fitGamut(0.74, 0.2, BASE_HUE);
+  const L2 = L < 0.6 ? 0.82 + (0.6 - L) * 0.25 : Math.min(0.95, Math.max(0.12, 1.04 - 0.82 * L));
+  if (neutral) return fitGamut(L2, L2 < 0.5 ? 0.02 : 0.012, BASE_HUE);
+  return fitGamut(L2, green ? Math.max(chroma, 0.03) : chroma, green ? BASE_HUE : hue);
+}
 export function darkColor(input) {
   const hex = normalizeHex(input);
   if (overrides[hex]) return overrides[hex];
@@ -77,15 +119,23 @@ export function renderTheme(tokens) {
   const dark = sorted.map(hex => `--c-${hex}:${darkColor(hex)}`).join(';');
   const funnelVars = palette => palette.map((color, index) => `--funnel-${index + 1}:${color}`).join(';');
   const darkBlock = `${dark};${funnelVars(funnel.dark)};color-scheme:dark`;
+  const gradientTokens = sorted.map(hex => `--c-${hex}:${gradientColor(hex)}`).join(';');
+  const gradientBlock = `${gradientTokens};${funnelVars(funnel.gradient)};--accent:${GRADIENT_BASE};--accent-ink:${GRADIENT_INK};--canvas-top:${GRADIENT_CANVAS[0]};--canvas-mid:${GRADIENT_CANVAS[1]};--canvas-bottom:${GRADIENT_CANVAS[2]};--glow:${GRADIENT_BASE};color-scheme:dark`;
+  const gradientScope = '.workspace[data-theme=gradient]';
+  const gradientRules = `${gradientScope}{color:var(--text)}${gradientScope} .button:not(.button-soft){color:${GRADIENT_INK}}`
+    + globalRules.map(([selector, declarations]) => `${gradientScope} ${selector}{${declarations.replace(HEX, color => gradientColor(color))}}`).join('')
+    + keepGreen.map(([selector, declarations]) => `${gradientScope} ${selector}{${declarations.replace(HEX, color => darkColor(color))}}`).join('');
   // body keeps the light text color from globals.css; inside the workspace text must follow the theme.
   const darkRules = scope => `${scope}{color:var(--text)}` + globalRules.map(([selector, declarations]) => `${scope} ${selector}{${declarations.replace(HEX, color => darkColor(color))}}`).join('');
   return `/* Generado por scripts/theme-tokens.mjs (npm run theme). No editar a mano: cambia los colores en workspace.css
-   o help.css y vuelve a generarlo. Cada token --c-<hex> conserva el color claro y define su par oscuro. */
+   o help.css y vuelve a generarlo. Cada token --c-<hex> conserva el color claro y define sus versiones oscura y gradiente. */
 :root,.workspace{${light};${funnelVars(funnel.light)}}
 :root[data-theme=dark],.workspace[data-theme=dark]{${darkBlock}}
 @media(prefers-color-scheme:dark){:root[data-theme=system],.workspace[data-theme=system]{${darkBlock}}}
 :root[data-theme=dark] body{background:${overrides.f6f7f8}}${darkRules('.workspace[data-theme=dark]')}
 @media(prefers-color-scheme:dark){:root[data-theme=system] body{background:${overrides.f6f7f8}}${darkRules('.workspace[data-theme=system]')}}
+:root[data-theme=gradient],.workspace[data-theme=gradient]{${gradientBlock}}
+:root[data-theme=gradient] body{background:${gradientOverrides.f6f7f8}}${gradientRules}
 `;
 }
 // Reads the stylesheets, tokenizes them and renders theme.css. Returns what would be written.

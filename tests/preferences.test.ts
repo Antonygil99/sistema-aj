@@ -31,6 +31,7 @@ test('el API rechaza vistas, temas, modelos o campos desconocidos', () => {
   assert.equal(preferencesPatch.safeParse({ views: { clientes: 'mosaico' } }).success, false);
   assert.equal(preferencesPatch.safeParse({ views: { polizas: 'list' } }).success, false);
   assert.equal(preferencesPatch.safeParse({ theme: 'neon' }).success, false);
+  assert.equal(preferencesPatch.safeParse({ theme: 'gradient' }).success, true);
   assert.equal(preferencesPatch.safeParse({ assistantModel: 'gpt-5' }).success, false);
   assert.equal(preferencesPatch.safeParse({ notifications: { sound: true } }).success, false);
   assert.equal(preferencesPatch.safeParse({ tours: { seen: ['<script>'] } }).success, false);

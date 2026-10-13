@@ -41,7 +41,7 @@ export function AccountMenu({ user, roleLabel }: { user: AccountUser; roleLabel:
     return () => { document.removeEventListener('keydown', onKey); document.removeEventListener('pointerdown', onPointer); document.removeEventListener('focusin', onFocus); window.removeEventListener('resize', onResize); };
   }, [open]);
   return <>
-    <button ref={trigger} type="button" className="account-trigger" aria-expanded={open} aria-controls={open ? menuId : undefined} aria-label={`Tu cuenta: ${user.name}`} title={user.name} onClick={toggle}>
+    <button ref={trigger} type="button" className="account-trigger" aria-expanded={open} aria-controls={open ? menuId : undefined} aria-label={`Tu cuenta: ${user.name}`} data-tooltip={user.name} onClick={toggle}>
       <Avatar name={user.name} email={user.email} image={user.image} size={34}/>
       <span className="sidebar-label account-name"><strong>{user.name}</strong><small>{user.email}</small></span>
       <ArrowRight2 className="sidebar-label account-chevron" aria-hidden="true"/>

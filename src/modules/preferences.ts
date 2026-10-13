@@ -6,7 +6,7 @@ export const viewOptions = {
   documentos: ['grid', 'list'],
   prospectos: ['board', 'list'],
 } as const;
-export const themeOptions = ['light', 'dark', 'system'] as const;
+export const themeOptions = ['light', 'dark', 'system', 'gradient'] as const;
 // Current Claude models for the future assistants; nothing calls them yet (see docs/arquitectura.md).
 export const assistantModels = [
   { id: 'claude-opus-5-5', label: 'Claude Opus 5.5', summary: 'Recomendado: el más completo para el trabajo diario del equipo.' },

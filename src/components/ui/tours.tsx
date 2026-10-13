@@ -10,7 +10,7 @@ type Role = 'USER' | 'ADMIN' | 'SUPERADMIN';
 type ToursContext = { start: (id: string) => void };
 const Context = createContext<ToursContext | null>(null);
 const wait = (ms: number) => new Promise(resolve => window.setTimeout(resolve, ms));
-const darkTheme = () => document.documentElement.dataset.theme === 'dark' || (document.documentElement.dataset.theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+const darkTheme = () => ['dark', 'gradient'].includes(document.documentElement.dataset.theme ?? '') || (document.documentElement.dataset.theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
 function firstVisible(selectors: string[]) {
   for (const selector of selectors) for (const element of document.querySelectorAll(selector)) {
     if (element.getClientRects().length && getComputedStyle(element).visibility !== 'hidden') return element;

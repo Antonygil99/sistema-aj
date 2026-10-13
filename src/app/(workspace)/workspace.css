@@ -331,3 +331,30 @@
 
 /* Selector de vista dentro de la barra de herramientas (Clientes): mismo tamaño que los botones del resto */
 .workspace .resource-toolbar .segmented a{font-size:13px}.workspace .resource-toolbar .segmented a svg{width:15px;height:15px}
+
+/* Tooltips (TooltipLayer): visibles al pasar el cursor o con el teclado, junto al elemento */
+.workspace .ui-tooltip{position:fixed;z-index:95;transform:translateY(-50%);padding:6px 10px;border-radius:8px;background:var(--c-20272a);color:var(--c-ffffff);font-size:12px;font-weight:500;white-space:nowrap;pointer-events:none;box-shadow:0 8px 20px -8px var(--c-10201966);animation:tooltip-in .12s ease-out}
+.workspace .ui-tooltip:before{content:'';position:absolute;left:-4px;top:50%;width:8px;height:8px;background:inherit;transform:translateY(-50%) rotate(45deg);border-radius:2px}
+@keyframes tooltip-in{from{opacity:0;transform:translate(-4px,-50%)}to{opacity:1;transform:translateY(-50%)}}
+
+/* Tema Gradiente (base var(--c-fc66ff)): lienzo degradado granulado, tarjetas oscuras y barra de solo íconos.
+   Colores fijos en rgb() a propósito: este lienzo existe solo en este tema. El contraste del texto sobre la parte
+   más brillante del lienzo está verificado en tests/theme.test.mjs. */
+.workspace[data-theme=gradient]{background:rgb(18 9 20)}
+.workspace[data-theme=gradient] .workspace-main{position:relative;isolation:isolate;border-color:rgb(255 255 255 / .06);background:radial-gradient(110% 55% at 50% 118%,rgb(252 102 255 / .28),transparent 62%) fixed,linear-gradient(180deg,var(--canvas-top) 0%,var(--canvas-mid) 48%,var(--canvas-bottom) 100%) fixed}
+.workspace[data-theme=gradient] .workspace-main:after{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.2;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>")}
+.workspace[data-theme=gradient] .workspace-topbar{background:rgb(20 10 23 / .55);border-bottom-color:rgb(255 255 255 / .06);backdrop-filter:blur(10px)}
+.workspace[data-theme=gradient] .workspace-sidebar{padding-top:18px}
+.workspace[data-theme=gradient] .sidebar-toggle,.workspace[data-theme=gradient] .nav-label{display:none}
+.workspace[data-theme=gradient] .workspace-mark{background:var(--accent);color:var(--accent-ink)}
+.workspace[data-theme=gradient] .nav-group+.nav-group{border-top-color:rgb(255 255 255 / .07)}
+.workspace[data-theme=gradient] .workspace-nav a{width:44px;height:44px;min-height:44px;margin:0 auto;padding:0;border-radius:14px;color:rgb(233 220 236 / .78)}
+.workspace[data-theme=gradient] .workspace-nav a svg{width:20px;height:20px}
+.workspace[data-theme=gradient] .workspace-nav a:hover{background:rgb(255 255 255 / .07);color:rgb(250 240 251)}
+.workspace[data-theme=gradient] .workspace-nav a[aria-current=page]{background:linear-gradient(135deg,rgb(252 102 255),rgb(179 31 207));color:rgb(255 255 255);box-shadow:0 8px 22px -8px rgb(252 102 255 / .7)}
+.workspace[data-theme=gradient] .account-trigger:hover,.workspace[data-theme=gradient] .account-trigger[aria-expanded=true]{background:rgb(255 255 255 / .07);box-shadow:none}
+.workspace[data-theme=gradient] .ui-tooltip{background:rgb(64 38 69);color:rgb(250 240 251);box-shadow:0 0 0 1px rgb(255 255 255 / .12),0 10px 24px -10px rgb(0 0 0 / .8)}
+/* Muestra del tema en Preferencias */
+.workspace .theme-swatch.is-gradient{background:linear-gradient(180deg,rgb(20 10 23),rgb(58 16 70) 50%,rgb(138 28 158))}.workspace .theme-swatch.is-gradient i{background:rgb(35 23 37)}.workspace .theme-swatch.is-gradient i:first-child{background:linear-gradient(135deg,rgb(252 102 255),rgb(179 31 207))}
+.workspace .theme-picker{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:760px){.workspace .theme-picker{grid-template-columns:1fr}}

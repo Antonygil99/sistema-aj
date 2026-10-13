@@ -16,7 +16,8 @@ export function AccountPanelsProvider({ role, children }: { role: Role; children
   const { start } = useTours();
   const { preferences, update } = usePreferences();
   const [panel, setPanel] = useState<{ kind: 'help' } | { kind: 'settings'; section: SettingsSection } | null>(null);
-  const darkActive = useCallback(() => preferences.theme === 'dark' || (preferences.theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches), [preferences.theme]);
+  // The gradient theme is dark-based, so the quick switch shows as on and turning it off goes back to light.
+  const darkActive = useCallback(() => preferences.theme === 'dark' || preferences.theme === 'gradient' || (preferences.theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches), [preferences.theme]);
   const value = useMemo<AccountPanels>(() => ({
     openHelp: () => setPanel({ kind: 'help' }),
     openSettings: (section = 'apariencia') => setPanel({ kind: 'settings', section }),

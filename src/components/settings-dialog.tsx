@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useId, type ReactNode } from 'react';
-import { Monitor, Moon, Sun1 } from 'iconsax-reactjs';
+import { Colorfilter, Monitor, Moon, Sun1 } from 'iconsax-reactjs';
 import { assistantModels, type NotificationSettings, type Theme } from '@/modules/preferences';
 import { Modal } from './ui/modal';
 import { usePreferences } from './ui/preferences';
@@ -9,6 +9,7 @@ const themes: { value: Theme; label: string; Icon: typeof Sun1 }[] = [
   { value: 'light', label: 'Claro', Icon: Sun1 },
   { value: 'dark', label: 'Oscuro', Icon: Moon },
   { value: 'system', label: 'Según el dispositivo', Icon: Monitor },
+  { value: 'gradient', label: 'Gradiente', Icon: Colorfilter },
 ];
 const notificationOptions: { key: keyof Pick<NotificationSettings, 'team' | 'toasts' | 'payments' | 'renewals' | 'followUps'>; label: string; hint: string }[] = [
   { key: 'team', label: 'Actividad del equipo', hint: 'Lo que tus compañeros registran, editan o suben.' },
