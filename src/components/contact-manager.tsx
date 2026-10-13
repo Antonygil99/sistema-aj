@@ -11,15 +11,15 @@ const errorMessages: Record<string, string> = {
   UNAUTHORIZED: 'Tu sesión terminó. Vuelve a entrar con Google.',
   FORBIDDEN: 'Tu cuenta no tiene permiso para modificar registros.',
 };
-export function ContactManager({ slug, initial, initialTotal, canEdit }: { slug: 'prospectos' | 'clientes'; initial: ContactRow[]; initialTotal: number; canEdit: boolean }) {
+export function ContactManager({ slug, initial, initialTotal, canEdit, initialQuery = '' }: { slug: 'prospectos' | 'clientes'; initial: ContactRow[]; initialTotal: number; canEdit: boolean; initialQuery?: string }) {
   const prospect = slug === 'prospectos';
   const singular = prospect ? 'prospecto' : 'cliente';
   const [rows, setRows] = useState(initial);
   const [total, setTotal] = useState(initialTotal);
   const [skip, setSkip] = useState(0);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(initialQuery);
   const [status, setStatus] = useState('');
-  const [applied, setApplied] = useState({ query: '', status: '' });
+  const [applied, setApplied] = useState({ query: initialQuery, status: '' });
   const [editing, setEditing] = useState<ContactRow | 'new' | null>(null);
   const [fields, setFields] = useState<Fields>(empty);
   const [busy, setBusy] = useState(false);

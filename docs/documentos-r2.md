@@ -30,6 +30,17 @@ Tipos permitidos: PDF, JPEG, PNG, WebP, MP3, OGG, WAV y MP4.
 
 Solo se sirven filas cuya `storageKey` cumple el formato gestionado (`isManagedKey`). Las referencias heredadas creadas con la antigua ruta genérica no producen enlaces. La API comprueba que el objeto exista y responde 303 hacia una URL firmada que caduca en 60 segundos, con `Content-Disposition: attachment`, `Cache-Control: private, no-store` y `Referrer-Policy: no-referrer`.
 
+### Carpetas
+
+`DocumentFolder` forma un árbol (`parentId`) dentro de una biblioteca: la del equipo (`clientId` nulo) o la de un expediente. Al abrir un expediente se crean las carpetas Identificación, Pólizas, Pagos y Siniestros.
+
+- Crear (`POST /api/folders`) exige que la carpeta padre pertenezca a la misma biblioteca. Renombrar (`PATCH /api/folders/{id}`) usa `expectedUpdatedAt` y responde 409 `RECORD_CHANGED` ante un cambio ajeno. No hay borrado ni cambio de carpeta padre, así que no pueden formarse ciclos.
+- Nombres de 1 a 100 caracteres, sin `/`, `\`, caracteres de control, `.` ni `..`. El índice `DocumentFolder_sibling_name` impide dos carpetas con el mismo nombre (sin distinguir mayúsculas) en el mismo nivel de la misma biblioteca; un duplicado responde 409 `ALREADY_EXISTS`.
+- Cargar en una carpeta o mover un archivo (`PATCH /api/documents/{id}`) exige que, si la carpeta es de un expediente, el archivo pertenezca a ese cliente directamente o mediante su póliza o siniestro (422 `FOLDER_SCOPE_MISMATCH`). Mover no cambia el vínculo del archivo con el expediente.
+- La biblioteca de un expediente incluye los archivos del cliente y los de sus pólizas y siniestros. La búsqueda se limita a la carpeta abierta.
+
+**Aviso para migraciones futuras:** Prisma no puede representar índices de expresión, así que `DocumentFolder_sibling_name` solo existe en la migración SQL. Si `prisma migrate dev` genera un `DROP INDEX "DocumentFolder_sibling_name"`, quitar esa línea antes de aplicar la migración.
+
 ### Rutas cerradas
 
 `POST /api/crm/documentos` responde 405 `USE_DOCUMENT_UPLOAD`. `GET /api/crm/documentos` omite `storageKey`.
@@ -77,6 +88,7 @@ npx tsx --test tests/documents.test.ts
 ## Pendientes
 
 - **Límite de 4 MiB:** se debe al cuerpo máximo de las funciones de Vercel (~4.5 MB). Para videos o archivos mayores, cambiar a carga directa con URL firmada de `PUT`, seguida de una confirmación en el servidor que verifique el objeto (tamaño y firma) antes de crear la fila.
+- **Carpetas:** no se pueden eliminar ni cambiar de carpeta padre. Tampoco hay forma de reasignar el expediente de un archivo ya cargado.
 - **Sin eliminación ni edición** de documentos. Al implementarlas, borrar el objeto de R2 de forma idempotente y auditar la operación.
 - **Permisos por expediente:** hoy cualquier usuario autorizado puede listar y descargar todos los documentos. Falta restringir por cartera o rol cuando existan reglas de acceso por expediente.
 - **Auditoría** de cargas y descargas (quién y cuándo).

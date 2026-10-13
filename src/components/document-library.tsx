@@ -1,73 +1,46 @@
 'use client';
-import { useRef, useState, type FormEvent } from 'react';
-
-export type DocumentRow = { id: string; name: string; mimeType: string; createdAt: string; client: { name: string } | null; policy: { number: string } | null; claim: { reference: string } | null };
-export type DocumentOption = { id: string; label: string; kind: 'clientId' | 'policyId' | 'claimId' };
-const accept = '.pdf,.jpg,.jpeg,.png,.webp,.mp3,.ogg,.wav,.mp4';
-const errors: Record<string, string> = {
-  FILE_SIZE_INVALID: 'El archivo debe pesar entre 1 byte y 4 MB.',
-  FILE_TYPE_INVALID: 'Elige PDF, JPG, PNG, WEBP, MP3, OGG, WAV o MP4.',
-  FILE_CONTENT_INVALID: 'El contenido no coincide con el tipo de archivo. Exporta el archivo en un formato compatible.',
-  RELATED_RECORD_NOT_FOUND: 'El expediente ya no existe. Actualiza la página.',
-  UNAUTHORIZED: 'Tu sesión terminó. Vuelve a entrar con Google.',
-  FORBIDDEN: 'Tu cuenta tiene permiso de consulta. Para subir archivos necesitas ser administrador.',
-};
-export function DocumentLibrary({ initial, initialTotal, options, canUpload, configured, configurationMessage }: { initial: DocumentRow[]; initialTotal: number; options: DocumentOption[]; canUpload: boolean; configured: boolean; configurationMessage?: string }) {
-  const [rows, setRows] = useState(initial);
-  const [total, setTotal] = useState(initialTotal);
-  const [skip, setSkip] = useState(0);
-  const [search, setSearch] = useState('');
-  const [activeQuery, setActiveQuery] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState('');
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [attachment, setAttachment] = useState('');
-  async function load(nextSkip: number, query: string) {
-    const response = await fetch(`/api/documents?take=20&skip=${nextSkip}&q=${encodeURIComponent(query)}`, { cache: 'no-store' });
-    if (!response.ok) throw new Error('No se pudo actualizar el listado. Comprueba tu sesión.');
-    const result = await response.json() as { data: DocumentRow[]; total: number };
-    setRows(result.data); setTotal(result.total); setSkip(nextSkip); setActiveQuery(query);
-  }
-  async function changePage(nextSkip: number, query = activeQuery) {
-    setBusy(true); setMessage('');
-    try { await load(nextSkip, query); }
-    catch (error) { setMessage(error instanceof Error ? error.message : 'No se pudo consultar.'); }
-    finally { setBusy(false); }
-  }
-  async function upload(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const file = fileRef.current?.files?.[0];
-    if (!file) { setMessage('Selecciona un archivo.'); return; }
-    if (!file.size || file.size > 4 * 1024 * 1024) { setMessage(errors.FILE_SIZE_INVALID); return; }
-    setBusy(true); setMessage('');
-    const form = new FormData(); form.set('file', file);
-    const selected = options.find(option => `${option.kind}:${option.id}` === attachment);
-    if (selected) form.set(selected.kind, selected.id);
-    try {
-      const response = await fetch('/api/documents', { method: 'POST', body: form });
-      if (!response.ok) {
-        const result = await response.json().catch(() => ({})) as { error?: string };
-        throw new Error(errors[result.error ?? ''] ?? 'No se pudo subir el archivo. Comprueba la conexión e inténtalo de nuevo.');
-      }
-      if (fileRef.current) fileRef.current.value = '';
-      setSearch('');
-      // A successful upload must not be reported as failed if only the list refresh fails.
-      try { await load(0, ''); setMessage('Archivo guardado de forma privada.'); }
-      catch { setMessage('Archivo guardado. Actualiza el listado para verlo; no necesitas subirlo otra vez.'); }
-    } catch (error) { setMessage(error instanceof Error ? error.message : 'No se pudo subir.'); }
-    finally { setBusy(false); }
-  }
-  return <>
-    <p className="notice">Archivos privados del equipo. Usuarios: consulta y descarga. Administradores: carga de archivos. Máximo 4 MB por archivo.</p>
-    {!configured ? <p role="alert" className="notice">{configurationMessage || 'El almacenamiento no está disponible. Un administrador debe revisar la configuración de R2.'}</p> : null}
-    {canUpload ? <section className="document-panel" aria-labelledby="upload-heading"><h2 id="upload-heading">Añadir un archivo</h2><form className="access-form" onSubmit={upload}>
-      <label>Archivo<input ref={fileRef} type="file" accept={accept} required disabled={busy || !configured} aria-describedby="file-help"/></label>
-      <label>Expediente<select value={attachment} onChange={event => setAttachment(event.target.value)} disabled={busy || !configured}><option value="">Archivo general del equipo</option>{options.map(option => <option key={`${option.kind}:${option.id}`} value={`${option.kind}:${option.id}`}>{option.label}</option>)}</select></label>
-      <button className="button" disabled={busy || !configured}>{busy ? 'Procesando…' : 'Subir archivo'}</button>
-    </form><p id="file-help" className="lead-small">PDF, JPG, PNG, WEBP, MP3, OGG, WAV o MP4. Puedes asociarlo a un cliente, póliza o siniestro. El selector incluye los 100 registros más recientes de cada tipo.</p></section> : null}
-    <form className="access-form" onSubmit={event => { event.preventDefault(); void changePage(0, search); }}><label>Buscar por nombre<input type="search" value={search} onChange={event => setSearch(event.target.value)} maxLength={100}/></label><button className="button" disabled={busy}>Buscar</button></form>
-    <p role="status" aria-live="polite">{message}</p>
-    <div className="table-wrap"><table><caption className="document-caption">{total} archivo{total === 1 ? '' : 's'} · {activeQuery ? `Búsqueda: ${activeQuery}` : 'Biblioteca del equipo'}</caption><thead><tr><th>Archivo</th><th>Expediente</th><th>Fecha</th><th>Acción</th></tr></thead><tbody>{rows.map(row => <tr key={row.id}><td>{row.name}<small className="document-type">{row.mimeType}</small></td><td>{row.client?.name ?? row.policy?.number ?? row.claim?.reference ?? 'General'}</td><td>{new Intl.DateTimeFormat('es-MX', { timeZone: 'America/Mexico_City', dateStyle: 'medium' }).format(new Date(row.createdAt))}</td><td>{configured ? <a className="text-button" href={`/api/documents/${encodeURIComponent(row.id)}/download`} referrerPolicy="no-referrer">Descargar<span className="sr-only"> {row.name}</span></a> : 'No disponible'}</td></tr>)}{rows.length === 0 ? <tr><td colSpan={4}>No hay archivos en este listado.</td></tr> : null}</tbody></table></div>
-    <div className="document-pagination"><button className="text-button" disabled={busy || skip === 0} onClick={() => void changePage(Math.max(0, skip - 20))}>Anterior</button><span>{total ? `${skip + 1}–${Math.min(skip + 20, total)} de ${total}` : '0 archivos'}</span><button className="text-button" disabled={busy || skip + 20 >= total} onClick={() => void changePage(skip + 20)}>Siguiente</button></div>
-  </>;
+import { useEffect, useRef, useState, type DragEvent } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Folder2, DocumentText, Add, DocumentUpload, Category, RowVertical, More, ArrowRight3 } from 'iconsax-reactjs';
+export type DocumentRow={id:string;name:string;mimeType:string;folderId:string|null;createdAt:string;updatedAt:string;client:{name:string}|null;policy:{number:string}|null;claim:{reference:string}|null};
+export type FolderRow={id:string;name:string;parentId:string|null;clientId:string|null;updatedAt:string};
+export type DocumentOption={id:string;label:string;kind:'clientId'|'policyId'|'claimId'};
+const accept='.pdf,.jpg,.jpeg,.png,.webp,.mp3,.ogg,.wav,.mp4';
+const errors:Record<string,string>={FILE_SIZE_INVALID:'Máximo 4 MB por archivo.',FILE_TYPE_INVALID:'Formato compatible: PDF, JPG, PNG, WEBP, MP3, OGG, WAV o MP4.',FILE_CONTENT_INVALID:'El contenido no coincide con el formato.',ALREADY_EXISTS:'Ya existe una carpeta con ese nombre aquí.',FOLDER_NOT_FOUND:'La carpeta no existe. Actualiza la página.',FOLDER_SCOPE_MISMATCH:'La carpeta debe pertenecer al mismo expediente que el archivo.',RECORD_CHANGED:'Otro cambio actualizó este elemento. Actualiza y vuelve a intentarlo.',FORBIDDEN:'Necesitas permiso de administrador.',UNAUTHORIZED:'Tu sesión terminó.'};
+export function DocumentLibrary({initial,initialTotal,initialFolders,options,canUpload,configured,configurationMessage,clientId=null,clientName}:{initial:DocumentRow[];initialTotal:number;initialFolders:FolderRow[];options:DocumentOption[];canUpload:boolean;configured:boolean;configurationMessage?:string;clientId?:string|null;clientName?:string}) {
+ const router=useRouter();
+ const [rows,setRows]=useState(initial),[folders,setFolders]=useState(initialFolders),[total,setTotal]=useState(initialTotal),[folderId,setFolderId]=useState<string|null>(null),[skip,setSkip]=useState(0),[query,setQuery]=useState(''),[activeQuery,setActiveQuery]=useState(''),[view,setView]=useState<'grid'|'list'>('grid'),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[dragging,setDragging]=useState(false),[attachment,setAttachment]=useState(clientId?`clientId:${clientId}`:'');
+ const [menu,setMenu]=useState<{x:number;y:number}|null>(null),[editing,setEditing]=useState<FolderRow|'new'|null>(null),[name,setName]=useState(''),[moving,setMoving]=useState<DocumentRow|null>(null),[destination,setDestination]=useState('');
+ const fileRef=useRef<HTMLInputElement>(null), menuRef=useRef<HTMLDivElement>(null), nameRef=useRef<HTMLInputElement>(null);const inFlight=useRef(false);
+ useEffect(()=>{if(editing)nameRef.current?.focus();},[editing]);
+ useEffect(()=>{if(!menu)return;menuRef.current?.querySelector('button')?.focus();const close=(e:KeyboardEvent)=>{if(e.key==='Escape')setMenu(null);};const outside=(e:PointerEvent)=>{if(!menuRef.current?.contains(e.target as Node))setMenu(null);};document.addEventListener('keydown',close);document.addEventListener('pointerdown',outside);return()=>{document.removeEventListener('keydown',close);document.removeEventListener('pointerdown',outside);};},[menu]);
+ const path:FolderRow[]=[];let ancestor=folders.find(f=>f.id===folderId);const visited=new Set<string>();while(ancestor&&!visited.has(ancestor.id)){visited.add(ancestor.id);path.unshift(ancestor);ancestor=folders.find(f=>f.id===ancestor?.parentId);}
+ const visibleFolders=folders.filter(f=>f.parentId===folderId&&(!activeQuery||f.name.toLocaleLowerCase().includes(activeQuery.toLocaleLowerCase())));
+ async function result(response:Response){const body=await response.json();if(!response.ok)throw new Error(errors[body.error]||'No se pudo completar la operación. Revisa la conexión y tu sesión.');return body;}
+ async function load(target:string|null,nextSkip=0,search=''){const params=new URLSearchParams({take:'20',skip:String(nextSkip),q:search});if(target)params.set('folderId',target);if(clientId)params.set('clientId',clientId);const data=await result(await fetch('/api/documents?'+params,{cache:'no-store'}));setRows(data.data);setTotal(data.total);setFolders(data.folders);setFolderId(target);setSkip(nextSkip);setActiveQuery(search);setQuery(search);}
+ async function run(action:()=>Promise<void>){if(inFlight.current)return;inFlight.current=true;setBusy(true);setMessage('');setMenu(null);try{await action();}catch(e){setMessage(e instanceof Error?e.message:'No se pudo completar.');}finally{inFlight.current=false;setBusy(false);setDragging(false);}}
+ function openFolder(target:string|null){void run(()=>load(target));}
+ function newFolder(){setName('');setEditing('new');setMenu(null);}
+ async function saveFolder(){if(!editing)return;await run(async()=>{await result(await fetch(editing==='new'?'/api/folders':`/api/folders/${editing.id}`,{method:editing==='new'?'POST':'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(editing==='new'?{name,parentId:folderId,clientId}:{name,expectedUpdatedAt:editing.updatedAt})}));setEditing(null);await load(folderId);setMessage('Carpeta guardada.');});}
+ async function move(document:DocumentRow,target:string|null){await run(async()=>{await result(await fetch(`/api/documents/${document.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({folderId:target,clientId,expectedUpdatedAt:document.updatedAt})}));setMoving(null);await load(folderId);setMessage('Archivo movido. Su vínculo con el expediente se conserva.');});}
+ async function upload(files:File[],target=folderId){if(!canUpload||!configured)return;if(files.length>50){setMessage('Carga hasta 50 archivos por lote.');return;}await run(async()=>{let saved=0;const failed:string[]=[];for(const file of files){if(!file.size||file.size>4*1024*1024){failed.push(`${file.name}: máximo 4 MB`);continue;}const form=new FormData();form.set('file',file);if(target)form.set('folderId',target);const selected=options.find(o=>`${o.kind}:${o.id}`===attachment);if(clientId)form.set('clientId',clientId);else if(selected)form.set(selected.kind,selected.id);try{await result(await fetch('/api/documents',{method:'POST',body:form}));saved++;}catch(e){failed.push(`${file.name}: ${e instanceof Error?e.message:'No se pudo subir'}`);}}if(fileRef.current)fileRef.current.value='';try{await load(target);}catch{failed.push('Actualiza el listado para ver los archivos guardados; no los subas de nuevo.');}setMessage(`${saved} archivo(s) guardado(s). ${failed.join(' · ')}`);});}
+ function drop(e:DragEvent,target=folderId){e.preventDefault();e.stopPropagation();setDragging(false);if(busy||!canUpload)return;const id=e.dataTransfer.getData('application/x-aj-document');if(id){const doc=rows.find(r=>r.id===id);if(doc)void move(doc,target);return;}if(Array.from(e.dataTransfer.items).some(item=>item.webkitGetAsEntry?.()?.isDirectory)){setMessage('Para mantener la estructura, crea o abre una carpeta y arrastra dentro sus archivos. No se cargaron carpetas del equipo.');return;}void upload(Array.from(e.dataTransfer.files),target);}
+ const folderActions=(folder:FolderRow)=><button className="text-button" aria-label={`Renombrar ${folder.name}`} disabled={busy} onClick={()=>{setEditing(folder);setName(folder.name);}}><More size={16}/></button>;
+ const fileActions=(row:DocumentRow)=><div className="file-actions">{configured?<a className="text-button" href={`/api/documents/${row.id}/download`} referrerPolicy="no-referrer">Descargar<span className="sr-only"> {row.name}</span></a>:null}{canUpload?<button className="text-button" disabled={busy} onClick={()=>{setMoving(row);setDestination(row.folderId||'');}}>Mover<span className="sr-only"> {row.name}</span></button>:null}</div>;
+ return <><div className="drive-toolbar"><div><div className="eyebrow">BIBLIOTECA PRIVADA</div><h2>{clientName?`Archivos de ${clientName}`:'Archivos del equipo'}</h2></div><div className="file-actions">{canUpload?<><button className="text-button" disabled={busy} onClick={newFolder}><Add size={16}/>Nueva carpeta</button><button className="button" disabled={busy||!configured} onClick={()=>fileRef.current?.click()}><DocumentUpload size={16}/>Subir archivos</button></>:null}<button className="text-button" aria-label="Vista de tarjetas" aria-pressed={view==='grid'} onClick={()=>setView('grid')}><Category size={18}/></button><button className="text-button" aria-label="Vista de lista" aria-pressed={view==='list'} onClick={()=>setView('list')}><RowVertical size={18}/></button></div></div>
+ <p className="lead-small">Carpetas privadas del equipo · Hasta 4 MB por archivo · {canUpload?'Arrastra archivos a la carpeta abierta. También puedes mover un archivo sobre una carpeta.':'Acceso de consulta y descarga.'}</p>
+ {!configured?<p role="alert" className="notice">{configurationMessage||'El almacenamiento no está disponible.'}</p>:null}
+ <input type="file" multiple accept={accept} ref={fileRef} className="sr-only" tabIndex={-1} onChange={e=>{if(e.target.files)void upload(Array.from(e.target.files));}}/>
+ <form className="access-form" onSubmit={e=>{e.preventDefault();void run(()=>load(folderId,0,query));}}><label>Buscar en esta carpeta<input type="search" value={query} onChange={e=>setQuery(e.target.value)} maxLength={100}/></label><button className="button" disabled={busy}>Buscar</button>{canUpload&&!clientId?<label>Asociar nuevas cargas a<select value={attachment} disabled={busy} onChange={e=>setAttachment(e.target.value)}><option value="">General del equipo</option>{options.map(o=><option key={`${o.kind}:${o.id}`} value={`${o.kind}:${o.id}`}>{o.label}</option>)}</select></label>:null}{!clientId?<label>Biblioteca de expediente<select value="" onChange={e=>{if(e.target.value)router.push(`/crm/documentos?clientId=${encodeURIComponent(e.target.value)}`);}}><option value="">Abrir expediente…</option>{options.filter(o=>o.kind==='clientId').map(o=><option key={o.id} value={o.id}>{o.label}</option>)}</select></label>:<Link className="text-button" href="/crm/documentos">Archivos del equipo</Link>}</form>
+ <nav className="drive-breadcrumb" aria-label="Ruta de carpetas"><button className="text-button" disabled={busy} onClick={()=>openFolder(null)}>{clientName||'Mi unidad'}</button>{path.map(folder=><span key={folder.id}><ArrowRight3 size={12}/><button className="text-button" disabled={busy} onClick={()=>openFolder(folder.id)}>{folder.name}</button></span>)}</nav>
+ {editing?<form className="document-panel" onSubmit={e=>{e.preventDefault();void saveFolder();}}><h2>{editing==='new'?'Nueva carpeta':'Renombrar carpeta'}</h2><div className="access-form"><label>Nombre<input ref={nameRef} value={name} required maxLength={100} onChange={e=>setName(e.target.value)}/></label><button className="button" disabled={busy}>Guardar</button><button type="button" className="text-button" disabled={busy} onClick={()=>setEditing(null)}>Cancelar</button></div></form>:null}
+ {moving?<form className="document-panel" onSubmit={e=>{e.preventDefault();void move(moving,destination||null);}}><h2>Mover {moving.name}</h2><div className="access-form"><label>Carpeta de destino<select value={destination} onChange={e=>setDestination(e.target.value)}><option value="">Raíz</option>{folders.map(f=><option value={f.id} key={f.id}>{folderPath(f,folders)}</option>)}</select></label><button className="button" disabled={busy}>Mover</button><button type="button" className="text-button" onClick={()=>setMoving(null)}>Cancelar</button></div></form>:null}
+ <p role="status" aria-live="polite">{busy?'Procesando…':message}</p>
+ <section className={`drive-area${dragging?' is-dragging':''}`} aria-label="Contenido de la carpeta" aria-busy={busy} onContextMenu={e=>{if(!canUpload||busy)return;e.preventDefault();setMenu({x:Math.max(8,Math.min(e.clientX,window.innerWidth-220)),y:Math.max(8,Math.min(e.clientY,window.innerHeight-120))});}} onDragOver={e=>{e.preventDefault();if(canUpload&&!busy)setDragging(true);}} onDragLeave={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setDragging(false);}} onDrop={e=>drop(e)}>
+ {view==='grid'?<><div className="dossier-grid">{visibleFolders.map((f,i)=><article className={`dossier-card folder-tone-${i%3}`} key={f.id} onDragOver={e=>e.preventDefault()} onDrop={e=>drop(e,f.id)}><button className="folder-open" disabled={busy} onClick={()=>openFolder(f.id)}><Folder2 size={28}/><h3>{f.name}</h3><small>Abrir carpeta</small></button>{canUpload?<div className="folder-menu">{folderActions(f)}</div>:null}</article>)}</div><div className="file-grid">{rows.map(row=><article className="file-card" key={row.id} draggable={canUpload&&!busy} onDragStart={e=>e.dataTransfer.setData('application/x-aj-document',row.id)}><DocumentText size={30}/><h3>{row.name}</h3><p>{row.client?.name||row.policy?.number||row.claim?.reference||'General'} · {row.createdAt.slice(0,10)}</p>{fileActions(row)}</article>)}</div></>:<div className="table-wrap"><table><thead><tr><th>Nombre</th><th>Tipo / expediente</th><th>Acciones</th></tr></thead><tbody>{visibleFolders.map(f=><tr key={f.id} onDragOver={e=>e.preventDefault()} onDrop={e=>drop(e,f.id)}><td><button className="text-button" disabled={busy} onClick={()=>openFolder(f.id)}><Folder2 size={18}/>{f.name}</button></td><td>Carpeta</td><td>{canUpload?folderActions(f):null}</td></tr>)}{rows.map(row=><tr key={row.id} draggable={canUpload&&!busy} onDragStart={e=>e.dataTransfer.setData('application/x-aj-document',row.id)}><td>{row.name}</td><td>{row.client?.name||row.policy?.number||row.claim?.reference||row.mimeType}</td><td>{fileActions(row)}</td></tr>)}</tbody></table></div>}
+ {!rows.length&&!visibleFolders.length?<div className="drive-empty"><Folder2 size={38}/><h3>{activeQuery?'Sin coincidencias':'Esta carpeta está lista'}</h3><p>{canUpload?'Crea subcarpetas o arrastra aquí tus archivos.':'Todavía no hay archivos.'}</p></div>:null}
+ </section><div className="document-pagination"><button className="text-button" disabled={busy||skip===0} onClick={()=>void run(()=>load(folderId,Math.max(0,skip-20),activeQuery))}>Anterior</button><span>{visibleFolders.length} carpetas · {total?`${skip+1}–${Math.min(skip+20,total)} de ${total}`:'0'} archivos</span><button className="text-button" disabled={busy||skip+20>=total} onClick={()=>void run(()=>load(folderId,skip+20,activeQuery))}>Siguiente</button></div>
+ {menu?<div ref={menuRef} className="drive-context" style={{left:menu.x,top:menu.y}} aria-label="Acciones de carpeta"><button onClick={newFolder}><Add size={16}/>Nueva carpeta</button><button disabled={!configured} onClick={()=>{setMenu(null);fileRef.current?.click();}}><DocumentUpload size={16}/>Subir archivos</button></div>:null}</>;
 }
+function folderPath(folder:FolderRow,folders:FolderRow[]){const names=[folder.name];let parent=folder.parentId;const seen=new Set([folder.id]);while(parent&&!seen.has(parent)){seen.add(parent);const p=folders.find(f=>f.id===parent);if(!p)break;names.unshift(p.name);parent=p.parentId;}return names.join(' / ');}
