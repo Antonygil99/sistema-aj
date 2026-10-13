@@ -113,6 +113,7 @@ model Policy {
   product     String
   premium     Decimal @db.Decimal(12, 2)
   paymentFrequency String?
+  sourceData  Json?
   // Imported/captured policy details (autos: vehicle, plates and use; any line: coverage or plan name).
   coverage    String?
   vehicle     String?
