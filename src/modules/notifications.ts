@@ -13,3 +13,18 @@ export function eventHref(event: Pick<NotificationEvent, 'action' | 'module' | '
   if (event.module === 'documentos' || event.module === 'carpetas') return '/crm/documentos';
   return `/crm/${event.module}`;
 }
+export type Reminders = { overduePayments: number; renewalsThisWeek: number; followUpsDue: number };
+type FeedSettings = { team: boolean; payments: boolean; renewals: boolean; followUps: boolean; clearedAt: string | null; clearedReminders: string | null };
+// What the panel shows after the user's notification preferences and the last "Limpiar". Cleared reminders come
+// back when their counts change or on the next day; cleared events stay hidden, newer ones appear.
+export function feedView<E extends { createdAt: string }>(feed: { recent: E[]; reminders: Reminders }, settings: FeedSettings, day: string) {
+  const reminders: Reminders = {
+    overduePayments: settings.payments ? feed.reminders.overduePayments : 0,
+    renewalsThisWeek: settings.renewals ? feed.reminders.renewalsThisWeek : 0,
+    followUpsDue: settings.followUps ? feed.reminders.followUpsDue : 0,
+  };
+  const reminderKey = `${day}:${reminders.overduePayments}-${reminders.renewalsThisWeek}-${reminders.followUpsDue}`;
+  const showReminders = reminders.overduePayments + reminders.renewalsThisWeek + reminders.followUpsDue > 0 && settings.clearedReminders !== reminderKey;
+  const events = settings.team ? feed.recent.filter(event => !settings.clearedAt || event.createdAt > settings.clearedAt) : [];
+  return { reminders, reminderKey, showReminders, events };
+}

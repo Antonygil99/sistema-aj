@@ -1,16 +1,16 @@
 'use client';
 import 'driver.js/dist/driver.css';
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { driver, type Driver, type DriveStep } from 'driver.js';
 import { canSeeTour, tourById, tourForPath, type Tour } from '@/modules/help/tours';
-import { HelpCenter } from '../help-center';
 import { usePreferences } from './preferences';
 import { useToast } from './toast';
 type Role = 'USER' | 'ADMIN' | 'SUPERADMIN';
-type ToursContext = { start: (id: string) => void; openHelp: () => void };
+type ToursContext = { start: (id: string) => void };
 const Context = createContext<ToursContext | null>(null);
 const wait = (ms: number) => new Promise(resolve => window.setTimeout(resolve, ms));
+const darkTheme = () => document.documentElement.dataset.theme === 'dark' || (document.documentElement.dataset.theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
 function firstVisible(selectors: string[]) {
   for (const selector of selectors) for (const element of document.querySelectorAll(selector)) {
     if (element.getClientRects().length && getComputedStyle(element).visibility !== 'hidden') return element;
@@ -35,13 +35,12 @@ async function resolveSteps(tour: Tour) {
     await wait(150);
   }
 }
-// Guided tours (driver.js) plus the Help Center. With automatic tours on, each screen's tour runs once.
+// Guided tours (driver.js). With automatic tours on, each screen's tour runs once.
 export function TourProvider({ role, children }: { role: Role; children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const toast = useToast();
   const { preferences, update } = usePreferences();
-  const [helpOpen, setHelpOpen] = useState(false);
   const active = useRef<Driver | null>(null);
   const pending = useRef<string | null>(null);
   const seen = useRef(preferences.tours.seen);
@@ -58,7 +57,7 @@ export function TourProvider({ role, children }: { role: Role; children: ReactNo
     const instance: Driver = driver({
       steps, showProgress: steps.length > 1, progressText: '{{current}} de {{total}}',
       nextBtnText: 'Siguiente', prevBtnText: 'Anterior', doneBtnText: 'Listo',
-      popoverClass: 'aj-tour', overlayColor: '#10201a', overlayOpacity: 0.5, stagePadding: 6, stageRadius: 12, smoothScroll: true,
+      popoverClass: 'aj-tour', overlayColor: darkTheme() ? '#000' : '#10201a', overlayOpacity: darkTheme() ? 0.62 : 0.5, stagePadding: 6, stageRadius: 12, smoothScroll: true,
       onPopoverRender: popover => {
         popover.wrapper.setAttribute('role', 'dialog');
         popover.wrapper.setAttribute('aria-label', `Recorrido: ${tour.title}`);
@@ -73,7 +72,6 @@ export function TourProvider({ role, children }: { role: Role; children: ReactNo
   const start = useCallback((id: string) => {
     const tour = tourById(id);
     if (!tour || !canSeeTour(tour, role)) return;
-    setHelpOpen(false);
     if (!tour.route || tourForPath(pathname)?.id === tour.id) { window.setTimeout(() => void run(tour), 350); return; }
     pending.current = tour.id;
     router.push(tour.route);
@@ -92,8 +90,8 @@ export function TourProvider({ role, children }: { role: Role; children: ReactNo
     return () => window.clearTimeout(timer);
   }, [pathname, preferences.tours.enabled, role, run]);
   useEffect(() => () => active.current?.destroy(), []);
-  const value = useMemo(() => ({ start, openHelp: () => setHelpOpen(true) }), [start]);
-  return <Context.Provider value={value}>{children}<HelpCenter open={helpOpen} onClose={() => setHelpOpen(false)} role={role} current={tourForPath(pathname)} onStart={start}/></Context.Provider>;
+  const value = useMemo(() => ({ start }), [start]);
+  return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 export function useTours() {
   const value = useContext(Context);

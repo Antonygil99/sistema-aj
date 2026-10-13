@@ -1,6 +1,7 @@
 import { requireUser } from '@/lib/session';
 import { getPreferences } from '@/modules/preferences-server';
 import { WorkspaceShell } from '@/components/workspace-shell';
+import './theme.css';
 import './workspace.css';
 import './help.css';
 export const dynamic = 'force-dynamic';

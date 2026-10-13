@@ -6,8 +6,8 @@ import type { DashboardMetrics } from '@/modules/metrics/server';
 import { compactMoney, ratio, type Delta } from '@/modules/metrics/period';
 import { moduleIcons } from '@/components/module-icons';
 import { EmptyState } from '@/components/ui/empty-state';
-// Funnel stages are ordered, so they share one validated green ramp, light → dark (dataviz --ordinal: all checks pass).
-const funnelRamp = ['#8cbf9f', '#67a37f', '#4a8764', '#336b4c', '#225137'];
+// Funnel stages are ordered, so they share one validated green ramp (dataviz --ordinal, light and dark themes):
+// the values live in theme.css as --funnel-1…5.
 const money = (byCurrency: Record<string, number>) => Object.entries(byCurrency).filter(([, value]) => value > 0).map(([currency, value]) => compactMoney(value, currency)).join(' + ') || compactMoney(0);
 function DeltaLine({ value }: { value: Delta }) {
   const Icon = value.direction === 'up' ? ArrowUp2 : value.direction === 'down' ? ArrowDown2 : Minus;
@@ -40,7 +40,7 @@ export function DashboardOverview({ m, owner, me, teammates }: { m: DashboardMet
         {funnelTotal ? <>
           <ol className="funnel">{m.funnel.map((stage, index) => { const share = ratio(stage.count, funnelTotal) ?? 0; return <li key={stage.id} className="funnel-row" tabIndex={0} aria-label={`${stage.label}: ${stage.count} (${share} % del embudo)`}>
             <span className="funnel-label">{stage.label}</span>
-            <span className="funnel-track"><i className="funnel-bar" style={{ width: stage.count ? `max(4px, ${stage.count / funnelMax * 100}%)` : '0', background: funnelRamp[index] }}/><b className="funnel-value">{stage.count}</b></span>
+            <span className="funnel-track"><i className="funnel-bar" style={{ width: stage.count ? `max(4px, ${stage.count / funnelMax * 100}%)` : '0', background: `var(--funnel-${index + 1})` }}/><b className="funnel-value">{stage.count}</b></span>
             <span className="funnel-tip" role="tooltip">{stage.label}: {stage.count} · {share} % del embudo</span>
           </li>; })}</ol>
           <p className="lead-small">{m.lostThisMonth ? `${m.lostThisMonth} prospecto${m.lostThisMonth === 1 ? '' : 's'} marcado${m.lostThisMonth === 1 ? '' : 's'} como perdido este mes. ` : ''}«Clientes este mes» cuenta las conversiones de {m.period.label}.</p>

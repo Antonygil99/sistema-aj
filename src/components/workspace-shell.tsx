@@ -12,8 +12,9 @@ import { UploadProvider } from './ui/upload-manager';
 import { NotificationCenter } from './ui/notifications';
 import { MobileNav } from './ui/mobile-nav';
 import { CommandSearch } from './ui/command-search';
-import { PreferencesProvider } from './ui/preferences';
+import { PreferencesProvider, usePreferences } from './ui/preferences';
 import { TourProvider } from './ui/tours';
+import { AccountPanelsProvider } from './ui/account-panels';
 import type { Preferences } from '@/modules/preferences';
 const groups: { label: string; slugs: ModuleSlug[] }[] = [
   { label: 'Relaciones', slugs: ['prospectos', 'clientes', 'cotizaciones'] },
@@ -22,6 +23,16 @@ const groups: { label: string; slugs: ModuleSlug[] }[] = [
 ];
 const roles = { USER: 'Usuario', ADMIN: 'Administrador', SUPERADMIN: 'Superadmin' };
 export function WorkspaceShell({ children, user, preferences }: { children: ReactNode; user: AccountUser; preferences: Preferences }) {
+  return <PreferencesProvider initial={preferences}><WorkspaceFrame user={user}>{children}</WorkspaceFrame></PreferencesProvider>;
+}
+// The theme attribute is server-rendered on the shell (no flash) and mirrored on <html> for what lives in <body>.
+function WorkspaceFrame({ children, user }: { children: ReactNode; user: AccountUser }) {
+  const { preferences } = usePreferences();
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.theme = preferences.theme;
+    return () => { delete root.dataset.theme; };
+  }, [preferences.theme]);
   const pathname = usePathname();
   const [compact, setCompact] = useState(false);
   // After client-side navigation, move focus to the new content so keyboard and screen-reader users start there.
@@ -32,7 +43,7 @@ export function WorkspaceShell({ children, user, preferences }: { children: Reac
   }, [pathname]);
   const current = modules.find(item => pathname === `/crm/${item.slug}` || pathname.startsWith(`/crm/${item.slug}/`));
   const title = current?.label ?? (pathname === '/usuarios' ? 'Usuarios y accesos' : 'Resumen');
-  return <div className={`shell workspace${compact ? ' is-compact' : ''}`}><PreferencesProvider initial={preferences}><ToastProvider><ConfirmProvider><UploadProvider><TourProvider role={user.role}>
+  return <div className={`shell workspace${compact ? ' is-compact' : ''}`} data-theme={preferences.theme}><ToastProvider><ConfirmProvider><UploadProvider><TourProvider role={user.role}><AccountPanelsProvider role={user.role}>
     <a href="#workspace-content" className="workspace-skip">Ir al contenido</a>
     <aside className="workspace-sidebar">
       <div className="sidebar-brand-row"><Link href="/" className="workspace-brand" aria-label="Sistema AJ, inicio"><span className="workspace-mark">aj</span><span className="sidebar-label brand-wordmark">Sistema AJ<small>Tu espacio de trabajo</small></span></Link><button className="sidebar-toggle" aria-label={compact ? 'Ampliar menú' : 'Contraer menú'} aria-expanded={!compact} onClick={() => setCompact(value => !value)}>{compact ? <SidebarRight/> : <SidebarLeft/>}</button></div>
@@ -45,6 +56,6 @@ export function WorkspaceShell({ children, user, preferences }: { children: Reac
     </aside>
     <div className="main workspace-main"><header className="workspace-topbar"><div className="workspace-breadcrumb"><Link href="/">Espacio AJ</Link><ArrowRight3 aria-hidden="true"/><span>{title}</span></div><div className="workspace-access"><span className="access-dot"/><span className="access-label">Acceso privado</span><NotificationCenter/><CommandSearch role={user.role}/></div></header><main id="workspace-content" tabIndex={-1} className="workspace-content">{children}</main><footer className="workspace-footer"><span>Sistema AJ</span><span>Seguros, relaciones y seguimiento.</span></footer></div>
     <MobileNav groups={groups} user={{ ...user, roleLabel: roles[user.role] }}/>
-    </TourProvider></UploadProvider></ConfirmProvider></ToastProvider></PreferencesProvider><div id="workspace-portal" className="workspace-portal"/>
+    </AccountPanelsProvider></TourProvider></UploadProvider></ConfirmProvider></ToastProvider><div id="workspace-portal" className="workspace-portal"/>
   </div>;
 }

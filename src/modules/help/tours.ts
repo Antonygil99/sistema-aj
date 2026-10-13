@@ -75,10 +75,10 @@ export const tours: Tour[] = [
     { targets: ['.search-trigger'], title: 'Encuentra cualquier cosa', body: 'Busca clientes, pólizas, recibos, documentos y carpetas. Atajo: Ctrl + K (⌘ K en Mac). Sin texto te muestra acciones rápidas.' },
   ] },
   { id: 'componente:avisos', kind: 'component', title: 'Avisos', summary: 'Cambios del equipo y recordatorios.', steps: [
-    { targets: ['.notification-bell'], title: 'Avisos del equipo', body: 'Lo que cambiaron tus compañeros y tus recordatorios: recibos vencidos, renovaciones próximas y seguimientos de entrega. Se actualiza solo.' },
+    { targets: ['.notification-bell'], title: 'Avisos del equipo', body: 'Lo que cambiaron tus compañeros y tus recordatorios. Se actualiza solo; puedes limpiarlos y elegir cuáles recibir en Preferencias.' },
   ] },
-  { id: 'componente:cuenta', kind: 'component', title: 'Tu cuenta', summary: 'Centro de ayuda, rol y cierre de sesión.', steps: [
-    { targets: ['.account-trigger', '.mobile-tabbar button[aria-haspopup]'], title: 'Tu cuenta', body: 'Aquí abres el Centro de ayuda, ves tu rol y cierras sesión. Reportes llegará pronto.' },
+  { id: 'componente:cuenta', kind: 'component', title: 'Tu cuenta', summary: 'Centro de ayuda, preferencias, modo oscuro y cierre de sesión.', steps: [
+    { targets: ['.account-trigger', '.mobile-tabbar button[aria-haspopup]'], title: 'Tu cuenta', body: 'Aquí abres el Centro de ayuda y tus Preferencias (tema, notificaciones, asistentes), cambias a modo oscuro y cierras sesión. Reportes llegará pronto.' },
   ] },
   { id: 'modulo:resumen', kind: 'module', title: 'Resumen', summary: 'Los números del mes y el embudo de la Ruta AJ.', route: '/', steps: [
     { targets: ['.metrics'], title: 'Tus indicadores del mes', body: 'Prospectos, pólizas, emisiones y renovaciones, comparados con el mes anterior. Toca una tarjeta para abrir su módulo.' },

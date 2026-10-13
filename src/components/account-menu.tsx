@@ -1,20 +1,23 @@
 'use client';
 import { useEffect, useId, useRef, useState, type MouseEvent } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { ArrowRight2, Chart, MessageQuestion, UserOctagon } from 'iconsax-reactjs';
+import { ArrowRight2, Chart, MessageQuestion, Moon, Setting2, UserOctagon } from 'iconsax-reactjs';
 import { Avatar } from './ui/avatar';
 import { SignOutButton } from './sign-out-button';
-import { useTours } from './ui/tours';
+import { useAccountPanels } from './ui/account-panels';
+import { portalTarget } from './ui/modal';
 export type AccountUser = { name: string; email: string; image: string | null; role: 'USER' | 'ADMIN' | 'SUPERADMIN' };
 // Sidebar account row (photo, name, email). Opens a small menu beside the sidebar with the role and account actions.
-// The menu is position: fixed so the scrollable sidebar never clips it, also in compact mode.
+// The menu is position: fixed and portaled out of the sticky sidebar (its own stacking context), so neither the
+// sidebar scroll nor positioned page content can cover it, also in compact mode.
 export function AccountMenu({ user, roleLabel }: { user: AccountUser; roleLabel: string }) {
   const [place, setPlace] = useState<{ left: number; bottom: number } | null>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const menuId = useId();
   const focusFirst = useRef(false);
-  const { openHelp } = useTours();
+  const { openHelp, openSettings, darkActive, toggleDark } = useAccountPanels();
   const open = place !== null;
   function toggle(event: MouseEvent) {
     if (open) { setPlace(null); return; }
@@ -43,15 +46,19 @@ export function AccountMenu({ user, roleLabel }: { user: AccountUser; roleLabel:
       <span className="sidebar-label account-name"><strong>{user.name}</strong><small>{user.email}</small></span>
       <ArrowRight2 className="sidebar-label account-chevron" aria-hidden="true"/>
     </button>
-    {place ? <div ref={panel} id={menuId} className="account-menu" style={{ left: place.left, bottom: place.bottom }}>
+    {place && portalTarget() ? createPortal(<div ref={panel} id={menuId} className="account-menu" style={{ left: place.left, bottom: place.bottom }}>
       <div className="account-menu-header">
         <Avatar name={user.name} email={user.email} image={user.image} size={40}/>
         <div className="account-menu-identity"><strong>{user.name}</strong><span>{user.email}</span><small className="account-role">{roleLabel}</small></div>
       </div>
       <button type="button" className="account-menu-item" onClick={() => { setPlace(null); openHelp(); }}><MessageQuestion aria-hidden="true"/>Centro de ayuda</button>
+      <button type="button" className="account-menu-item" onClick={() => { setPlace(null); openSettings(); }}><Setting2 aria-hidden="true"/>Preferencias</button>
       <button type="button" className="account-menu-item" disabled aria-describedby={`${menuId}-soon`}><Chart aria-hidden="true"/>Reportes<span className="soon-pill" id={`${menuId}-soon`}>Próximamente</span></button>
       {user.role === 'SUPERADMIN' ? <Link className="account-menu-item" href="/usuarios" onClick={() => setPlace(null)}><UserOctagon aria-hidden="true"/>Usuarios y accesos</Link> : null}
+      <div className="account-menu-divider" role="separator"/>
+      {/* Quick switch; the full choice (including "según el dispositivo") lives in Preferencias. */}
+      <button type="button" role="switch" aria-checked={darkActive()} className="account-menu-item" onClick={toggleDark}><Moon aria-hidden="true"/>Modo oscuro<span className="switch is-small" aria-hidden="true"><span/></span></button>
       <SignOutButton className="account-menu-item"/>
-    </div> : null}
+    </div>, portalTarget()!) : null}
   </>;
 }

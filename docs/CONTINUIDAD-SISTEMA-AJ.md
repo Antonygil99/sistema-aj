@@ -178,7 +178,7 @@ npm run check
 | Elemento | Estado real |
 | --- | --- |
 | Pólizas, cotizaciones, recibos, renovaciones, siniestros, actividades | Tablas con alta, edición, búsqueda, archivo y borrado. Faltan reglas de negocio documentadas (p. ej. marcar recibos vencidos automáticamente, generar renovaciones) |
-| Ayuda y preferencias | Centro de ayuda en el menú de cuenta con recorridos guiados por módulo y componente (automáticos opcionales); la vista elegida en Clientes, Prospectos y Documentos se recuerda por persona. Reportes aparece como «Próximamente» |
+| Ayuda y preferencias | Centro de ayuda en el menú de cuenta con recorridos guiados por módulo y componente (automáticos opcionales). Preferencias por persona: tema claro, oscuro o según el dispositivo (interruptor rápido en el menú de cuenta), tipos de notificación, modelo de los asistentes (se guarda; la IA aún no está activa) y vistas recordadas en Clientes, Prospectos y Documentos. Las notificaciones se abren bajo la campana y se pueden limpiar. Reportes aparece como «Próximamente» |
 | Dashboard | Métricas reales con filtro por responsable; faltan tiempos de respuesta y casos convertidos en contenido |
 | WhatsApp | Verificación, HMAC e inbox idempotente por payload. Falta worker, deduplicación por ID Meta, consentimiento, plantillas parametrizadas y pruebas reales |
 | IA | Cinco agentes definidos y selección determinista por tema. Sin proveedor/modelo/runtime ejecutándose |

@@ -1,43 +1,43 @@
 /* Recorridos guiados (driver.js). El popover se monta en <body>, fuera de .workspace: por eso se acota con .aj-tour
    y anula las reglas globales de header/footer de globals.css. */
-.driver-popover.aj-tour{font-family:var(--sans);color:#1f2a25;background:#fff;border:1px solid #e1e7e3;border-radius:16px;padding:18px 18px 14px;min-width:260px;max-width:340px;box-shadow:0 18px 44px -12px #10201959}
-.driver-popover.aj-tour .driver-popover-title{display:block;height:auto;margin:0 0 6px;padding:0 30px 0 0;border:0;font-family:var(--sans);font-style:normal;font-size:16px;font-weight:600;line-height:1.3;color:#1f2a25}
-.driver-popover.aj-tour .driver-popover-description{font-size:14px;line-height:1.55;color:#3d4a44}
-.driver-popover.aj-tour .driver-popover-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;height:auto;margin-top:14px;padding:0;border:0;font-size:12px;color:#5d6a63}
-.driver-popover.aj-tour .driver-popover-progress-text{font-size:12px;color:#5d6a63}
+.driver-popover.aj-tour{font-family:var(--sans);color:var(--c-1f2a25);background:var(--c-ffffff);border:1px solid var(--c-e1e7e3);border-radius:16px;padding:18px 18px 14px;min-width:260px;max-width:340px;box-shadow:0 18px 44px -12px var(--c-10201959)}
+.driver-popover.aj-tour .driver-popover-title{display:block;height:auto;margin:0 0 6px;padding:0 30px 0 0;border:0;font-family:var(--sans);font-style:normal;font-size:16px;font-weight:600;line-height:1.3;color:var(--c-1f2a25)}
+.driver-popover.aj-tour .driver-popover-description{font-size:14px;line-height:1.55;color:var(--c-3d4a44)}
+.driver-popover.aj-tour .driver-popover-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;height:auto;margin-top:14px;padding:0;border:0;font-size:12px;color:var(--c-5d6a63)}
+.driver-popover.aj-tour .driver-popover-progress-text{font-size:12px;color:var(--c-5d6a63)}
 .driver-popover.aj-tour .driver-popover-navigation-btns{display:flex;gap:6px}
-.driver-popover.aj-tour .driver-popover-footer button{min-height:36px;padding:8px 12px;border:1px solid #d9e1dc;border-radius:10px;background:#fff;color:#2f3a35;font-family:var(--sans);font-size:13px;font-weight:500;line-height:1;text-shadow:none;cursor:pointer}
-.driver-popover.aj-tour .driver-popover-footer button:hover{background:#f2f5f3}
-.driver-popover.aj-tour .driver-popover-footer .driver-popover-next-btn{background:#1f2a25;border-color:#1f2a25;color:#fff}
-.driver-popover.aj-tour .driver-popover-footer .driver-popover-next-btn:hover{background:#33423a}
-.driver-popover.aj-tour .driver-popover-close-btn{top:10px;right:10px;width:32px;height:32px;border-radius:8px;color:#5d6a63;font-size:20px}
-.driver-popover.aj-tour .driver-popover-close-btn:hover{background:#f2f5f3;color:#1f2a25}
-.driver-popover.aj-tour button:focus-visible{outline:2px solid #3f6b54;outline-offset:2px}
+.driver-popover.aj-tour .driver-popover-footer button{min-height:36px;padding:8px 12px;border:1px solid var(--c-d9e1dc);border-radius:10px;background:var(--c-ffffff);color:var(--c-2f3a35);font-family:var(--sans);font-size:13px;font-weight:500;line-height:1;text-shadow:none;cursor:pointer}
+.driver-popover.aj-tour .driver-popover-footer button:hover{background:var(--c-f2f5f3)}
+.driver-popover.aj-tour .driver-popover-footer .driver-popover-next-btn{background:var(--c-1f2a25);border-color:var(--c-1f2a25);color:var(--c-ffffff)}
+.driver-popover.aj-tour .driver-popover-footer .driver-popover-next-btn:hover{background:var(--c-33423a)}
+.driver-popover.aj-tour .driver-popover-close-btn{top:10px;right:10px;width:32px;height:32px;border-radius:8px;color:var(--c-5d6a63);font-size:20px}
+.driver-popover.aj-tour .driver-popover-close-btn:hover{background:var(--c-f2f5f3);color:var(--c-1f2a25)}
+.driver-popover.aj-tour button:focus-visible{outline:2px solid var(--c-3f6b54);outline-offset:2px}
 @media(max-width:760px){.driver-popover.aj-tour{max-width:calc(100vw - 32px)}.driver-popover.aj-tour .driver-popover-footer button{min-height:44px;padding:0 14px}}
 
 /* Centro de ayuda */
-.workspace .help-switch-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px;padding:14px 16px;border-radius:14px;background:#f4f7f5}
-.workspace .help-switch-row strong{font-size:14px;color:#1f2a25}.workspace .help-switch-row p{margin:3px 0 0;font-size:12px;line-height:1.45;color:#5d6a63}
-.workspace .switch{position:relative;flex-shrink:0;width:46px;height:28px;padding:0;border:0;border-radius:999px;background:#c3cec8;cursor:pointer;transition:background .2s}
-.workspace .switch span{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #10201933;transition:transform .2s}
-.workspace .switch[aria-checked=true]{background:#3f6b54}.workspace .switch[aria-checked=true] span{transform:translateX(18px)}
-.workspace .switch:focus-visible{outline:2px solid #3f6b54;outline-offset:2px}
-.workspace .help-current{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:4px;padding:16px;border:1px solid #d7e5dc;border-radius:14px;background:#fbfdfc}
-.workspace .help-current strong{display:block;margin-top:4px;font-size:15px;color:#1f2a25}.workspace .help-current p{margin:2px 0 0;font-size:12px;color:#5d6a63}
+.workspace .help-switch-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px;padding:14px 16px;border-radius:14px;background:var(--c-f4f7f5)}
+.workspace .help-switch-row strong{font-size:14px;color:var(--c-1f2a25)}.workspace .help-switch-row p{margin:3px 0 0;font-size:12px;line-height:1.45;color:var(--c-5d6a63)}
+.workspace .switch{position:relative;flex-shrink:0;width:46px;height:28px;padding:0;border:0;border-radius:999px;background:var(--c-c3cec8);cursor:pointer;transition:background .2s}
+.workspace .switch span{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--c-ffffff);box-shadow:0 1px 3px var(--c-10201933);transition:transform .2s}
+.workspace .switch[aria-checked=true]{background:var(--c-3f6b54)}.workspace .switch[aria-checked=true] span{transform:translateX(18px)}
+.workspace .switch:focus-visible{outline:2px solid var(--c-3f6b54);outline-offset:2px}
+.workspace .help-current{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:4px;padding:16px;border:1px solid var(--c-d7e5dc);border-radius:14px;background:var(--c-fbfdfc)}
+.workspace .help-current strong{display:block;margin-top:4px;font-size:15px;color:var(--c-1f2a25)}.workspace .help-current p{margin:2px 0 0;font-size:12px;color:var(--c-5d6a63)}
 .workspace .help-current .button{flex-shrink:0}
-.workspace .help-group-label{margin:18px 2px 6px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#5d6a63}
+.workspace .help-group-label{margin:18px 2px 6px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--c-5d6a63)}
 .workspace .help-list{display:grid;gap:2px;margin:0;padding:0;list-style:none}
 .workspace .help-item{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:10px 12px;border-radius:12px;background:transparent;color:inherit;text-align:left;cursor:pointer}
-.workspace .help-item:hover{background:#f2f5f3}
-.workspace .help-item-text{display:grid;flex:1;gap:2px;min-width:0}.workspace .help-item-text strong{font-size:14px;font-weight:600;color:#1f2a25}.workspace .help-item-text small{font-size:12px;color:#5d6a63}
-.workspace .help-state{flex-shrink:0;padding:2px 8px;border-radius:999px;background:#fdf1dc;color:#7a4e12;font-size:12px;font-weight:500;white-space:nowrap}
-.workspace .help-state.is-seen{display:inline-flex;align-items:center;gap:4px;background:#e8f1ec;color:#2f5a43}.workspace .help-state svg{width:13px;height:13px}
-.workspace .help-item-arrow{flex-shrink:0;width:14px;height:14px;color:#5d6a63}
+.workspace .help-item:hover{background:var(--c-f2f5f3)}
+.workspace .help-item-text{display:grid;flex:1;gap:2px;min-width:0}.workspace .help-item-text strong{font-size:14px;font-weight:600;color:var(--c-1f2a25)}.workspace .help-item-text small{font-size:12px;color:var(--c-5d6a63)}
+.workspace .help-state{flex-shrink:0;padding:2px 8px;border-radius:999px;background:var(--c-fdf1dc);color:var(--c-7a4e12);font-size:12px;font-weight:500;white-space:nowrap}
+.workspace .help-state.is-seen{display:inline-flex;align-items:center;gap:4px;background:var(--c-e8f1ec);color:var(--c-2f5a43)}.workspace .help-state svg{width:13px;height:13px}
+.workspace .help-item-arrow{flex-shrink:0;width:14px;height:14px;color:var(--c-5d6a63)}
 .workspace .help-reset{margin-top:12px}
 @media(max-width:760px){.workspace .help-current{flex-direction:column;align-items:stretch}.workspace .help-item{min-height:56px}}
 
 /* «Próximamente» (Reportes) en el menú de cuenta y en el menú móvil */
-.workspace .soon-pill{margin-left:auto;padding:2px 8px;border-radius:999px;background:#f1efe9;color:#5d6a63;font-size:12px;font-weight:500;white-space:nowrap}
-.workspace .account-menu-item:disabled:has(.soon-pill){opacity:1;color:#5d6a63;cursor:default}.workspace .account-menu-item:disabled:has(.soon-pill):hover{background:transparent}
-.workspace .mobile-menu-grid button{display:grid;justify-items:center;gap:7px;width:100%;padding:14px 6px;border:0;border-radius:14px;background:#f5f7f6;color:#3c4842;font-family:inherit;font-size:13px;text-align:center;cursor:pointer}
-.workspace .mobile-menu-grid button:disabled{opacity:1;color:#5d6a63;cursor:default}.workspace .mobile-menu-grid .soon-pill{margin:0}
+.workspace .soon-pill{margin-left:auto;padding:2px 8px;border-radius:999px;background:var(--c-f1efe9);color:var(--c-5d6a63);font-size:12px;font-weight:500;white-space:nowrap}
+.workspace .account-menu-item:disabled:has(.soon-pill){opacity:1;color:var(--c-5d6a63);cursor:default}.workspace .account-menu-item:disabled:has(.soon-pill):hover{background:transparent}
+.workspace .mobile-menu-grid button{display:grid;justify-items:center;gap:7px;width:100%;padding:14px 6px;border:0;border-radius:14px;background:var(--c-f5f7f6);color:var(--c-3c4842);font-family:inherit;font-size:13px;text-align:center;cursor:pointer}
+.workspace .mobile-menu-grid button:disabled{opacity:1;color:var(--c-5d6a63);cursor:default}.workspace .mobile-menu-grid .soon-pill{margin:0}

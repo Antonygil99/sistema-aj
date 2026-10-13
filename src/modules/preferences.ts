@@ -1,42 +1,76 @@
 import { z } from 'zod';
-// Per-user UI preferences: the view chosen in each module and the guided-tour state. Pure, shared by the
-// API, the server pages and the browser (unit tested in tests/preferences.test.ts).
+// Per-user UI preferences: views, guided tours, theme, notifications and the assistants' model. Pure, shared by
+// the API, the server pages and the browser (unit tested in tests/preferences.test.ts).
 export const viewOptions = {
   clientes: ['dossiers', 'list'],
   documentos: ['grid', 'list'],
   prospectos: ['board', 'list'],
 } as const;
+export const themeOptions = ['light', 'dark', 'system'] as const;
+// Current Claude models for the future assistants; nothing calls them yet (see docs/arquitectura.md).
+export const assistantModels = [
+  { id: 'claude-opus-5-5', label: 'Claude Opus 5.5', summary: 'Recomendado: el más completo para el trabajo diario del equipo.' },
+  { id: 'claude-sonnet-5-5', label: 'Claude Sonnet 5.5', summary: 'Equilibrado: rápido y capaz para tareas frecuentes.' },
+  { id: 'claude-haiku-5-5', label: 'Claude Haiku 5.5', summary: 'El más rápido y económico, para respuestas breves.' },
+  { id: 'claude-fable-5-1', label: 'Claude Fable 5.1', summary: 'El más capaz, para casos complejos; más lento y de mayor costo.' },
+] as const;
 export type ViewKey = keyof typeof viewOptions;
 export type ViewValue<K extends ViewKey> = (typeof viewOptions)[K][number];
-export type Preferences = { views: { [K in ViewKey]?: ViewValue<K> }; tours: { enabled: boolean; seen: string[] } };
-export const defaultPreferences: Preferences = { views: {}, tours: { enabled: false, seen: [] } };
+export type Theme = (typeof themeOptions)[number];
+export type AssistantModel = (typeof assistantModels)[number]['id'];
+export type NotificationSettings = { team: boolean; toasts: boolean; payments: boolean; renewals: boolean; followUps: boolean; clearedAt: string | null; clearedReminders: string | null };
+export type Preferences = { views: { [K in ViewKey]?: ViewValue<K> }; tours: { enabled: boolean; seen: string[] }; theme: Theme; notifications: NotificationSettings; assistantModel: AssistantModel };
+const defaultNotifications: NotificationSettings = { team: true, toasts: true, payments: true, renewals: true, followUps: true, clearedAt: null, clearedReminders: null };
+export const defaultPreferences: Preferences = { views: {}, tours: { enabled: false, seen: [] }, theme: 'light', notifications: defaultNotifications, assistantModel: 'claude-opus-5-5' };
 const MAX_SEEN = 100;
 const tourId = z.string().regex(/^[a-z0-9:-]{1,60}$/);
+const timestamp = z.iso.datetime({ offset: true });
+const reminderKey = z.string().regex(/^[0-9:-]{1,60}$/);
+const modelIds = assistantModels.map(model => model.id) as [AssistantModel, ...AssistantModel[]];
 export const preferencesPatch = z.object({
   views: z.object({ clientes: z.enum(viewOptions.clientes), documentos: z.enum(viewOptions.documentos), prospectos: z.enum(viewOptions.prospectos) }).partial().strict().optional(),
+  resetViews: z.literal(true).optional(),
   tours: z.object({ enabled: z.boolean().optional(), seen: z.array(tourId).max(MAX_SEEN).optional() }).strict().optional(),
+  theme: z.enum(themeOptions).optional(),
+  notifications: z.object({ team: z.boolean(), toasts: z.boolean(), payments: z.boolean(), renewals: z.boolean(), followUps: z.boolean(), clearedAt: timestamp.nullable(), clearedReminders: reminderKey.nullable() }).partial().strict().optional(),
+  assistantModel: z.enum(modelIds).optional(),
 }).strict();
 export type PreferencesPatch = z.infer<typeof preferencesPatch>;
 export function isViewKey(value: string): value is ViewKey { return Object.hasOwn(viewOptions, value); }
+const record = (value: unknown) => typeof value === 'object' && value !== null ? value as Record<string, unknown> : {};
 // Stored JSON may be old or hand-edited: keep each value that is still valid instead of discarding everything.
 export function readPreferences(stored: unknown): Preferences {
-  const value = typeof stored === 'object' && stored !== null ? stored as Record<string, unknown> : {};
-  const rawViews = typeof value.views === 'object' && value.views !== null ? value.views as Record<string, unknown> : {};
+  const value = record(stored);
+  const rawViews = record(value.views);
   const views: Record<string, string> = {};
   for (const key of Object.keys(viewOptions) as ViewKey[]) {
     const choice = rawViews[key];
     if (typeof choice === 'string' && (viewOptions[key] as readonly string[]).includes(choice)) views[key] = choice;
   }
-  const tours = typeof value.tours === 'object' && value.tours !== null ? value.tours as Record<string, unknown> : {};
+  const tours = record(value.tours);
   const seen = Array.isArray(tours.seen) ? tours.seen.filter((item): item is string => tourId.safeParse(item).success) : [];
-  return { views: views as Preferences['views'], tours: { enabled: tours.enabled === true, seen: [...new Set(seen)].slice(-MAX_SEEN) } };
+  const rawNotifications = record(value.notifications);
+  const notifications = { ...defaultNotifications };
+  for (const key of ['team', 'toasts', 'payments', 'renewals', 'followUps'] as const) if (typeof rawNotifications[key] === 'boolean') notifications[key] = rawNotifications[key] as boolean;
+  if (timestamp.safeParse(rawNotifications.clearedAt).success) notifications.clearedAt = rawNotifications.clearedAt as string;
+  if (reminderKey.safeParse(rawNotifications.clearedReminders).success) notifications.clearedReminders = rawNotifications.clearedReminders as string;
+  return {
+    views: views as Preferences['views'],
+    tours: { enabled: tours.enabled === true, seen: [...new Set(seen)].slice(-MAX_SEEN) },
+    theme: (themeOptions as readonly unknown[]).includes(value.theme) ? value.theme as Theme : defaultPreferences.theme,
+    notifications,
+    assistantModel: (modelIds as readonly unknown[]).includes(value.assistantModel) ? value.assistantModel as AssistantModel : defaultPreferences.assistantModel,
+  };
 }
 export function mergePreferences(current: Preferences, patch: PreferencesPatch): Preferences {
   return {
-    views: { ...current.views, ...patch.views },
+    views: patch.resetViews ? { ...patch.views } : { ...current.views, ...patch.views },
     tours: {
       enabled: patch.tours?.enabled ?? current.tours.enabled,
       seen: patch.tours?.seen ? [...new Set(patch.tours.seen)].slice(-MAX_SEEN) : current.tours.seen,
     },
+    theme: patch.theme ?? current.theme,
+    notifications: { ...current.notifications, ...patch.notifications },
+    assistantModel: patch.assistantModel ?? current.assistantModel,
   };
 }
