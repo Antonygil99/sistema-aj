@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Add, Archive, ArrowRotateLeft, Edit2, Eye, Refresh2, SearchNormal1, Trash } from 'iconsax-reactjs';
 import { currencies, formToBody, resources, rowToForm, type Field, type ResourceSlug, type Row, type Tone } from '@/modules/resources/config';
 import { apiFetch, ApiError } from './ui/client-api';
@@ -10,6 +10,8 @@ import { RelationPicker } from './ui/relation-picker';
 import { useToast } from './ui/toast';
 import { gsap, riseIn } from './ui/motion';
 import { useDrag } from './ui/use-drag';
+import { initials, teammateLabel, useTeam, type Teammate } from './ui/use-team';
+import { productLineLabels } from '@/modules/resources/config';
 type Page = { data: Row[]; total: number };
 type Filters = { q: string; status: string; archived: boolean };
 const PAGE = 20;
@@ -31,6 +33,10 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
   const toast = useToast();
+  const team = useTeam();
+  // Catalog images are chosen in the form and uploaded right after the record is saved.
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [removeImage, setRemoveImage] = useState(false);
   const confirm = useConfirm();
   const listRef = useRef<HTMLDivElement>(null);
   const fieldLabels = Object.fromEntries(config.fields.map(field => [field.name, field.label]));
@@ -61,6 +67,7 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
     const record = row === 'new' ? null : row;
     setValues(rowToForm(config, record));
     setLabels(relationLabels(config.fields, record));
+    setImageFile(null); setRemoveImage(false);
     setModalOpen(true);
   }
   async function save(event: FormEvent<HTMLFormElement>) {
@@ -72,7 +79,13 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
     const modifying = editing !== 'new';
     setSaving(true); setFormError('');
     try {
-      await apiFetch(`/api/crm/${slug}${modifying ? '/' + encodeURIComponent(editing.id) : ''}`, { method: modifying ? 'PATCH' : 'POST', json: modifying ? { ...body, expectedUpdatedAt: editing.updatedAt } : body, labels: fieldLabels });
+      const saved = await apiFetch<{ data: Row }>(`/api/crm/${slug}${modifying ? '/' + encodeURIComponent(editing.id) : ''}`, { method: modifying ? 'PATCH' : 'POST', json: modifying ? { ...body, expectedUpdatedAt: editing.updatedAt } : body, labels: fieldLabels });
+      if (config.imageUpload && saved.data?.id && (imageFile || (removeImage && modifying))) {
+        try {
+          if (imageFile) { const form = new FormData(); form.set('file', imageFile); await apiFetch(config.imageUpload(saved.data.id), { method: 'POST', body: form }); }
+          else await apiFetch(config.imageUpload(saved.data.id), { method: 'DELETE' });
+        } catch (error) { toast({ kind: 'warning', title: 'Se guardó, pero la imagen no', message: error instanceof Error ? error.message : undefined }); }
+      }
       setModalOpen(false);
       toast({ kind: 'success', title: `${capitalize(config.singular)} ${modifying ? 'actualizad' : 'registrad'}${config.article === 'una' ? 'a' : 'o'}`, message: config.title({ ...(modifying ? editing : {}), ...body } as Row) || undefined });
       await load(modifying ? skip : 0, modifying ? applied : { ...applied, archived: false });
@@ -128,7 +141,8 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
       <button type="button" className="icon-button" aria-label="Actualizar listado" disabled={loading} onClick={() => void load(skip, applied)}><Refresh2 aria-hidden="true" className={loading ? 'is-spinning' : ''}/></button>
     </form>
     <div ref={listRef} className="resource-list" aria-busy={loading}>
-      {page.data.length ? <>
+      {page.data.length && config.layout === 'cards' ? <div className="catalog-grid">{page.data.map(row => <CatalogCard key={row.id} row={row} config={config} team={team} canEdit={canEdit} {...actions(row)}/>)}</div>
+      : page.data.length ? <>
         <div className="table-wrap resource-table"><table><thead><tr>{config.columns.map(column => <th key={column.label}>{column.label}</th>)}{config.statuses ? <th>Estado</th> : null}<th><span className="sr-only">Acciones</span></th></tr></thead>
           <tbody>{page.data.map(row => { const status = statusOf(row); const act = actions(row); return <tr key={row.id} data-row>
             {config.columns.map((column, index) => <td key={column.label}>{index === 0 ? <button type="button" className="row-link" onClick={act.edit}>{column.value(row) || '—'}</button> : column.value(row) || '—'}{column.detail?.(row) ? <small>{column.detail(row)}</small> : null}</td>)}
@@ -153,8 +167,9 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
         <button type="button" className="text-button" disabled={saving} onClick={() => setModalOpen(false)}>{readOnly ? 'Cerrar' : 'Cancelar'}</button>
         {!readOnly ? <button type="submit" form={`form-${slug}`} className="button" disabled={saving}>{saving ? 'Guardando…' : 'Guardar'}</button> : null}</>}>
       <form id={`form-${slug}`} className="resource-form" onSubmit={save} noValidate={false}>
-        {config.fields.filter(field => !field.showWhen || field.showWhen.values.includes(values[field.showWhen.field] ?? '')).map((field, index) => <FieldInput key={field.name} field={field} value={values[field.name] ?? ''} label={labels[field.name] ?? ''} disabled={readOnly || saving} autoFocus={index === 0 && !readOnly}
-          onChange={(value, label) => { setValues(current => ({ ...current, [field.name]: value })); if (label !== undefined) setLabels(current => ({ ...current, [field.name]: label })); }}/>)}
+        {config.fields.filter(field => !field.showWhen || field.showWhen.values.includes(values[field.showWhen.field] ?? '')).map((field, index) => <FieldInput key={field.name} field={field} value={values[field.name] ?? ''} label={labels[field.name] ?? ''} disabled={readOnly || saving} autoFocus={index === 0 && !readOnly && field.type !== 'image'}
+          team={team} image={field.type === 'image' ? { current: removeImage || !editingRow ? null : config.image?.(editingRow) ?? null, file: imageFile, onFile: file => { setImageFile(file); setRemoveImage(false); }, onRemove: () => { setImageFile(null); setRemoveImage(true); } } : undefined}
+          onChange={(value, label, related) => { setValues(current => ({ ...current, [field.name]: value, ...(related && config.prefill ? config.prefill(field.name, related, current) : {}) })); if (label !== undefined) setLabels(current => ({ ...current, [field.name]: label })); }}/>)}
         {formError ? <p role="alert" className="form-error">{formError}</p> : null}
       </form>
     </Modal>
@@ -170,11 +185,14 @@ function labelFor(field: Field, nested: Row) {
 }
 function capitalize(text: string) { return text.charAt(0).toUpperCase() + text.slice(1); }
 function StatusPill({ label, tone }: { label: string; tone: Tone }) { return <span className={`status-pill tone-${tone}`}>{label}</span>; }
-function FieldInput({ field, value, label, disabled, autoFocus, onChange }: { field: Field; value: string; label: string; disabled: boolean; autoFocus: boolean; onChange: (value: string, label?: string) => void }) {
+type ImageControl = { current: string | null; file: File | null; onFile: (file: File) => void; onRemove: () => void };
+function FieldInput({ field, value, label, disabled, autoFocus, onChange, team, image }: { field: Field; value: string; label: string; disabled: boolean; autoFocus: boolean; onChange: (value: string, label?: string, related?: Row) => void; team: Teammate[]; image?: ImageControl }) {
   const title = <>{field.label}{field.required ? <span aria-hidden="true"> *</span> : <span className="optional">Opcional</span>}</>;
   const common = { disabled, required: field.required, 'data-autofocus': autoFocus || undefined };
   let control;
-  if (field.type === 'relation' && field.relation) control = <RelationPicker relation={field.relation} value={value} initialLabel={label} label={field.label} required={field.required} disabled={disabled} onChange={(id, text) => onChange(id, text)}/>;
+  if (field.type === 'image' && image) return <div className="form-field is-wide"><span className="form-label">{field.label}<span className="optional">Opcional</span></span><ImageField control={image} disabled={disabled}/>{field.hint ? <small className="form-hint">{field.hint}</small> : null}</div>;
+  if (field.type === 'relation' && field.relation) control = <RelationPicker relation={field.relation} value={value} initialLabel={label} label={field.label} required={field.required} disabled={disabled} onChange={(id, text, row) => onChange(id, text, row)}/>;
+  else if (field.type === 'owner') control = <select {...common} value={value} onChange={event => onChange(event.target.value)}><option value="">Sin asignar</option>{value && !team.some(member => member.email === value) ? <option value={value}>{value}</option> : null}{team.map(member => <option key={member.email} value={member.email}>{member.name ? `${member.name} · ${member.email}` : member.email}</option>)}</select>;
   else if (field.type === 'textarea') control = <textarea {...common} value={value} maxLength={field.maxLength} rows={4} onChange={event => onChange(event.target.value)}/>;
   else if (field.type === 'select' || field.type === 'currency') control = <select {...common} value={value} onChange={event => onChange(event.target.value)}>{!field.required ? <option value="">Sin especificar</option> : null}{Object.entries(field.type === 'currency' ? currencies : field.options ?? {}).map(([key, text]) => <option key={key} value={key}>{text}</option>)}</select>;
   else control = <input {...common} value={value} maxLength={field.maxLength} placeholder={field.placeholder}
@@ -209,4 +227,45 @@ function SwipeCard({ row, config, status, canEdit, edit, archive, remove }: { ro
       {status ? <StatusPill label={status.label} tone={status.tone}/> : null}
     </div>
   </li>;
+}
+function ImageField({ control, disabled }: { control: ImageControl; disabled: boolean }) {
+  const input = useRef<HTMLInputElement>(null);
+  const preview = useMemo(() => control.file ? URL.createObjectURL(control.file) : null, [control.file]);
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+  const shown = preview ?? control.current;
+  return <div className="image-field">
+    <div className="image-field-preview">
+      {/* eslint-disable-next-line @next/next/no-img-element -- private signed URL or local preview */}
+      {shown ? <img src={shown} alt="Vista previa del producto"/> : <span>Sin imagen</span>}
+    </div>
+    <div className="image-field-actions">
+      <input ref={input} type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" tabIndex={-1} disabled={disabled} onChange={event => { const file = event.target.files?.[0]; if (file) control.onFile(file); event.target.value = ''; }}/>
+      <button type="button" className="button button-soft" disabled={disabled} onClick={() => input.current?.click()}>{shown ? 'Cambiar imagen' : 'Elegir imagen'}</button>
+      {shown ? <button type="button" className="text-button is-danger" disabled={disabled} onClick={control.onRemove}>Quitar</button> : null}
+    </div>
+  </div>;
+}
+// Visual catalog card (products): image, name, insurer, line and responsible.
+function CatalogCard({ row, config, team, canEdit, edit, archive, remove }: { row: Row; config: (typeof resources)[ResourceSlug]; team: Teammate[]; canEdit: boolean; edit: () => void; archive: () => void; remove?: () => void }) {
+  const image = config.image?.(row) ?? null;
+  const owner = typeof row.ownerEmail === 'string' ? row.ownerEmail : null;
+  const ownerName = teammateLabel(team, owner);
+  return <article className="catalog-card" data-row>
+    <button type="button" className="catalog-card-main" onClick={edit} aria-label={`${canEdit && !row.archivedAt ? 'Editar' : 'Ver'} ${config.title(row)}`}>
+      <span className="catalog-card-image">
+        {/* eslint-disable-next-line @next/next/no-img-element -- private signed URL */}
+        {image ? <img src={image} alt="" loading="lazy"/> : <span aria-hidden="true">{initials(config.title(row))}</span>}
+      </span>
+      <span className="catalog-card-body">
+        <span className="catalog-card-line">{productLineLabels[row.line as keyof typeof productLineLabels] ?? ''}</span>
+        <strong>{config.title(row)}</strong>
+        <small>{typeof row.insurer === 'string' ? row.insurer : ''}</small>
+        {typeof row.description === 'string' && row.description ? <span className="catalog-card-text">{row.description}</span> : null}
+      </span>
+    </button>
+    <footer className="catalog-card-footer"><span className="catalog-owner" title={ownerName}><i aria-hidden="true">{owner ? initials(ownerName) : '—'}</i>{ownerName}</span>
+      {canEdit ? <button type="button" className="icon-button" aria-label={`${row.archivedAt ? 'Restaurar' : 'Archivar'} ${config.title(row)}`} onClick={archive}>{row.archivedAt ? <ArrowRotateLeft aria-hidden="true"/> : <Archive aria-hidden="true"/>}</button> : null}
+      {remove ? <button type="button" className="icon-button is-danger" aria-label={`Eliminar ${config.title(row)}`} onClick={remove}><Trash aria-hidden="true"/></button> : null}
+    </footer>
+  </article>;
 }

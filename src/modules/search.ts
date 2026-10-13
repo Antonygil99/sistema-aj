@@ -2,14 +2,14 @@
 import { resources, type ResourceSlug, type Row } from './resources/config';
 export type SearchKind = ResourceSlug | 'documentos' | 'carpetas' | 'usuarios';
 export type SearchResult = { kind: SearchKind; id: string; title: string; subtitle: string; href: string; download?: boolean };
-export const searchOrder: SearchKind[] = ['clientes', 'polizas', 'prospectos', 'documentos', 'carpetas', 'pagos', 'renovaciones', 'siniestros', 'cotizaciones', 'actividades', 'usuarios'];
+export const searchOrder: SearchKind[] = ['clientes', 'polizas', 'prospectos', 'productos', 'documentos', 'carpetas', 'pagos', 'renovaciones', 'siniestros', 'cotizaciones', 'actividades', 'usuarios'];
 export const kindLabels: Record<SearchKind, string> = {
   clientes: 'Cliente', polizas: 'Póliza', prospectos: 'Prospecto', cotizaciones: 'Cotización', pagos: 'Recibo', renovaciones: 'Renovación',
-  siniestros: 'Siniestro', actividades: 'Actividad', documentos: 'Archivo', carpetas: 'Carpeta', usuarios: 'Usuario',
+  siniestros: 'Siniestro', actividades: 'Actividad', documentos: 'Archivo', carpetas: 'Carpeta', usuarios: 'Usuario', productos: 'Producto',
 };
 export const groupLabels: Record<SearchKind, string> = {
   clientes: 'Clientes', polizas: 'Pólizas', prospectos: 'Prospectos', cotizaciones: 'Cotizaciones', pagos: 'Recibos', renovaciones: 'Renovaciones',
-  siniestros: 'Siniestros', actividades: 'Actividades', documentos: 'Archivos', carpetas: 'Carpetas', usuarios: 'Usuarios y accesos',
+  siniestros: 'Siniestros', actividades: 'Actividades', documentos: 'Archivos', carpetas: 'Carpetas', usuarios: 'Usuarios y accesos', productos: 'Productos',
 };
 export const searchQuery = (value: string | null) => (value ?? '').trim().slice(0, 100);
 // Clients open their dossier; other tables open their list filtered to the record, with its card already open.

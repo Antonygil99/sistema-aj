@@ -1,11 +1,13 @@
 import { z } from 'zod';
 import { createSchema as clientSchema } from './schema';
+import { ownerEmail } from '../shared/validation';
 export const frequencies = { ONCE: 'Pago único', MONTHLY: 'Mensual', QUARTERLY: 'Trimestral', SEMIANNUAL: 'Semestral', ANNUAL: 'Anual' } as const;
 const day = z.iso.date();
 const amount = z.number().positive().max(9999999999.99).refine(n => Math.abs(n * 100 - Math.round(n * 100)) < .001, 'Máximo dos decimales');
 export const policyInput = z.object({
   number: z.string().trim().min(1).max(250), insurer: z.string().trim().min(1).max(250), product: z.string().trim().min(1).max(250),
   premium: amount, currency: z.enum(['MXN','USD']), startDate: day, endDate: day,
+  productId: z.string().min(1).max(100).optional(), ownerEmail: ownerEmail.optional(),
   paymentFrequency: z.enum(['ONCE','MONTHLY','QUARTERLY','SEMIANNUAL','ANNUAL']),
   payments: z.array(z.object({ amount, dueDate: day }).strict()).min(1).max(120),
 }).strict().superRefine((p, ctx) => {

@@ -1,12 +1,13 @@
 // Shared, serializable-free description of each CRM table: used by the API (search, nullable fields)
 // and by the browser (columns, forms, labels). Keep it free of server imports.
-export type ResourceSlug = 'prospectos' | 'clientes' | 'polizas' | 'cotizaciones' | 'pagos' | 'renovaciones' | 'siniestros' | 'actividades';
-export type RelationSlug = 'prospectos' | 'clientes' | 'polizas' | 'siniestros';
+export type ResourceSlug = 'prospectos' | 'clientes' | 'polizas' | 'cotizaciones' | 'pagos' | 'renovaciones' | 'siniestros' | 'actividades' | 'productos';
+export type RelationSlug = 'prospectos' | 'clientes' | 'polizas' | 'siniestros' | 'productos';
 export type Row = Record<string, unknown> & { id: string; createdAt: string; updatedAt: string; archivedAt?: string | null };
 export type Tone = 'neutral' | 'green' | 'blue' | 'sand' | 'lilac' | 'red';
 export type Field = {
   name: string; label: string; required?: boolean; maxLength?: number; placeholder?: string; hint?: string; wide?: boolean;
-  type: 'text' | 'textarea' | 'email' | 'tel' | 'money' | 'currency' | 'date' | 'select' | 'relation';
+  // 'owner' picks a teammate (stored as email); 'image' is uploaded separately after saving the record.
+  type: 'text' | 'textarea' | 'email' | 'tel' | 'money' | 'currency' | 'date' | 'select' | 'relation' | 'owner' | 'image';
   options?: Record<string, string>; relation?: RelationSlug; defaultValue?: string;
   // Only shown (and sent) while another field has one of these values.
   showWhen?: { field: string; values: string[] };
@@ -17,12 +18,17 @@ export type ResourceConfig = {
   emptyTitle: string; emptyMessage: string; searchHint: string;
   statuses?: Record<string, string>; statusTones?: Record<string, Tone>;
   fields: Field[]; columns: Column[]; title: (row: Row) => string;
+  // 'cards' shows a visual catalog grid instead of a table; image(row) returns a thumbnail URL when there is one.
+  layout?: 'table' | 'cards'; image?: (row: Row) => string | null; imageUpload?: (id: string) => string;
+  // Filling a relation can prefill empty fields (e.g. a catalog product fills insurer and responsible).
+  prefill?: (field: string, related: Row, values: Record<string, string>) => Record<string, string>;
   // Fields that become null when omitted in a full-form update.
   nullable: string[];
 };
 
 export const currencies = { MXN: 'MXN · Peso mexicano', USD: 'USD · Dólar' };
 export const frequencies = { ONCE: 'Pago único', MONTHLY: 'Mensual', QUARTERLY: 'Trimestral', SEMIANNUAL: 'Semestral', ANNUAL: 'Anual' };
+export const productLineLabels = { MEDICAL: 'Gastos médicos', AUTO: 'Autos', LIFE: 'Vida', HOME: 'Hogar', OTHER: 'Otro' };
 const text = (value: unknown) => typeof value === 'string' && value.trim() ? value : '';
 const nested = (row: Row, path: string) => path.split('.').reduce<unknown>((value, key) => value && typeof value === 'object' ? (value as Record<string, unknown>)[key] : undefined, row);
 export function formatDate(value: unknown) {
@@ -44,7 +50,9 @@ export const relationLabel: Record<RelationSlug, (row: Row) => string> = {
   clientes: row => text(row.name),
   polizas: row => [text(row.number), text(nested(row, 'client.name'))].filter(Boolean).join(' · '),
   siniestros: row => [text(row.reference), text(nested(row, 'policy.number'))].filter(Boolean).join(' · '),
+  productos: row => [text(row.name), text(row.insurer)].filter(Boolean).join(' · '),
 };
+const owner = (label = 'Responsable'): Field => ({ name: 'ownerEmail', label, type: 'owner', hint: 'Quién da seguimiento.' });
 const contact: Column = { label: 'Contacto', value: row => text(row.email) || 'Sin correo', detail: row => text(row.phone) || 'Sin teléfono' };
 const linked = (row: Row) => text(nested(row, 'prospect.name')) || text(nested(row, 'client.name')) || text(nested(row, 'policy.number')) || text(nested(row, 'claim.reference'));
 
@@ -84,6 +92,7 @@ export const resources: Record<ResourceSlug, ResourceConfig> = {
     fields: [
       { name: 'number', label: 'Número de póliza', type: 'text', required: true, maxLength: 250 },
       { name: 'clientId', label: 'Cliente', type: 'relation', relation: 'clientes', required: true },
+      { name: 'productId', label: 'Producto del catálogo', type: 'relation', relation: 'productos', hint: 'Completa aseguradora, producto y responsable.' },
       { name: 'insurer', label: 'Aseguradora', type: 'text', required: true, maxLength: 250 },
       { name: 'product', label: 'Producto o cobertura', type: 'text', required: true, maxLength: 250 },
       { name: 'premium', label: 'Prima total', type: 'money', required: true },
@@ -92,6 +101,7 @@ export const resources: Record<ResourceSlug, ResourceConfig> = {
       { name: 'startDate', label: 'Inicio de vigencia', type: 'date', required: true },
       { name: 'endDate', label: 'Fin de vigencia', type: 'date', required: true },
       { name: 'status', label: 'Estado', type: 'select', required: true, defaultValue: 'ACTIVE' },
+      owner(),
     ],
     columns: [
       { label: 'Póliza', value: row => text(row.number), detail: row => [text(row.insurer), text(row.product)].filter(Boolean).join(' · ') },
@@ -99,7 +109,12 @@ export const resources: Record<ResourceSlug, ResourceConfig> = {
       { label: 'Vigencia', value: row => `${formatDate(row.startDate)} → ${formatDate(row.endDate)}` },
       { label: 'Prima', value: row => formatMoney(row.premium, row.currency) },
     ],
-    title: row => text(row.number), nullable: ['paymentFrequency'],
+    title: row => text(row.number), nullable: ['paymentFrequency', 'productId', 'ownerEmail'],
+    prefill: (field, related, values) => field === 'productId' ? {
+      ...(values.insurer ? {} : { insurer: text(related.insurer) }),
+      ...(values.product ? {} : { product: text(related.name) }),
+      ...(values.ownerEmail || !text(related.ownerEmail) ? {} : { ownerEmail: text(related.ownerEmail) }),
+    } : {},
   },
   cotizaciones: {
     slug: 'cotizaciones', singular: 'cotización', plural: 'cotizaciones', article: 'una', illustration: 'cotizaciones',
@@ -183,6 +198,7 @@ export const resources: Record<ResourceSlug, ResourceConfig> = {
       { name: 'title', label: 'Título', type: 'text', required: true, maxLength: 250, wide: true },
       { name: 'dueDate', label: 'Fecha', type: 'date' },
       { name: 'status', label: 'Estado', type: 'select', required: true, defaultValue: 'PENDING' },
+      owner(),
       { name: 'clientId', label: 'Cliente', type: 'relation', relation: 'clientes', hint: 'Vincula como máximo un expediente.' },
       { name: 'prospectId', label: 'Prospecto', type: 'relation', relation: 'prospectos' },
       { name: 'policyId', label: 'Póliza', type: 'relation', relation: 'polizas' },
@@ -194,7 +210,27 @@ export const resources: Record<ResourceSlug, ResourceConfig> = {
       { label: 'Fecha', value: row => formatDate(row.dueDate) || 'Sin fecha' },
       { label: 'Vinculada a', value: row => linked(row) || 'General' },
     ],
-    title: row => text(row.title), nullable: ['description', 'dueDate', 'prospectId', 'clientId', 'policyId', 'claimId'],
+    title: row => text(row.title), nullable: ['description', 'dueDate', 'ownerEmail', 'prospectId', 'clientId', 'policyId', 'claimId'],
+  },
+  productos: {
+    slug: 'productos', singular: 'producto', plural: 'productos', article: 'un', illustration: 'polizas', layout: 'cards',
+    emptyTitle: 'Arma tu catálogo de productos', emptyMessage: 'Agrega cada producto con su imagen, aseguradora y datos básicos, empezando por Médica Vital.', searchHint: 'Nombre o aseguradora',
+    fields: [
+      { name: 'image', label: 'Imagen', type: 'image', wide: true, hint: 'PNG, JPG o WEBP de hasta 4 MB.' },
+      { name: 'name', label: 'Nombre del producto', type: 'text', required: true, maxLength: 250, placeholder: 'Médica Vital' },
+      { name: 'insurer', label: 'Aseguradora', type: 'text', required: true, maxLength: 250 },
+      { name: 'line', label: 'Ramo', type: 'select', required: true, defaultValue: 'MEDICAL', options: productLineLabels },
+      owner('Responsable por defecto'),
+      { name: 'description', label: 'Descripción breve', type: 'textarea', maxLength: 600, wide: true, placeholder: 'Para quién es y qué resuelve.' },
+      { name: 'highlights', label: 'Datos básicos del servicio', type: 'textarea', maxLength: 5000, wide: true, hint: 'Un dato por línea: coberturas, red médica, suma asegurada, deducible, contacto de emergencia…' },
+    ],
+    columns: [
+      { label: 'Producto', value: row => text(row.name), detail: row => text(row.insurer) },
+      { label: 'Ramo', value: row => productLineLabels[row.line as keyof typeof productLineLabels] ?? '' },
+    ],
+    title: row => text(row.name), nullable: ['description', 'highlights', 'ownerEmail'],
+    imageUpload: id => `/api/products/${encodeURIComponent(id)}/image`,
+    image: row => row.imageType ? `/api/products/${encodeURIComponent(row.id)}/image?v=${encodeURIComponent(row.updatedAt)}` : null,
   },
 };
 for (const config of Object.values(resources)) {
@@ -206,6 +242,7 @@ export function isResourceSlug(value: string): value is ResourceSlug { return Ob
 export function formToBody(config: ResourceConfig, values: Record<string, string>) {
   const body: Record<string, string> = {};
   for (const field of config.fields) {
+    if (field.type === 'image') continue;
     if (field.showWhen && !field.showWhen.values.includes(values[field.showWhen.field] ?? '')) continue;
     let value = (values[field.name] ?? '').trim();
     if (field.type === 'tel') value = value.replace(/[\s()-]/g, '');
@@ -216,7 +253,7 @@ export function formToBody(config: ResourceConfig, values: Record<string, string
   return body;
 }
 export function rowToForm(config: ResourceConfig, row: Row | null) {
-  return Object.fromEntries(config.fields.map(field => {
+  return Object.fromEntries(config.fields.filter(field => field.type !== 'image').map(field => {
     const value = row?.[field.name];
     if (field.type === 'date') return [field.name, dateInputValue(value)];
     return [field.name, value === null || value === undefined ? (row ? '' : field.defaultValue ?? '') : String(value)];

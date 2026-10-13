@@ -137,3 +137,41 @@
   .workspace .search-close{display:grid}
   .workspace .search-item-end span{display:none}
 }
+/* Catálogo de productos */
+.workspace .catalog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.workspace .catalog-card{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:20px;overflow:hidden;transition:box-shadow .2s,transform .2s}.workspace .catalog-card:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
+.workspace .catalog-card-main{display:flex;flex-direction:column;gap:0;padding:0;background:none;text-align:left;font:inherit;color:inherit;flex:1}
+.workspace .catalog-card-image{display:grid;place-items:center;aspect-ratio:16/10;background:linear-gradient(135deg,#eef3f0,#f4f1f8);overflow:hidden}.workspace .catalog-card-image img{width:100%;height:100%;object-fit:cover}.workspace .catalog-card-image>span{font-size:28px;font-weight:600;color:#6f9a82;letter-spacing:-1px}
+.workspace .catalog-card-body{display:grid;gap:4px;padding:16px 18px 12px}.workspace .catalog-card-body strong{font-size:15px;font-weight:600;color:#1f2a25}.workspace .catalog-card-body small{font-size:11px;color:#7d888e}
+.workspace .catalog-card-line{justify-self:start;padding:3px 9px;border-radius:999px;background:#eef3f0;color:#3c5a49;font-size:10px;font-weight:500}
+.workspace .catalog-card-text{font-size:12px;line-height:1.5;color:#5d686e;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-top:4px}
+.workspace .catalog-card-footer{display:flex;align-items:center;gap:4px;padding:10px 12px 12px 18px;border-top:1px solid var(--line);height:auto;justify-content:flex-start;background:none;font-size:inherit;color:inherit}
+.workspace .catalog-owner{display:flex;align-items:center;gap:8px;flex:1;min-width:0;font-size:11px;color:#5d686e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.workspace .catalog-owner i,.workspace .delivery-owner{display:grid;place-items:center;width:24px;height:24px;flex-shrink:0;border-radius:50%;background:#e5efe9;color:#3c5a49;font-style:normal;font-size:9px;font-weight:600}
+.workspace .image-field{display:flex;align-items:center;gap:16px;flex-wrap:wrap}.workspace .image-field-preview{display:grid;place-items:center;width:160px;aspect-ratio:16/10;border-radius:14px;border:1px dashed #d7dedb;background:#f8f9fa;overflow:hidden;color:#8a959b;font-size:11px}.workspace .image-field-preview img{width:100%;height:100%;object-fit:cover}.workspace .image-field-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+/* Tablero de entregas */
+.workspace .delivery-board{display:grid;grid-template-columns:repeat(6,minmax(175px,1fr));gap:12px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x proximity}
+.workspace .delivery-column{display:flex;flex-direction:column;min-width:0;background:#f3f5f4;border-radius:18px;padding:10px;scroll-snap-align:start}
+.workspace .delivery-column>header{display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 8px;padding:6px 6px 10px;height:auto;border:0;background:none;color:inherit;font-size:inherit}.workspace .delivery-column>header strong{font-size:12px;font-weight:600;color:#26312b}.workspace .delivery-column>header small{grid-column:1/-1;font-size:10px;color:#7d888e}
+.workspace .delivery-count{min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:#fff;display:grid;place-items:center;font-size:11px;font-weight:600;color:#3c5a49}
+.workspace .stage-emitida .delivery-count{background:#f1f3f4}.workspace .stage-entregada .delivery-count{background:#f8f0db;color:#7a5f1c}.workspace .stage-explicada .delivery-count{background:#e6f1f8;color:#2f5f80}.workspace .stage-seguimiento_7 .delivery-count,.workspace .stage-seguimiento_30 .delivery-count{background:#ece8fa;color:#5a4a96}.workspace .stage-referido .delivery-count{background:#e5f2eb;color:#2f6a49}
+.workspace .delivery-column-body{display:grid;gap:8px;align-content:start}
+.workspace .delivery-card{display:grid;gap:10px;width:100%;padding:12px;background:#fff;border:1px solid #fff;border-radius:14px;text-align:left;font:inherit;color:inherit;box-shadow:0 1px 3px #1020190d;transition:box-shadow .15s,border-color .15s}.workspace .delivery-card:hover{box-shadow:0 8px 22px -14px #1020195c;border-color:#dfe7e2}.workspace .delivery-card.is-overdue{border-color:#f1c8bf}
+.workspace .delivery-card-top{display:flex;align-items:center;gap:10px;min-width:0}
+.workspace .delivery-thumb{display:grid;place-items:center;width:34px;height:34px;flex-shrink:0;border-radius:10px;background:#eef3f0;color:#3c5a49;font-size:10px;font-weight:600;overflow:hidden}.workspace .delivery-thumb img{width:100%;height:100%;object-fit:cover}
+.workspace .delivery-card-title{flex:1;min-width:0;display:grid;gap:2px}.workspace .delivery-card-title strong{font-size:12px;font-weight:600;color:#1f2a25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.workspace .delivery-card-title small{font-size:10px;color:#7d888e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.workspace .delivery-progress{display:block;height:4px;border-radius:4px;background:#eef1ef;overflow:hidden}.workspace .delivery-progress i{display:block;height:100%;background:#6f9a82;border-radius:4px}
+.workspace .delivery-card-meta{font-size:10px;color:#6c777d}.workspace .delivery-card-meta>span{display:inline-flex;align-items:center;gap:5px}.workspace .delivery-card-meta svg{width:13px;height:13px}.workspace .is-late{color:#9b3b2a!important;font-weight:500}
+.workspace .delivery-empty{margin:4px 6px 8px;font-size:11px;color:#9aa5aa}
+.workspace .delivery-form{display:grid;gap:18px}.workspace .delivery-form section h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:13px;font-weight:600}
+.workspace .delivery-guide{display:flex;gap:12px;margin:0;padding:14px 16px;border-radius:14px;background:#eef3f0;color:#2f4338;font-size:13px;line-height:1.5}.workspace .delivery-guide svg{width:18px;height:18px;flex-shrink:0;margin-top:2px}.workspace .delivery-guide small{display:block;font-size:10px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:#5d7a69;margin-bottom:3px}
+.workspace .delivery-date{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}.workspace .delivery-date label{display:grid;gap:6px}.workspace .delivery-date input{font:inherit;font-size:13px;border:1px solid #e6eaeb;background:#f8f9fa;border-radius:11px;padding:9px 12px;min-height:40px}
+.workspace .delivery-score{padding:2px 8px;border-radius:999px;background:#eef3f0;color:#3c5a49;font-size:11px}
+.workspace .check-list{list-style:none;margin:0;padding:0;display:grid;gap:4px}.workspace .check-list label{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:12px;background:#f8f9fa;font-size:13px;color:#2f383c;cursor:pointer}.workspace .check-list label:hover{background:#f1f4f2}.workspace .check-list input{width:17px;height:17px;margin-top:1px;accent-color:#3f6b54;flex-shrink:0}.workspace .check-list small{display:block;font-size:11px;color:#7d888e;margin-top:2px}
+.workspace .delivery-strip{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-4px 0 12px}.workspace .delivery-strip small{font-size:11px;color:#7d888e}
+.workspace .wizard-catalog{grid-column:1/-1}
+@media(max-width:760px){
+  .workspace .delivery-board{grid-template-columns:repeat(6,82%);gap:10px;margin:0 -16px;padding:0 16px 10px;scroll-snap-type:x mandatory}
+  .workspace .catalog-grid{grid-template-columns:1fr}
+  .workspace .image-field-preview{width:100%}
+}
+.workspace .form-field,.workspace .form-field label{align-content:start}

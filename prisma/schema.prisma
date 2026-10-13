@@ -43,6 +43,13 @@ enum ActivityStatus {
   PENDING
   DONE
 }
+enum ProductLine {
+  MEDICAL
+  AUTO
+  LIFE
+  HOME
+  OTHER
+}
 model Prospect {
   id        String @id @default(cuid())
   name      String
@@ -83,6 +90,17 @@ model Policy {
   product     String
   premium     Decimal @db.Decimal(12, 2)
   paymentFrequency String?
+  productId   String?
+  catalogProduct Product? @relation(fields: [productId], references: [id], onDelete: Restrict)
+  ownerEmail  String?
+  // Active delivery (Ruta AJ, etapa 5): a policy is complete only when all five checks are true.
+  deliveredAt DateTime?
+  deliveryReceived Boolean @default(false)
+  deliveryUnderstood Boolean @default(false)
+  deliveryKnowsContact Boolean @default(false)
+  deliveryKnowsWhenToNotify Boolean @default(false)
+  deliveryKnowsFirstStep Boolean @default(false)
+  referralPotential Boolean @default(false)
   currency    String @default("MXN")
   startDate   DateTime
   endDate     DateTime
@@ -97,6 +115,8 @@ model Policy {
   updatedAt   DateTime @updatedAt
   @@index([clientId])
   @@index([status, endDate])
+  @@index([productId])
+  @@index([ownerEmail])
 }
 model Quote {
   id         String @id @default(cuid())
@@ -193,12 +213,31 @@ model DocumentFolder {
   @@index([parentId])
   @@index([clientId])
 }
+// Product catalog (Médica Vital, autos…): image stored in private R2, responsible by line.
+model Product {
+  id          String @id @default(cuid())
+  name        String @unique
+  insurer     String
+  line        ProductLine @default(MEDICAL)
+  description String?
+  highlights  String?
+  ownerEmail  String?
+  imageKey    String? @unique
+  imageType   String?
+  policies    Policy[]
+  archivedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
 model Activity {
   id         String @id @default(cuid())
   title      String
   description String?
   dueDate    DateTime?
   status     ActivityStatus @default(PENDING)
+  // Automatic follow-ups (SEGUIMIENTO_7/30/90) carry a kind; manual activities leave it empty.
+  kind       String?
+  ownerEmail String?
   prospectId String?
   prospect   Prospect? @relation(fields: [prospectId], references: [id], onDelete: Restrict)
   clientId   String?
@@ -215,6 +254,8 @@ model Activity {
   @@index([clientId])
   @@index([policyId])
   @@index([claimId])
+  @@index([ownerEmail, status, dueDate])
+  @@index([policyId, kind])
 }
 // Operational audit trail; also the source of in-app notifications.
 model CrmEvent {

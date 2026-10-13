@@ -77,3 +77,17 @@ test('las notificaciones describen la acción en español y no enlazan registros
   assert.equal(eventHref({ action: 'created', module: 'expedientes', recordId: 'c1' }), '/crm/clientes/c1');
   assert.equal(eventHref({ action: 'updated', module: 'pagos', recordId: 'x' }), '/crm/pagos');
 });
+
+test('elegir un producto del catálogo prellena la póliza sin pisar lo ya capturado', () => {
+  const product = { id: 'p1', createdAt: version, updatedAt: version, name: 'Médica Vital', insurer: 'GNP', ownerEmail: 'ale@ejemplo.mx' } as Row;
+  assert.deepEqual(resources.polizas.prefill?.('productId', product, { insurer: '', product: '', ownerEmail: '' }), { insurer: 'GNP', product: 'Médica Vital', ownerEmail: 'ale@ejemplo.mx' });
+  assert.deepEqual(resources.polizas.prefill?.('productId', product, { insurer: 'Otra', product: 'Plan X', ownerEmail: 'joel@ejemplo.mx' }), {});
+  assert.deepEqual(resources.polizas.prefill?.('clientId', product, { insurer: '' }), {});
+});
+
+test('el responsable se guarda en minúsculas y el producto no acepta claves de imagen', () => {
+  const parsed = parseUpdate('productos', { name: 'Médica Vital', insurer: 'GNP', ownerEmail: 'Ale@Ejemplo.MX', expectedUpdatedAt: version });
+  assert.equal(parsed.data.ownerEmail, 'ale@ejemplo.mx');
+  assert.equal(parsed.data.description, null);
+  assert.throws(() => parseUpdate('productos', { name: 'X', insurer: 'Y', imageKey: 'aj/products/x.png', expectedUpdatedAt: version }));
+});

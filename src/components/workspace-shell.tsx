@@ -14,8 +14,8 @@ import { MobileNav } from './ui/mobile-nav';
 import { CommandSearch } from './ui/command-search';
 const groups: { label: string; slugs: ModuleSlug[] }[] = [
   { label: 'Relaciones', slugs: ['prospectos', 'clientes', 'cotizaciones'] },
-  { label: 'Operación', slugs: ['polizas', 'pagos', 'renovaciones', 'siniestros'] },
-  { label: 'Organización', slugs: ['documentos', 'actividades'] },
+  { label: 'Operación', slugs: ['polizas', 'entregas', 'pagos', 'renovaciones', 'siniestros'] },
+  { label: 'Organización', slugs: ['productos', 'documentos', 'actividades'] },
 ];
 const roles = { USER: 'Usuario', ADMIN: 'Administrador', SUPERADMIN: 'Superadmin' };
 export function WorkspaceShell({ children, user }: { children: ReactNode; user: { name: string; role: keyof typeof roles } }) {

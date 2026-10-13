@@ -10,9 +10,19 @@ export const modules = [
     "description": "Relaciones y datos de asegurados"
   },
   {
+    "slug": "productos",
+    "label": "Productos",
+    "description": "Catálogo de seguros con sus datos básicos"
+  },
+  {
     "slug": "polizas",
     "label": "Pólizas",
     "description": "Coberturas y vigencias"
+  },
+  {
+    "slug": "entregas",
+    "label": "Entregas",
+    "description": "Activación y seguimiento de cada póliza"
   },
   {
     "slug": "cotizaciones",

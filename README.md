@@ -59,6 +59,10 @@ Las rutas CRM y de agentes admiten sesiones de Google autorizadas o Authorizatio
 | PATCH /api/crm/{modulo}/{id} | Ficha completa + expectedUpdatedAt (ADMIN); los opcionales omitidos se limpian. Conflicto de versión: 409 RECORD_CHANGED |
 | POST /api/crm/{modulo}/{id}/archive | Archiva o restaura con `{ "archived": true }` o `false` (ADMIN) |
 | DELETE /api/crm/{modulo}/{id} | Borrado definitivo (SUPERADMIN) solo sin información vinculada; si no, 409 HAS_RELATIONS |
+| GET /api/team | Personas del equipo para asignar responsable |
+| POST/DELETE /api/products/{id}/image | Sube o quita la imagen de un producto (ADMIN); GET la muestra con un enlace firmado |
+| GET /api/policies/delivery-board | Pólizas activas con su etapa de entrega activa |
+| GET/PATCH /api/policies/{id}/delivery | Entrega activa de una póliza: fecha, checklist de 5 puntos, posible referido y seguimientos 7/30/90 (PATCH ADMIN con expectedUpdatedAt) |
 | GET /api/search?q= | Búsqueda global (mínimo 2 letras): registros de todos los módulos, archivos, carpetas y, para el superadmin, accesos |
 | GET /api/notifications?since= | Novedades de otras personas del equipo y recordatorios (recibos vencidos, renovaciones de la semana) |
 | GET /api/agents | Catálogo de cinco agentes |

@@ -1,12 +1,12 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Notification, Card, Refresh2 } from 'iconsax-reactjs';
+import { Notification, Card, ClipboardTick, Refresh2 } from 'iconsax-reactjs';
 import { describeEvent, eventHref, type NotificationEvent } from '@/modules/notifications';
 import { apiFetch, ApiError } from './client-api';
 import { Modal } from './modal';
 import { useToast } from './toast';
-type Feed = { cursor: string; events: (NotificationEvent & { own: boolean })[]; recent: (NotificationEvent & { own: boolean })[]; reminders: { overduePayments: number; renewalsThisWeek: number } };
+type Feed = { cursor: string; events: (NotificationEvent & { own: boolean })[]; recent: (NotificationEvent & { own: boolean })[]; reminders: { overduePayments: number; renewalsThisWeek: number; followUpsDue: number } };
 const POLL_MS = 20000;
 const SEEN_KEY = 'aj:notifications-seen';
 const readSeen = () => { try { return localStorage.getItem(SEEN_KEY) ?? ''; } catch { return ''; } };
@@ -49,7 +49,7 @@ export function NotificationCenter() {
     return () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
   }, [poll]);
   const others = feed?.recent.filter(event => !event.own) ?? [];
-  const reminders = feed ? feed.reminders.overduePayments + feed.reminders.renewalsThisWeek : 0;
+  const reminders = feed ? feed.reminders.overduePayments + feed.reminders.renewalsThisWeek + feed.reminders.followUpsDue : 0;
   const unread = others.filter(event => event.createdAt > seen).length + (reminders ? 1 : 0);
   function openPanel() {
     setOpen(true);
@@ -60,6 +60,7 @@ export function NotificationCenter() {
     <button type="button" className="notification-bell" aria-label={unread ? `Notificaciones, ${unread} sin leer` : 'Notificaciones'} onClick={openPanel}><Notification aria-hidden="true"/>{unread ? <span className="notification-count" aria-hidden="true">{unread > 9 ? '9+' : unread}</span> : null}</button>
     <Modal open={open} onClose={() => setOpen(false)} title="Notificaciones" description="Actividad reciente del equipo y recordatorios." size="sm" className="notification-panel">
       {feed && reminders ? <div className="reminder-list">
+        {feed.reminders.followUpsDue ? <Link href="/crm/entregas?owner=me" onClick={() => setOpen(false)} className="reminder tone-green"><ClipboardTick aria-hidden="true"/><span><strong>{feed.reminders.followUpsDue} seguimiento{feed.reminders.followUpsDue === 1 ? '' : 's'} para hoy</strong><small>Entrega activa: revisa cómo usan su póliza</small></span></Link> : null}
         {feed.reminders.overduePayments ? <Link href="/crm/pagos" onClick={() => setOpen(false)} className="reminder tone-red"><Card aria-hidden="true"/><span><strong>{feed.reminders.overduePayments} recibo{feed.reminders.overduePayments === 1 ? '' : 's'} vencido{feed.reminders.overduePayments === 1 ? '' : 's'}</strong><small>Pendientes de cobro con fecha pasada</small></span></Link> : null}
         {feed.reminders.renewalsThisWeek ? <Link href="/crm/renovaciones" onClick={() => setOpen(false)} className="reminder tone-sand"><Refresh2 aria-hidden="true"/><span><strong>{feed.reminders.renewalsThisWeek} renovación{feed.reminders.renewalsThisWeek === 1 ? '' : 'es'} esta semana</strong><small>Próximos 7 días</small></span></Link> : null}
       </div> : null}

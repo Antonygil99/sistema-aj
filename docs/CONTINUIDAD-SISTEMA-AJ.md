@@ -129,6 +129,16 @@ Documentos se organiza en carpetas del equipo o de cada expediente; detalles en 
 - **Móvil (≤760 px):** barra inferior con Resumen, Clientes, Prospectos, Archivos y «Más» (hoja con todos los módulos y la cuenta). Las tablas se vuelven tarjetas: deslizar a la izquierda muestra Archivar y Eliminar.
 - Verificado con capturas de una vista previa temporal con datos ficticios (escritorio y 390 px) y con pruebas unitarias; la prueba manual con datos reales queda pendiente.
 
+### Entrega activa, productos y responsables (Ruta de implementación AJ v1)
+
+Basado en los documentos del cliente «Método aplicado a AJ Consultoría» y «Sistema AJ inspirado en IA para agentes de seguros - Ruta de implementación v1.0».
+
+- **Catálogo de productos** (`/crm/productos`): nombre, aseguradora, ramo (gastos médicos, autos, vida, hogar, otro), descripción, datos básicos del servicio, responsable por defecto e imagen privada en R2. Se empieza con Médica Vital, que el equipo captura con su imagen.
+- **Responsables:** Ale atiende seguros médicos y Joel seguros vehiculares. Las pólizas creadas desde un producto heredan su responsable; los seguimientos se asignan a esa persona y la campana muestra «seguimientos para hoy».
+- **Entrega activa** (`/crm/entregas`): tablero con las etapas del sprint del cliente (emitida → entregada → explicada → seguimiento 7 días → seguimiento 30 días → posible referido). Cada póliza tiene fecha de entrega, el checklist de «póliza completada» (recibió, entendió, sabe a quién acudir, sabe cuándo avisar, tiene claro el primer paso), seguimientos automáticos a 7, 30 y 90 días y la marca de posible referido. El modal muestra el mensaje guía del documento del cliente para cada etapa.
+- La ficha del cliente indica la etapa de entrega de cada póliza y enlaza a su entrega activa; el asistente de expediente permite elegir el producto del catálogo.
+- **Decisiones del cliente para siguientes etapas:** «diagnosticado» significa que respondió las 5 preguntas de diagnóstico; de antecedentes médicos solo se registra si existen, nunca el detalle, y solo los ven Ale y Joel (los únicos usuarios).
+
 ## 8. Variables de entorno y ejecución
 
 Variables del servidor (nombres, sin valores):

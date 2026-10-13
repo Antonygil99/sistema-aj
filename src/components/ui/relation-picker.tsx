@@ -4,9 +4,9 @@ import { CloseCircle, SearchNormal1 } from 'iconsax-reactjs';
 import { relationLabel, type RelationSlug, type Row } from '@/modules/resources/config';
 import { apiFetch } from './client-api';
 // Searchable combobox over another CRM table (clients, policies, prospects, claims).
-export function RelationPicker({ relation, value, initialLabel, onChange, label, required, disabled }: { relation: RelationSlug; value: string; initialLabel: string; onChange: (id: string, label: string) => void; label: string; required?: boolean; disabled?: boolean }) {
+export function RelationPicker({ relation, value, initialLabel, onChange, label, required, disabled }: { relation: RelationSlug; value: string; initialLabel: string; onChange: (id: string, label: string, row?: Row) => void; label: string; required?: boolean; disabled?: boolean }) {
   const [query, setQuery] = useState('');
-  const [options, setOptions] = useState<{ id: string; label: string }[]>([]);
+  const [options, setOptions] = useState<{ id: string; label: string; row: Row }[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const [selectedLabel, setSelectedLabel] = useState(initialLabel);
@@ -20,7 +20,7 @@ export function RelationPicker({ relation, value, initialLabel, onChange, label,
       setLoading(true);
       try {
         const result = await apiFetch<{ data: Row[] }>(`/api/crm/${relation}?take=8&q=${encodeURIComponent(query.trim())}`, { signal: controller.signal });
-        setOptions(result.data.map(row => ({ id: row.id, label: relationLabel[relation](row) || row.id })));
+        setOptions(result.data.map(row => ({ id: row.id, label: relationLabel[relation](row) || row.id, row })));
         setActive(0);
       } catch { if (!controller.signal.aborted) setOptions([]); }
       finally { if (!controller.signal.aborted) setLoading(false); }
@@ -33,7 +33,7 @@ export function RelationPicker({ relation, value, initialLabel, onChange, label,
     document.addEventListener('pointerdown', outside);
     return () => document.removeEventListener('pointerdown', outside);
   }, [open]);
-  function choose(option: { id: string; label: string }) { setSelectedLabel(option.label); onChange(option.id, option.label); setQuery(''); setOpen(false); }
+  function choose(option: { id: string; label: string; row: Row }) { setSelectedLabel(option.label); onChange(option.id, option.label, option.row); setQuery(''); setOpen(false); }
   if (value && !open) return <div className="relation-selected"><span>{selectedLabel || 'Registro vinculado'}</span>{!disabled ? <button type="button" className="icon-button" aria-label={`Quitar ${label}`} onClick={() => { onChange('', ''); setSelectedLabel(''); }}><CloseCircle aria-hidden="true"/></button> : null}</div>;
   return <div className="relation-picker" ref={box}>
     <SearchNormal1 aria-hidden="true"/>

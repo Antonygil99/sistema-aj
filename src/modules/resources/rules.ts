@@ -9,19 +9,21 @@ import { createSchema as paymentSchema } from '../pagos/schema';
 import { createSchema as renewalSchema } from '../renovaciones/schema';
 import { createSchema as claimSchema } from '../siniestros/schema';
 import { createSchema as activitySchema } from '../actividades/schema';
+import { createSchema as productSchema } from '../productos/schema';
 
 export class ResourceError extends Error {
   constructor(public readonly code: string, public readonly status: number) { super(code); }
 }
 export const schemas: Record<ResourceSlug, z.ZodType> = {
   prospectos: prospectSchema, clientes: clientSchema, polizas: policySchema, cotizaciones: quoteSchema,
-  pagos: paymentSchema, renovaciones: renewalSchema, siniestros: claimSchema, actividades: activitySchema,
+  pagos: paymentSchema, renovaciones: renewalSchema, siniestros: claimSchema, actividades: activitySchema, productos: productSchema,
 };
 export const searchFields: Record<ResourceSlug, string[]> = {
   prospectos: ['name', 'email', 'phone'], clientes: ['name', 'email', 'phone', 'taxId'],
   polizas: ['number', 'insurer', 'product', 'client.name'], cotizaciones: ['reference', 'product', 'client.name', 'prospect.name'],
   pagos: ['policy.number', 'policy.client.name'], renovaciones: ['policy.number', 'policy.client.name', 'notes'],
   siniestros: ['reference', 'description', 'policy.number'], actividades: ['title', 'description'],
+  productos: ['name', 'insurer', 'description'],
 };
 export const listQuery = z.object({
   take: z.coerce.number().int().min(1).max(100).default(20), skip: z.coerce.number().int().min(0).max(100000).default(0),

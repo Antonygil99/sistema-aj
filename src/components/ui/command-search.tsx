@@ -11,7 +11,7 @@ import { gsap, prefersReducedMotion } from './motion';
 type Role = 'USER' | 'ADMIN' | 'SUPERADMIN';
 type Item = { key: string; title: string; subtitle: string; href: string; download?: boolean; kind: SearchKind | 'accion' | 'reciente'; tag: string; icon: ReactNode };
 const RECENT_KEY = 'aj:search-recent';
-const tones: Record<string, string> = { clientes: 'mint', polizas: 'blue', prospectos: 'lilac', documentos: 'sand', carpetas: 'sand', pagos: 'mint', renovaciones: 'blue', siniestros: 'red', cotizaciones: 'lilac', actividades: 'sand', usuarios: 'neutral', accion: 'neutral', reciente: 'neutral' };
+const tones: Record<string, string> = { productos: 'lilac', clientes: 'mint', polizas: 'blue', prospectos: 'lilac', documentos: 'sand', carpetas: 'sand', pagos: 'mint', renovaciones: 'blue', siniestros: 'red', cotizaciones: 'lilac', actividades: 'sand', usuarios: 'neutral', accion: 'neutral', reciente: 'neutral' };
 function kindIcon(kind: SearchKind) {
   if (kind === 'documentos') return <DocumentText aria-hidden="true"/>;
   if (kind === 'carpetas') return <Folder2 aria-hidden="true"/>;
