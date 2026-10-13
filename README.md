@@ -52,7 +52,7 @@ Las rutas CRM y de agentes admiten sesiones de Google autorizadas o Authorizatio
 
 | Ruta | Comportamiento |
 | --- | --- |
-| GET /api/health | Estado de aplicación; no comprueba PostgreSQL |
+| GET /api/health | Estado de aplicación (no consulta PostgreSQL). Con `?db=1` mide, desde la región de la función, la latencia de la base (solo tiempos, sin datos) |
 | GET /api/crm/{modulo}?take=&skip=&q=&status=&archived= | Listado paginado (máximo 100) con búsqueda, filtro de estado y vista de archivados (`archived=1`) |
 | POST /api/crm/{modulo} | Crea un registro validado (ADMIN); 201 |
 | GET /api/crm/{modulo}/{id} | Ficha con sus relaciones; cualquier rol autorizado |
