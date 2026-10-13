@@ -27,7 +27,7 @@ export function applyRules(slug: ResourceSlug, data: Record<string, unknown>) {
 }
 export const searchFields: Record<ResourceSlug, string[]> = {
   prospectos: ['name', 'email', 'phone'], clientes: ['name', 'email', 'phone', 'taxId'],
-  polizas: ['number', 'insurer', 'product', 'client.name'], cotizaciones: ['reference', 'product', 'client.name', 'prospect.name'],
+  polizas: ['number', 'insurer', 'product', 'coverage', 'vehicle', 'plates', 'client.name'], cotizaciones: ['reference', 'product', 'client.name', 'prospect.name'],
   pagos: ['policy.number', 'policy.client.name'], renovaciones: ['policy.number', 'policy.client.name', 'notes'],
   siniestros: ['reference', 'description', 'policy.number'], actividades: ['title', 'description'],
   productos: ['name', 'insurer', 'description'],

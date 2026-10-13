@@ -7,7 +7,7 @@ import { migrationUrl } from './migration-url.mjs';
 const connectionString = migrationUrl(process.env);
 if (!connectionString) throw new Error('DATABASE_CONNECTION_NOT_CONFIGURED');
 const client = new pg.Client({ connectionString, connectionTimeoutMillis: 15000 });
-const required = ['Prospect','Client','Policy','Quote','Payment','Renewal','Claim','Document','Activity','WebhookEvent','AgentRun','AccessGrant','AuthUser','AuthSession','AuthAccount','AuthVerification','AuthRateLimit','AccessAudit','DocumentFolder','CrmEvent','Product'];
+const required = ['Prospect','Client','Policy','Quote','Payment','Renewal','Claim','Document','Activity','WebhookEvent','AgentRun','AccessGrant','AuthUser','AuthSession','AuthAccount','AuthVerification','AuthRateLimit','AccessAudit','DocumentFolder','CrmEvent','Product','UserPreference'];
 const scrub = text => {
   let safe = text;
   for (const value of [connectionString, process.env.DIRECT_URL, process.env.DATABASE_URL, process.env.DATA_URL]) {
@@ -48,7 +48,7 @@ try {
     } catch(error) { await client.query('ROLLBACK'); throw error; }
     console.log('Initial access grants configured without changing existing secondary users.');
   }
-  console.log('AJ_DATABASE_VERIFIED: 21 application tables and completed migrations.');
+  console.log('AJ_DATABASE_VERIFIED: 22 application tables and completed migrations.');
 } catch (error) {
   const code = error && typeof error === 'object' && 'code' in error ? error.code : undefined;
   const known = error instanceof Error && /^(DATABASE_|POSTGRESQL_|MIGRATION_|EXPECTED_)/.test(error.message) ? error.message : 'DATABASE_CONNECTION_OR_QUERY_FAILED';

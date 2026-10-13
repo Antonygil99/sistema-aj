@@ -113,6 +113,11 @@ model Policy {
   product     String
   premium     Decimal @db.Decimal(12, 2)
   paymentFrequency String?
+  // Imported/captured policy details (autos: vehicle, plates and use; any line: coverage or plan name).
+  coverage    String?
+  vehicle     String?
+  plates      String?
+  vehicleUse  String?
   productId   String?
   catalogProduct Product? @relation(fields: [productId], references: [id], onDelete: Restrict)
   ownerEmail  String?
@@ -392,4 +397,10 @@ model AccessAudit {
   change Json
   createdAt DateTime @default(now())
   @@index([actorId, createdAt])
+}
+// Per-user UI preferences (view choices, guided tours). Keyed by the lowercase account email.
+model UserPreference {
+  email     String   @id
+  data      Json     @default("{}")
+  updatedAt DateTime @updatedAt
 }

@@ -1,0 +1,7 @@
+import { z } from 'zod';
+const sourceSchema=z.object({sourceFile:z.string(),insuredAsset:z.string().optional(),use:z.string().optional(),plates:z.string().optional(),coverage:z.string().optional(),netPremium:z.string().optional(),firstReceipt:z.string().optional(),subsequentReceipt:z.string().optional(),reportedPaymentDue:z.string().nullable().optional(),paymentsNeedReview:z.boolean().optional()});
+export function PolicySourceDetails({source}:{source:unknown}) {
+  const parsed=sourceSchema.safeParse(source);if(!parsed.success)return null;const s=parsed.data;
+  const fields=[['Bien / vehículo',s.insuredAsset],['Uso',s.use],['Placas',s.plates],['Cobertura reportada',s.coverage],['Prima neta reportada',s.netPremium],['Primer recibo reportado',s.firstReceipt],['Recibos subsecuentes reportados',s.subsequentReceipt],['Vencimiento de pago reportado',s.reportedPaymentDue]];
+  return <details className="import-source-details"><summary>Datos complementarios del archivo de origen</summary><dl>{fields.filter(([,value])=>value&&!['N/A','N/D','$ -'].includes(value)).map(([label,value])=><div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>{s.paymentsNeedReview?<p className="notice">Estos datos provienen del control de pólizas. El calendario de recibos y sus pagos aún requieren conciliación; los importes reportados no se han registrado como cobros.</p>:null}<p className="lead-small">Origen: {s.sourceFile}</p></details>;
+}
