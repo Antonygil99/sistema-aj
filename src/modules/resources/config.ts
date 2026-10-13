@@ -1,0 +1,224 @@
+// Shared, serializable-free description of each CRM table: used by the API (search, nullable fields)
+// and by the browser (columns, forms, labels). Keep it free of server imports.
+export type ResourceSlug = 'prospectos' | 'clientes' | 'polizas' | 'cotizaciones' | 'pagos' | 'renovaciones' | 'siniestros' | 'actividades';
+export type RelationSlug = 'prospectos' | 'clientes' | 'polizas' | 'siniestros';
+export type Row = Record<string, unknown> & { id: string; createdAt: string; updatedAt: string; archivedAt?: string | null };
+export type Tone = 'neutral' | 'green' | 'blue' | 'sand' | 'lilac' | 'red';
+export type Field = {
+  name: string; label: string; required?: boolean; maxLength?: number; placeholder?: string; hint?: string; wide?: boolean;
+  type: 'text' | 'textarea' | 'email' | 'tel' | 'money' | 'currency' | 'date' | 'select' | 'relation';
+  options?: Record<string, string>; relation?: RelationSlug; defaultValue?: string;
+  // Only shown (and sent) while another field has one of these values.
+  showWhen?: { field: string; values: string[] };
+};
+export type Column = { label: string; value: (row: Row) => string; detail?: (row: Row) => string; tone?: (row: Row) => Tone };
+export type ResourceConfig = {
+  slug: ResourceSlug; singular: string; plural: string; article: 'un' | 'una'; illustration: string;
+  emptyTitle: string; emptyMessage: string; searchHint: string;
+  statuses?: Record<string, string>; statusTones?: Record<string, Tone>;
+  fields: Field[]; columns: Column[]; title: (row: Row) => string;
+  // Fields that become null when omitted in a full-form update.
+  nullable: string[];
+};
+
+export const currencies = { MXN: 'MXN · Peso mexicano', USD: 'USD · Dólar' };
+export const frequencies = { ONCE: 'Pago único', MONTHLY: 'Mensual', QUARTERLY: 'Trimestral', SEMIANNUAL: 'Semestral', ANNUAL: 'Anual' };
+const text = (value: unknown) => typeof value === 'string' && value.trim() ? value : '';
+const nested = (row: Row, path: string) => path.split('.').reduce<unknown>((value, key) => value && typeof value === 'object' ? (value as Record<string, unknown>)[key] : undefined, row);
+export function formatDate(value: unknown) {
+  if (typeof value !== 'string' || !value) return '';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : new Intl.DateTimeFormat('es-MX', { timeZone: 'UTC', dateStyle: 'medium' }).format(date);
+}
+export function formatMoney(amount: unknown, currency: unknown = 'MXN') {
+  const number = Number(amount);
+  if (!Number.isFinite(number)) return '';
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: typeof currency === 'string' && /^[A-Z]{3}$/.test(currency) ? currency : 'MXN' }).format(number);
+}
+// Dates travel as UTC midnight so the calendar day never shifts with the viewer's time zone.
+export function dateInputValue(value: unknown) { return typeof value === 'string' && value ? value.slice(0, 10) : ''; }
+export function dateToApi(value: string) { return /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00.000Z` : value; }
+
+export const relationLabel: Record<RelationSlug, (row: Row) => string> = {
+  prospectos: row => text(row.name),
+  clientes: row => text(row.name),
+  polizas: row => [text(row.number), text(nested(row, 'client.name'))].filter(Boolean).join(' · '),
+  siniestros: row => [text(row.reference), text(nested(row, 'policy.number'))].filter(Boolean).join(' · '),
+};
+const contact: Column = { label: 'Contacto', value: row => text(row.email) || 'Sin correo', detail: row => text(row.phone) || 'Sin teléfono' };
+const linked = (row: Row) => text(nested(row, 'prospect.name')) || text(nested(row, 'client.name')) || text(nested(row, 'policy.number')) || text(nested(row, 'claim.reference'));
+
+export const resources: Record<ResourceSlug, ResourceConfig> = {
+  prospectos: {
+    slug: 'prospectos', singular: 'prospecto', plural: 'prospectos', article: 'un', illustration: 'prospectos',
+    emptyTitle: 'Tu primera oportunidad empieza aquí', emptyMessage: 'Registra a las personas interesadas y da seguimiento a cada conversación.', searchHint: 'Nombre, correo o teléfono',
+    statuses: { NEW: 'Nuevo', CONTACTED: 'Contactado', QUALIFIED: 'Calificado', WON: 'Ganado', LOST: 'Perdido' },
+    statusTones: { NEW: 'lilac', CONTACTED: 'blue', QUALIFIED: 'sand', WON: 'green', LOST: 'red' },
+    fields: [
+      { name: 'name', label: 'Nombre completo', type: 'text', required: true, maxLength: 250 },
+      { name: 'email', label: 'Correo electrónico', type: 'email', maxLength: 254 },
+      { name: 'phone', label: 'Teléfono', type: 'tel', maxLength: 30, placeholder: '+52…', hint: 'De 8 a 15 dígitos; puede iniciar con +.' },
+      { name: 'source', label: 'Origen', type: 'text', required: true, maxLength: 250, defaultValue: 'manual', placeholder: 'Referido, WhatsApp, sitio web…' },
+      { name: 'status', label: 'Seguimiento', type: 'select', required: true, defaultValue: 'NEW' },
+      { name: 'notes', label: 'Notas', type: 'textarea', maxLength: 5000, wide: true },
+    ],
+    columns: [{ label: 'Nombre', value: row => text(row.name), detail: row => text(row.source) }, contact],
+    title: row => text(row.name), nullable: ['email', 'phone', 'notes'],
+  },
+  clientes: {
+    slug: 'clientes', singular: 'cliente', plural: 'clientes', article: 'un', illustration: 'clientes',
+    emptyTitle: 'Aún no hay clientes', emptyMessage: 'Cuando un prospecto contrate, regístralo aquí para reunir sus pólizas y documentos.', searchHint: 'Nombre, correo, teléfono o RFC',
+    fields: [
+      { name: 'name', label: 'Nombre completo', type: 'text', required: true, maxLength: 250 },
+      { name: 'email', label: 'Correo electrónico', type: 'email', maxLength: 254 },
+      { name: 'phone', label: 'Teléfono', type: 'tel', maxLength: 30, placeholder: '+52…', hint: 'De 8 a 15 dígitos; puede iniciar con +.' },
+      { name: 'taxId', label: 'RFC', type: 'text', maxLength: 250 },
+    ],
+    columns: [{ label: 'Nombre', value: row => text(row.name) }, contact, { label: 'RFC', value: row => text(row.taxId) || 'Sin registrar' }],
+    title: row => text(row.name), nullable: ['email', 'phone', 'taxId'],
+  },
+  polizas: {
+    slug: 'polizas', singular: 'póliza', plural: 'pólizas', article: 'una', illustration: 'polizas',
+    emptyTitle: 'Sin pólizas registradas', emptyMessage: 'Registra la cobertura de cada cliente con su vigencia y prima.', searchHint: 'Número, aseguradora, producto o cliente',
+    statuses: { ACTIVE: 'Activa', EXPIRED: 'Vencida', CANCELLED: 'Cancelada' }, statusTones: { ACTIVE: 'green', EXPIRED: 'sand', CANCELLED: 'red' },
+    fields: [
+      { name: 'number', label: 'Número de póliza', type: 'text', required: true, maxLength: 250 },
+      { name: 'clientId', label: 'Cliente', type: 'relation', relation: 'clientes', required: true },
+      { name: 'insurer', label: 'Aseguradora', type: 'text', required: true, maxLength: 250 },
+      { name: 'product', label: 'Producto o cobertura', type: 'text', required: true, maxLength: 250 },
+      { name: 'premium', label: 'Prima total', type: 'money', required: true },
+      { name: 'currency', label: 'Moneda', type: 'currency', required: true, defaultValue: 'MXN' },
+      { name: 'paymentFrequency', label: 'Periodicidad de pago', type: 'select', options: frequencies },
+      { name: 'startDate', label: 'Inicio de vigencia', type: 'date', required: true },
+      { name: 'endDate', label: 'Fin de vigencia', type: 'date', required: true },
+      { name: 'status', label: 'Estado', type: 'select', required: true, defaultValue: 'ACTIVE' },
+    ],
+    columns: [
+      { label: 'Póliza', value: row => text(row.number), detail: row => [text(row.insurer), text(row.product)].filter(Boolean).join(' · ') },
+      { label: 'Cliente', value: row => text(nested(row, 'client.name')) },
+      { label: 'Vigencia', value: row => `${formatDate(row.startDate)} → ${formatDate(row.endDate)}` },
+      { label: 'Prima', value: row => formatMoney(row.premium, row.currency) },
+    ],
+    title: row => text(row.number), nullable: ['paymentFrequency'],
+  },
+  cotizaciones: {
+    slug: 'cotizaciones', singular: 'cotización', plural: 'cotizaciones', article: 'una', illustration: 'cotizaciones',
+    emptyTitle: 'Sin cotizaciones todavía', emptyMessage: 'Prepara propuestas para tus prospectos y clientes, y sigue su respuesta.', searchHint: 'Referencia, producto o nombre',
+    statuses: { DRAFT: 'Borrador', SENT: 'Enviada', ACCEPTED: 'Aceptada', REJECTED: 'Rechazada' }, statusTones: { DRAFT: 'neutral', SENT: 'blue', ACCEPTED: 'green', REJECTED: 'red' },
+    fields: [
+      { name: 'reference', label: 'Referencia', type: 'text', required: true, maxLength: 250 },
+      { name: 'product', label: 'Producto', type: 'text', required: true, maxLength: 250 },
+      { name: 'prospectId', label: 'Prospecto', type: 'relation', relation: 'prospectos', hint: 'Elige un prospecto o un cliente, no ambos.' },
+      { name: 'clientId', label: 'Cliente', type: 'relation', relation: 'clientes' },
+      { name: 'amount', label: 'Importe', type: 'money', required: true },
+      { name: 'currency', label: 'Moneda', type: 'currency', required: true, defaultValue: 'MXN' },
+      { name: 'validUntil', label: 'Válida hasta', type: 'date' },
+      { name: 'status', label: 'Estado', type: 'select', required: true, defaultValue: 'DRAFT' },
+    ],
+    columns: [
+      { label: 'Cotización', value: row => text(row.reference), detail: row => text(row.product) },
+      { label: 'Para', value: row => text(nested(row, 'prospect.name')) || text(nested(row, 'client.name')), detail: row => nested(row, 'prospect.name') ? 'Prospecto' : 'Cliente' },
+      { label: 'Importe', value: row => formatMoney(row.amount, row.currency), detail: row => row.validUntil ? `Vigente hasta ${formatDate(row.validUntil)}` : '' },
+    ],
+    title: row => text(row.reference), nullable: ['prospectId', 'clientId', 'validUntil'],
+  },
+  pagos: {
+    slug: 'pagos', singular: 'recibo', plural: 'recibos', article: 'un', illustration: 'pagos',
+    emptyTitle: 'Sin recibos por cobrar', emptyMessage: 'Los recibos de cada póliza aparecerán aquí con su vencimiento y estado.', searchHint: 'Número de póliza o cliente',
+    statuses: { PENDING: 'Pendiente', PAID: 'Pagado', OVERDUE: 'Vencido' }, statusTones: { PENDING: 'sand', PAID: 'green', OVERDUE: 'red' },
+    fields: [
+      { name: 'policyId', label: 'Póliza', type: 'relation', relation: 'polizas', required: true, wide: true },
+      { name: 'amount', label: 'Importe', type: 'money', required: true },
+      { name: 'currency', label: 'Moneda', type: 'currency', required: true, defaultValue: 'MXN' },
+      { name: 'dueDate', label: 'Vencimiento', type: 'date', required: true },
+      { name: 'status', label: 'Estado', type: 'select', required: true, defaultValue: 'PENDING' },
+      { name: 'paidAt', label: 'Fecha de pago', type: 'date', required: true, showWhen: { field: 'status', values: ['PAID'] } },
+    ],
+    columns: [
+      { label: 'Póliza', value: row => text(nested(row, 'policy.number')), detail: row => text(nested(row, 'policy.client.name')) },
+      { label: 'Vencimiento', value: row => formatDate(row.dueDate), detail: row => row.paidAt ? `Pagado el ${formatDate(row.paidAt)}` : '' },
+      { label: 'Importe', value: row => formatMoney(row.amount, row.currency) },
+    ],
+    title: row => `Recibo ${text(nested(row, 'policy.number'))} · ${formatDate(row.dueDate)}`.trim(), nullable: ['paidAt'],
+  },
+  renovaciones: {
+    slug: 'renovaciones', singular: 'renovación', plural: 'renovaciones', article: 'una', illustration: 'renovaciones',
+    emptyTitle: 'Ninguna renovación en puerta', emptyMessage: 'Programa las renovaciones para contactar a tiempo a cada cliente.', searchHint: 'Número de póliza, cliente o notas',
+    statuses: { PENDING: 'Pendiente', CONTACTED: 'Contactado', RENEWED: 'Renovada', LOST: 'Perdida' }, statusTones: { PENDING: 'sand', CONTACTED: 'blue', RENEWED: 'green', LOST: 'red' },
+    fields: [
+      { name: 'policyId', label: 'Póliza', type: 'relation', relation: 'polizas', required: true, wide: true },
+      { name: 'dueDate', label: 'Fecha de renovación', type: 'date', required: true },
+      { name: 'status', label: 'Estado', type: 'select', required: true, defaultValue: 'PENDING' },
+      { name: 'notes', label: 'Notas', type: 'textarea', maxLength: 5000, wide: true },
+    ],
+    columns: [
+      { label: 'Póliza', value: row => text(nested(row, 'policy.number')), detail: row => text(nested(row, 'policy.client.name')) },
+      { label: 'Renovación', value: row => formatDate(row.dueDate), detail: row => text(row.notes).slice(0, 80) },
+    ],
+    title: row => `Renovación ${text(nested(row, 'policy.number'))}`.trim(), nullable: ['notes'],
+  },
+  siniestros: {
+    slug: 'siniestros', singular: 'siniestro', plural: 'siniestros', article: 'un', illustration: 'siniestros',
+    emptyTitle: 'Sin siniestros reportados', emptyMessage: 'Cuando un cliente reporte un incidente, regístralo para acompañar su caso.', searchHint: 'Referencia, descripción o póliza',
+    statuses: { OPEN: 'Abierto', IN_REVIEW: 'En revisión', CLOSED: 'Cerrado' }, statusTones: { OPEN: 'red', IN_REVIEW: 'sand', CLOSED: 'green' },
+    fields: [
+      { name: 'reference', label: 'Referencia', type: 'text', required: true, maxLength: 250 },
+      { name: 'policyId', label: 'Póliza', type: 'relation', relation: 'polizas', required: true },
+      { name: 'occurredAt', label: 'Fecha del incidente', type: 'date', required: true },
+      { name: 'status', label: 'Estado', type: 'select', required: true, defaultValue: 'OPEN' },
+      { name: 'description', label: 'Descripción', type: 'textarea', required: true, maxLength: 5000, wide: true },
+    ],
+    columns: [
+      { label: 'Siniestro', value: row => text(row.reference), detail: row => text(row.description).slice(0, 80) },
+      { label: 'Póliza', value: row => text(nested(row, 'policy.number')), detail: row => text(nested(row, 'policy.client.name')) },
+      { label: 'Ocurrió', value: row => formatDate(row.occurredAt) },
+    ],
+    title: row => text(row.reference), nullable: [],
+  },
+  actividades: {
+    slug: 'actividades', singular: 'actividad', plural: 'actividades', article: 'una', illustration: 'actividades',
+    emptyTitle: 'Todo al día', emptyMessage: 'Anota llamadas, visitas y pendientes para que nada se quede atrás.', searchHint: 'Título o descripción',
+    statuses: { PENDING: 'Pendiente', DONE: 'Completada' }, statusTones: { PENDING: 'sand', DONE: 'green' },
+    fields: [
+      { name: 'title', label: 'Título', type: 'text', required: true, maxLength: 250, wide: true },
+      { name: 'dueDate', label: 'Fecha', type: 'date' },
+      { name: 'status', label: 'Estado', type: 'select', required: true, defaultValue: 'PENDING' },
+      { name: 'clientId', label: 'Cliente', type: 'relation', relation: 'clientes', hint: 'Vincula como máximo un expediente.' },
+      { name: 'prospectId', label: 'Prospecto', type: 'relation', relation: 'prospectos' },
+      { name: 'policyId', label: 'Póliza', type: 'relation', relation: 'polizas' },
+      { name: 'claimId', label: 'Siniestro', type: 'relation', relation: 'siniestros' },
+      { name: 'description', label: 'Descripción', type: 'textarea', maxLength: 5000, wide: true },
+    ],
+    columns: [
+      { label: 'Actividad', value: row => text(row.title), detail: row => text(row.description).slice(0, 80) },
+      { label: 'Fecha', value: row => formatDate(row.dueDate) || 'Sin fecha' },
+      { label: 'Vinculada a', value: row => linked(row) || 'General' },
+    ],
+    title: row => text(row.title), nullable: ['description', 'dueDate', 'prospectId', 'clientId', 'policyId', 'claimId'],
+  },
+};
+for (const config of Object.values(resources)) {
+  const status = config.fields.find(field => field.name === 'status');
+  if (status && config.statuses) status.options = config.statuses;
+}
+export function isResourceSlug(value: string): value is ResourceSlug { return Object.hasOwn(resources, value); }
+// Turns form strings into an API body: trims, drops empty optional values and hidden fields, converts dates.
+export function formToBody(config: ResourceConfig, values: Record<string, string>) {
+  const body: Record<string, string> = {};
+  for (const field of config.fields) {
+    if (field.showWhen && !field.showWhen.values.includes(values[field.showWhen.field] ?? '')) continue;
+    let value = (values[field.name] ?? '').trim();
+    if (field.type === 'tel') value = value.replace(/[\s()-]/g, '');
+    if (field.type === 'money') value = value.replace(/[,\s$]/g, '');
+    if (!value) continue;
+    body[field.name] = field.type === 'date' ? dateToApi(value) : value;
+  }
+  return body;
+}
+export function rowToForm(config: ResourceConfig, row: Row | null) {
+  return Object.fromEntries(config.fields.map(field => {
+    const value = row?.[field.name];
+    if (field.type === 'date') return [field.name, dateInputValue(value)];
+    return [field.name, value === null || value === undefined ? (row ? '' : field.defaultValue ?? '') : String(value)];
+  }));
+}

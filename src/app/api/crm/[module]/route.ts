@@ -1,35 +1,33 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
-import { authorize, apiError } from '@/lib/api';
-import { services } from '@/modules/registry';
-import { contactQuerySchema } from '@/modules/shared/contact-list';
+import { authenticate, apiError } from '@/lib/api';
+import { list as listDocuments } from '@/modules/documentos/service';
+import { isResourceSlug, resources } from '@/modules/resources/config';
+import { createResource, listResource } from '@/modules/resources/server';
+import { recordEvent } from '@/modules/events';
+import type { Row } from '@/modules/resources/config';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 type Context = { params: Promise<{ module: string }> };
-function lookup(key: string) { return Object.hasOwn(services, key) ? services[key as keyof typeof services] : undefined; }
+const noStore = { 'Cache-Control': 'no-store' };
 export async function GET(request: Request, context: Context) {
-  const denied = await authorize(request); if (denied) return denied;
+  const auth = await authenticate(request); if (auth.denied) return auth.denied;
   const slug = (await context.params).module;
-  const service = lookup(slug);
-  if (!service) return NextResponse.json({ error: 'MODULE_NOT_FOUND' }, { status: 404 });
   try {
-    const url = new URL(request.url);
-    const take = z.coerce.number().int().min(1).max(100).parse(url.searchParams.get('take') ?? 20);
-    const skip = z.coerce.number().int().min(0).max(100000).parse(url.searchParams.get('skip') ?? 0);
-    if (slug === 'prospectos' || slug === 'clientes') {
-      const query = contactQuerySchema.parse({ q: url.searchParams.get('q') ?? '', ...(url.searchParams.has('status') ? { status: url.searchParams.get('status') } : {}) });
-      return NextResponse.json(await services[slug].list(take, skip, query), { headers: { 'Cache-Control': 'no-store' } });
-    }
-    return NextResponse.json(await service.list(take, skip), { headers: { 'Cache-Control': 'no-store' } });
+    const params = Object.fromEntries(new URL(request.url).searchParams);
+    if (slug === 'documentos') return NextResponse.json(await listDocuments(Number(params.take ?? 20) || 20, Number(params.skip ?? 0) || 0), { headers: noStore });
+    if (!isResourceSlug(slug)) return NextResponse.json({ error: 'MODULE_NOT_FOUND' }, { status: 404 });
+    return NextResponse.json(await listResource(slug, params), { headers: noStore });
   } catch (error) { return apiError(error); }
 }
 export async function POST(request: Request, context: Context) {
-  const denied = await authorize(request, 'ADMIN'); if (denied) return denied;
-  const moduleSlug = (await context.params).module;
+  const auth = await authenticate(request, 'ADMIN'); if (auth.denied) return auth.denied;
+  const slug = (await context.params).module;
   // Only the verified upload flow may register stored documents.
-  if (moduleSlug === 'documentos') return NextResponse.json({ error: 'USE_DOCUMENT_UPLOAD' }, { status: 405, headers: { Allow: 'GET' } });
-  const service = lookup(moduleSlug);
-  if (!service) return NextResponse.json({ error: 'MODULE_NOT_FOUND' }, { status: 404 });
-  try { return NextResponse.json({ data: await service.create(await request.json()) }, { status: 201 }); }
-  catch (error) { return apiError(error); }
+  if (slug === 'documentos') return NextResponse.json({ error: 'USE_DOCUMENT_UPLOAD' }, { status: 405, headers: { Allow: 'GET' } });
+  if (!isResourceSlug(slug)) return NextResponse.json({ error: 'MODULE_NOT_FOUND' }, { status: 404 });
+  try {
+    const data = await createResource(slug, await request.json());
+    await recordEvent(auth.actor, 'created', slug, data.id, resources[slug].title(JSON.parse(JSON.stringify(data)) as Row));
+    return NextResponse.json({ data }, { status: 201 });
+  } catch (error) { return apiError(error); }
 }

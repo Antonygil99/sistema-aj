@@ -41,6 +41,10 @@ Solo se sirven filas cuya `storageKey` cumple el formato gestionado (`isManagedK
 
 **Aviso para migraciones futuras:** Prisma no puede representar índices de expresión, así que `DocumentFolder_sibling_name` solo existe en la migración SQL. Si `prisma migrate dev` genera un `DROP INDEX "DocumentFolder_sibling_name"`, quitar esa línea antes de aplicar la migración.
 
+### Cargas en segundo plano
+
+La interfaz encola los archivos en `UploadProvider` (`src/components/ui/upload-manager.tsx`): valida tamaño y extensión en el navegador, sube con XHR (2 a la vez) mostrando progreso, permite cancelar y reintentar y emite `aj:documents-changed` para refrescar la carpeta abierta. El servidor sigue validando todo de nuevo.
+
 ### Rutas cerradas
 
 `POST /api/crm/documentos` responde 405 `USE_DOCUMENT_UPLOAD`. `GET /api/crm/documentos` omite `storageKey`.
@@ -88,10 +92,10 @@ npx tsx --test tests/documents.test.ts
 ## Pendientes
 
 - **Límite de 4 MiB:** se debe al cuerpo máximo de las funciones de Vercel (~4.5 MB). Para videos o archivos mayores, cambiar a carga directa con URL firmada de `PUT`, seguida de una confirmación en el servidor que verifique el objeto (tamaño y firma) antes de crear la fila.
-- **Carpetas:** no se pueden eliminar ni cambiar de carpeta padre. Tampoco hay forma de reasignar el expediente de un archivo ya cargado.
-- **Sin eliminación ni edición** de documentos. Al implementarlas, borrar el objeto de R2 de forma idempotente y auditar la operación.
+- **Carpetas:** solo se eliminan vacías y no se pueden cambiar de carpeta padre. No hay forma de reasignar el expediente de un archivo ya cargado.
+- **Archivar y borrar:** archivar (ADMIN) oculta el archivo y conserva el objeto en R2; borrar (superadmin) elimina la fila y después el objeto. No hay edición del nombre ni papelera con caducidad.
 - **Permisos por expediente:** hoy cualquier usuario autorizado puede listar y descargar todos los documentos. Falta restringir por cartera o rol cuando existan reglas de acceso por expediente.
-- **Auditoría** de cargas y descargas (quién y cuándo).
+- **Auditoría:** cargas, movimientos, archivados y borrados quedan en `CrmEvent`; las descargas todavía no se registran.
 - **Huérfanos:** falta un proceso que concilie objetos de R2 sin fila en `Document` (casos `R2_ORPHAN_CLEANUP_REQUIRED`).
 - **Selector de expedientes:** solo muestra los 100 clientes, pólizas y siniestros más recientes. Falta búsqueda cuando la cartera crezca.
 - **Antivirus y vista previa:** no se analizan archivos ni se generan miniaturas.

@@ -53,10 +53,13 @@ Las rutas CRM y de agentes admiten sesiones de Google autorizadas o Authorizatio
 | Ruta | Comportamiento |
 | --- | --- |
 | GET /api/health | Estado de aplicación; no comprueba PostgreSQL |
-| GET /api/crm/{modulo}?take=20&skip=0 | Listado paginado (máximo 100), total y registros |
-| POST /api/crm/{modulo} | Crea un registro validado; 201 |
-| GET /api/crm/{prospectos o clientes}/{id} | Consulta de ficha; cualquier rol autorizado |
-| PATCH /api/crm/{prospectos o clientes}/{id} | Ficha editable completa + expectedUpdatedAt; ADMIN. Conflicto de versión: 409 RECORD_CHANGED |
+| GET /api/crm/{modulo}?take=&skip=&q=&status=&archived= | Listado paginado (máximo 100) con búsqueda, filtro de estado y vista de archivados (`archived=1`) |
+| POST /api/crm/{modulo} | Crea un registro validado (ADMIN); 201 |
+| GET /api/crm/{modulo}/{id} | Ficha con sus relaciones; cualquier rol autorizado |
+| PATCH /api/crm/{modulo}/{id} | Ficha completa + expectedUpdatedAt (ADMIN); los opcionales omitidos se limpian. Conflicto de versión: 409 RECORD_CHANGED |
+| POST /api/crm/{modulo}/{id}/archive | Archiva o restaura con `{ "archived": true }` o `false` (ADMIN) |
+| DELETE /api/crm/{modulo}/{id} | Borrado definitivo (SUPERADMIN) solo sin información vinculada; si no, 409 HAS_RELATIONS |
+| GET /api/notifications?since= | Novedades de otras personas del equipo y recordatorios (recibos vencidos, renovaciones de la semana) |
 | GET /api/agents | Catálogo de cinco agentes |
 | POST /api/agents/route | Selecciona un agente por tema; no ejecuta IA |
 | GET /api/whatsapp/webhook | Desafío de verificación Meta |
@@ -65,8 +68,11 @@ Las rutas CRM y de agentes admiten sesiones de Google autorizadas o Authorizatio
 | POST /api/documents | Carga multipart a R2 privado (ADMIN); máximo 4 MiB; `folderId` opcional |
 | PATCH /api/documents/{id} | Mueve un archivo de carpeta (ADMIN); requiere `expectedUpdatedAt` |
 | GET /api/documents/{id}/download | Redirección 303 a un enlace firmado de 60 segundos |
+| POST /api/documents/{id}/archive | Archiva o restaura un archivo (ADMIN) |
+| DELETE /api/documents/{id} | Borra el archivo de la base y de R2 (SUPERADMIN) |
 | POST /api/folders | Crea una carpeta o subcarpeta (ADMIN) |
 | PATCH /api/folders/{id} | Renombra una carpeta (ADMIN); requiere `expectedUpdatedAt` |
+| DELETE /api/folders/{id} | Elimina una carpeta vacía (ADMIN); si tiene contenido, 409 FOLDER_NOT_EMPTY |
 | POST /api/dossiers | Abre un expediente: cliente, carpetas base y, opcionalmente, su primera póliza con recibos (ADMIN) |
 | POST /api/dossiers/{id}/policies | Añade una póliza con su calendario de recibos a un expediente (ADMIN) |
 
@@ -96,7 +102,7 @@ El Método AJ todavía requiere documentación del negocio: no se inventaron reg
 
 ## Alcance y siguientes pasos
 
-Prospectos y clientes ya tienen alta, búsqueda, ficha y edición en interfaz. Clientes se presenta como expedientes: un asistente abre el expediente con su primera póliza y su calendario de recibos, y la ficha muestra vigencia, recibos y seguimiento. Documentos organiza los archivos privados de R2 en carpetas del equipo o de cada expediente (ver docs/documentos-r2.md). Las demás pantallas CRM siguen siendo espacios iniciales. Pendientes: pantallas restantes, dashboard real, conversión de prospecto a cliente, auditoría de operaciones CRM, permisos por expediente, worker WhatsApp, adaptador de IA, observabilidad y políticas de respaldo.
+Los ocho módulos de datos (prospectos, clientes, pólizas, cotizaciones, recibos, renovaciones, siniestros y actividades) tienen tabla con búsqueda, filtros, vista de archivados, alta y edición en modal, archivado y borrado definitivo para el superadmin. En móvil, las tablas se vuelven tarjetas deslizables y la navegación pasa a una barra inferior. Clientes se presenta además como expedientes: un asistente abre el expediente con su primera póliza y su calendario de recibos. Documentos organiza los archivos privados de R2 en carpetas y sube en segundo plano (ver docs/documentos-r2.md). Cada cambio queda registrado en CrmEvent, que alimenta las notificaciones del equipo (consulta cada 20 s). Pendientes: dashboard real, conversión de prospecto a cliente, permisos por expediente, worker WhatsApp, adaptador de IA, observabilidad y políticas de respaldo.
 
 Referencias: [Next.js](https://nextjs.org/docs/app), [Prisma PostgreSQL](https://www.prisma.io/docs/orm/v7/core-concepts/supported-databases/postgresql), [Meta Webhooks](https://developers.facebook.com/documentation/business-messaging/whatsapp/webhooks/create-webhook-endpoint), [eve](https://eve.dev/docs).
 

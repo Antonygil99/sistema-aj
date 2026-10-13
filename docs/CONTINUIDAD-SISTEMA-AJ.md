@@ -60,9 +60,9 @@ Cada módulo tiene `schema.ts` y `service.ts`. El navegador no debe importar Pri
 
 ## 4. Modelo de datos
 
-Nueve modelos CRM: `Prospect`, `Client`, `Policy`, `Quote`, `Payment`, `Renewal`, `Claim`, `Document` y `Activity`. Más `DocumentFolder`, `WebhookEvent`, `AgentRun`, `AccessGrant`, `AuthUser`, `AuthSession`, `AuthAccount`, `AuthVerification`, `AuthRateLimit` y `AccessAudit`: **19 tablas de aplicación**, aparte del historial Prisma.
+Nueve modelos CRM: `Prospect`, `Client`, `Policy`, `Quote`, `Payment`, `Renewal`, `Claim`, `Document` y `Activity`. Más `DocumentFolder`, `CrmEvent`, `WebhookEvent`, `AgentRun`, `AccessGrant`, `AuthUser`, `AuthSession`, `AuthAccount`, `AuthVerification`, `AuthRateLimit` y `AccessAudit`: **20 tablas de aplicación**, aparte del historial Prisma.
 
-Importes: `Decimal(12,2)`; fechas con zona horaria; relaciones con restricciones de borrado para proteger expedientes. No usar borrados de cartera ni `prisma db push` para desplegar. La migración inicial y la migración Google ya se aplicaron en producción. La migración `20261013010000_dossiers_folders` añade `DocumentFolder`, `Document.folderId` y `Policy.paymentFrequency`; debe aplicarse con `npm run db:verify-deploy` **antes** de publicar el código que la usa, porque el build de Vercel no ejecuta migraciones. Se verificó localmente sobre PostgreSQL (PGlite) que las tres migraciones se aplican en orden y que el índice de nombres de carpeta funciona.
+Importes: `Decimal(12,2)`; fechas con zona horaria; relaciones con restricciones de borrado para proteger expedientes. No usar borrados de cartera ni `prisma db push` para desplegar. La migración inicial y la migración Google ya se aplicaron en producción. La migración `20261013010000_dossiers_folders` añade `DocumentFolder`, `Document.folderId` y `Policy.paymentFrequency`; debe aplicarse con `npm run db:verify-deploy` **antes** de publicar el código que la usa, porque el build de Vercel no ejecuta migraciones. Se verificó localmente sobre PostgreSQL (PGlite) que las tres migraciones se aplican en orden y que el índice de nombres de carpeta funciona. La migración `20261013020000_archive_events` añade `archivedAt` a los nueve modelos CRM y la tabla `CrmEvent`; también debe aplicarse antes de publicar.
 
 ## 5. Identidad, roles y seguridad existentes
 
@@ -116,6 +116,18 @@ Reglas implementadas en `src/modules/clientes/dossier-policy.ts` (probadas en `t
 
 Documentos se organiza en carpetas del equipo o de cada expediente; detalles en `docs/documentos-r2.md`. Falta la prueba manual del usuario sobre expedientes y carpetas.
 
+### Experiencia de uso: tablas, modales, avisos y móvil
+
+- **Tablas de los ocho módulos de datos** con un solo componente (`ResourceManager`) y una configuración por módulo (`src/modules/resources/config.ts`). Incluyen búsqueda (también por relaciones, p. ej. número de póliza o nombre del cliente), filtro de estado, vista Activos/Archivados, alta y edición en modal con selectores de cliente, póliza, prospecto o siniestro, paginación y actualización automática cuando alguien del equipo cambia algo.
+- **Archivar o eliminar:** archivar (ADMIN) oculta sin perder historial y se puede deshacer desde el toast o restaurar desde «Archivados». Eliminar definitivamente es solo para el superadmin y solo sin información vinculada (409 `HAS_RELATIONS`). Documentos: archivar (ADMIN) y borrar de la base y de R2 (superadmin). Carpetas: eliminar solo vacías.
+- **Modales** con transición compartida (crecen desde el botón que los abrió) usando GSAP, foco atrapado, Esc y regreso del foco. En móvil son hojas inferiores que se cierran deslizando hacia abajo. Confirmaciones con `useConfirm`.
+- **Toasts** de éxito, error, aviso, información y seguridad (sesión vencida, permiso denegado, origen bloqueado), conexión perdida o recuperada. Se pausan al pasar el cursor y se descartan deslizándolos.
+- **Notificaciones** por sondeo ligero (`/api/notifications`, cada 20 s con la pestaña visible): campana con contador, actividad reciente del equipo (`CrmEvent`, que sirve también como auditoría CRM) y recordatorios de recibos vencidos y renovaciones de la semana.
+- **Subidas en segundo plano** estilo Drive: cola global con progreso por archivo, 2 cargas simultáneas, cancelar y reintentar, aviso al terminar y advertencia si se cierra la pestaña con cargas pendientes. Siguen corriendo al cambiar de pantalla dentro del CRM.
+- **Estados vacíos** con ilustraciones de unDraw (licencia unDraw: uso comercial sin atribución; no redistribuirlas como colección) recoloreadas a `#6f9a82` en `public/illustrations/`.
+- **Móvil (≤760 px):** barra inferior con Resumen, Clientes, Prospectos, Archivos y «Más» (hoja con todos los módulos y la cuenta). Las tablas se vuelven tarjetas: deslizar a la izquierda muestra Archivar y Eliminar.
+- Verificado con capturas de una vista previa temporal con datos ficticios (escritorio y 390 px) y con pruebas unitarias; la prueba manual con datos reales queda pendiente.
+
 ## 8. Variables de entorno y ejecución
 
 Variables del servidor (nombres, sin valores):
@@ -146,8 +158,7 @@ npm run check
 
 | Elemento | Estado real |
 | --- | --- |
-| Pólizas y pagos | Se capturan dentro del expediente del cliente con su calendario de recibos. Faltan registrar pagos, editar o cancelar pólizas y sus pantallas propias |
-| Cotizaciones, renovaciones, siniestros, actividades | Modelos y API de alta/listado. Pantallas operativas pendientes |
+| Pólizas, cotizaciones, recibos, renovaciones, siniestros, actividades | Tablas con alta, edición, búsqueda, archivo y borrado. Faltan reglas de negocio documentadas (p. ej. marcar recibos vencidos automáticamente, generar renovaciones) |
 | Dashboard | Métricas ilustrativas; conectar consultas reales de cartera después de contactos |
 | WhatsApp | Verificación, HMAC e inbox idempotente por payload. Falta worker, deduplicación por ID Meta, consentimiento, plantillas parametrizadas y pruebas reales |
 | IA | Cinco agentes definidos y selección determinista por tema. Sin proveedor/modelo/runtime ejecutándose |
@@ -164,7 +175,7 @@ Agentes previstos: coordinador/Método AJ, ventas, siniestros, renovaciones y ad
 2. Sustituir métricas ficticias del dashboard por consultas reales con definiciones claras.
 3. Implementar cotizaciones, pólizas y conversión de prospectos mediante transacciones, sin duplicar cartera.
 4. Completar pagos, renovaciones, siniestros y actividades con reglas de negocio documentadas.
-5. Añadir permisos por expediente, auditoría CRM, respaldo, retención y controles de abuso.
+5. Añadir permisos por expediente, respaldo, retención y controles de abuso. La auditoría CRM básica ya existe en `CrmEvent`; falta una pantalla para consultarla.
 6. Ampliar archivos y conectar Drive opcionalmente por usuario; mantener R2 como repositorio del equipo.
 7. Integrar Resend y luego el primer flujo controlado WhatsApp → captura → derivación humana.
 8. Conectar agentes y Método AJ con evidencia del negocio, trazabilidad y herramientas acotadas.

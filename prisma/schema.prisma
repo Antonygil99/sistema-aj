@@ -53,6 +53,7 @@ model Prospect {
   notes     String?
   quotes    Quote[]
   activities Activity[]
+  archivedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([status, createdAt])
@@ -68,6 +69,7 @@ model Client {
   documents Document[]
   folders   DocumentFolder[]
   activities Activity[]
+  archivedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([name])
@@ -90,6 +92,7 @@ model Policy {
   claims      Claim[]
   documents   Document[]
   activities  Activity[]
+  archivedAt DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   @@index([clientId])
@@ -107,6 +110,7 @@ model Quote {
   currency   String @default("MXN")
   status     QuoteStatus @default(DRAFT)
   validUntil DateTime?
+  archivedAt DateTime?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   @@index([prospectId])
@@ -121,6 +125,7 @@ model Payment {
   dueDate   DateTime
   paidAt    DateTime?
   status    PaymentStatus @default(PENDING)
+  archivedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([policyId])
@@ -133,6 +138,7 @@ model Renewal {
   dueDate   DateTime
   status    RenewalStatus @default(PENDING)
   notes     String?
+  archivedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([policyId, dueDate])
@@ -147,6 +153,7 @@ model Claim {
   status      ClaimStatus @default(OPEN)
   documents   Document[]
   activities  Activity[]
+  archivedAt DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   @@index([policyId, status])
@@ -164,6 +171,7 @@ model Document {
   policy     Policy? @relation(fields: [policyId], references: [id], onDelete: Restrict)
   claimId    String?
   claim      Claim? @relation(fields: [claimId], references: [id], onDelete: Restrict)
+  archivedAt DateTime?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   @@index([clientId])
@@ -199,6 +207,7 @@ model Activity {
   policy     Policy? @relation(fields: [policyId], references: [id], onDelete: Restrict)
   claimId    String?
   claim      Claim? @relation(fields: [claimId], references: [id], onDelete: Restrict)
+  archivedAt DateTime?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   @@index([status, dueDate])
@@ -206,6 +215,19 @@ model Activity {
   @@index([clientId])
   @@index([policyId])
   @@index([claimId])
+}
+// Operational audit trail; also the source of in-app notifications.
+model CrmEvent {
+  id        String @id @default(cuid())
+  action    String
+  module    String
+  recordId  String
+  label     String
+  actorId   String?
+  actorName String
+  createdAt DateTime @default(now())
+  @@index([createdAt])
+  @@index([module, recordId])
 }
 model WebhookEvent {
   id          String @id @default(cuid())
