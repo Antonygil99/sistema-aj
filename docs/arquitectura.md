@@ -2,7 +2,7 @@
 
 ## Flujo CRM
 
-Next.js entrega la interfaz y Route Handlers en el mismo proyecto. Cada módulo separa catálogo de UI, entrada validada (Zod) y servicio de persistencia (Prisma/PostgreSQL). Las rutas usan sesiones Google autorizadas o un token interno de servidor opcional. Prospectos/clientes muestran datos reales y admiten captura, búsqueda y edición; Documentos usa R2 privado. Solo los indicadores del dashboard siguen siendo ilustrativos.
+Next.js entrega la interfaz y Route Handlers en el mismo proyecto. Cada módulo separa catálogo de UI, entrada validada (Zod) y servicio de persistencia (Prisma/PostgreSQL). Las rutas usan sesiones Google autorizadas o un token interno de servidor opcional. Prospectos/clientes muestran datos reales y admiten captura, búsqueda y edición; Documentos usa R2 privado. El resumen calcula sus indicadores con consultas reales (`src/modules/metrics`), por mes calendario de la Ciudad de México y con filtro por responsable.
 
 Prospecto → cotización → cliente → póliza → pagos / renovaciones / siniestros. El cambio prospecto-cliente y la emisión aún requieren un servicio transaccional específico. Documentos y actividades se enlazan a expedientes. IDs internos son CUID; importes usan Decimal(12,2); restricciones relacionales impiden eliminaciones accidentales de entidades referenciadas. Prospectos/clientes incluyen edición completa con control de versión updatedAt; los otros servicios CRM implementan alta/listado, sin borrado.
 

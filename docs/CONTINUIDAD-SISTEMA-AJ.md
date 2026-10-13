@@ -26,12 +26,12 @@ El dominio propio ya aparece conectado al proyecto de Vercel. Cloudflare R2 es i
 
 Stack: Next.js 16 App Router, React 19, TypeScript, Prisma 7, PostgreSQL, Zod 4 y Better Auth 1.7.7. El CRM adopta las referencias visuales de Tony: barra lateral verde grisácea, navegación agrupada y plegable, paneles blancos redondeados, acentos pastel, botones oscuros y tipografía Clarity City. El login conserva intacto el diseño anterior de Claude, con fotografía y paleta cálida.
 
-El tema del CRM está aislado bajo `.workspace` en `src/app/(workspace)/workspace.css`; `WorkspaceShell` controla navegación, sección activa y cuenta. No modificar los estilos globales ni el login para extender este tema. En móvil la navegación se desplaza horizontalmente y cerrar sesión sigue disponible en la cabecera. La agenda es una etapa futura solicitada por Tony: por ahora solo hay una tarjeta identificada como “Más adelante”, sin calendario operativo ni datos de citas. El dashboard conserva indicadores explícitamente ilustrativos; conectar cifras reales sigue pendiente. La revisión visual usa componentes reales con datos ficticios locales, sin eludir la autenticación del CRM.
+El tema del CRM está aislado bajo `.workspace` en `src/app/(workspace)/workspace.css`; `WorkspaceShell` controla navegación, sección activa y cuenta. No modificar los estilos globales ni el login para extender este tema. En móvil la navegación se desplaza horizontalmente y cerrar sesión sigue disponible en la cabecera. La agenda es una etapa futura solicitada por Tony: por ahora solo hay una tarjeta identificada como “Más adelante”, sin calendario operativo ni datos de citas. El resumen muestra métricas reales: cuatro indicadores con variación contra el mes anterior, el embudo de la Ruta AJ (barras con vista de tabla), el avance de entrega activa y una lista de operación (recibos vencidos, siniestros, referidos y cotizaciones). Se filtra por responsable con `?owner=me|all|<correo>`. Tiempos de respuesta y casos convertidos en contenido quedan pendientes hasta conectar WhatsApp y el registro de contenido. La revisión visual usa componentes reales con datos ficticios locales, sin eludir la autenticación del CRM.
 
 ```text
 src/app/
   (workspace)/layout.tsx          Sesión obligatoria, navegación y rol
-  (workspace)/page.tsx            Dashboard; indicadores todavía ilustrativos
+  (workspace)/page.tsx            Resumen con métricas reales (dashboardMetrics + DashboardOverview)
   (workspace)/crm/[module]/       Pantallas de los nueve módulos
   (workspace)/usuarios/           Gestión reservada al superadmin
   login/                         Inicio de sesión con Google
@@ -178,7 +178,7 @@ npm run check
 | Elemento | Estado real |
 | --- | --- |
 | Pólizas, cotizaciones, recibos, renovaciones, siniestros, actividades | Tablas con alta, edición, búsqueda, archivo y borrado. Faltan reglas de negocio documentadas (p. ej. marcar recibos vencidos automáticamente, generar renovaciones) |
-| Dashboard | Métricas ilustrativas; conectar consultas reales de cartera después de contactos |
+| Dashboard | Métricas reales con filtro por responsable; faltan tiempos de respuesta y casos convertidos en contenido |
 | WhatsApp | Verificación, HMAC e inbox idempotente por payload. Falta worker, deduplicación por ID Meta, consentimiento, plantillas parametrizadas y pruebas reales |
 | IA | Cinco agentes definidos y selección determinista por tema. Sin proveedor/modelo/runtime ejecutándose |
 | Método AJ | Falta documentación de fases, guiones, criterios, escalamiento y decisiones aprobadas |

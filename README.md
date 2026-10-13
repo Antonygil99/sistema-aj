@@ -1,6 +1,6 @@
 # Sistema AJ
 
-Base full-stack de CRM de seguros con Next.js App Router, TypeScript, Prisma 7 y PostgreSQL. Interfaz en español con paneles claros, navegación agrupada y plegable, acentos pastel y tipografía Clarity City. El login conserva su diseño cálido original. Prospectos y clientes permiten alta, consulta, búsqueda y edición; Documentos permite carga y descarga privada en R2. El dashboard todavía presenta datos ilustrativos. El calendario de agendas está previsto para una etapa posterior.
+Base full-stack de CRM de seguros con Next.js App Router, TypeScript, Prisma 7 y PostgreSQL. Interfaz en español con paneles claros, navegación agrupada y plegable, acentos pastel y tipografía Clarity City. El login conserva su diseño cálido original. Prospectos y clientes permiten alta, consulta, búsqueda y edición; Documentos permite carga y descarga privada en R2. El resumen muestra métricas reales de la cartera (embudo de la Ruta AJ, pólizas, entregas, cobranza, siniestros, referidos y cotizaciones), filtrables por responsable. El calendario de agendas está previsto para una etapa posterior.
 
 Para continuar el proyecto, consultar [CONTINUIDAD-SISTEMA-AJ.md](docs/CONTINUIDAD-SISTEMA-AJ.md).
 
@@ -127,4 +127,4 @@ AJ_SUPERADMIN_EMAIL define la identidad principal. AJ_ADMIN_EMAILS enumera, sepa
 
 Las rutas CRM y de agentes aceptan sesiones autorizadas además del token interno opcional. Los cambios con cookies exigen Origin igual a BETTER_AUTH_URL. Todas las pantallas del CRM validan sesión del lado servidor. El registro de usuarios y la creación de sesiones rechazan cuentas no autorizadas o no verificadas por Google. Revocar un acceso invalida las sesiones existentes. No se admiten enlaces entre proveedores ni cambios de correo.
 
-Resend y los correos de bienvenida se integrarán en una etapa posterior, con remitente verificado; no se enviaron correos. WhatsApp y la ejecución de IA siguen pendientes. El dashboard aún conserva sus métricas ilustrativas.
+Resend y los correos de bienvenida se integrarán en una etapa posterior, con remitente verificado; no se enviaron correos. WhatsApp y la ejecución de IA siguen pendientes. Las métricas de tiempos de respuesta y de casos convertidos en contenido se medirán cuando existan WhatsApp y el registro de contenido.

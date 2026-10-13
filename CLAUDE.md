@@ -53,13 +53,13 @@ The Prisma client is generated into `src/generated/prisma` (git-ignored, lint-ig
 
 **WhatsApp and agents (scaffolding).** `/api/whatsapp/webhook` verifies `x-hub-signature-256` HMAC over the raw body and persists `WebhookEvent` rows deduplicated by `payloadHash`; no consumer/worker exists yet (`processedAt` stays null). `src/agents/catalog.ts` defines five agents with deterministic topic-based `selectAgent` (no LLM); `src/agents/runtime.ts` is only an `AgentRuntime` contract for a future eve adapter. Per docs/arquitectura.md: agents must never get direct Prisma or shell access, inbound WhatsApp/documents are untrusted data, and outbound actions require human approval. Do not invent "Método AJ" business rules; they await business documentation.
 
-The dashboard metrics are illustrative placeholders, not real portfolio data.
+**Dashboard metrics.** The home page (`src/app/(workspace)/page.tsx` loads data, `src/components/dashboard-overview.tsx` renders) shows real numbers from `dashboardMetrics()` (`src/modules/metrics/server.ts`, ~23 parallel counts): active prospects and the Ruta AJ funnel, active policies and premium, policies issued this month, renewals within 30 days, delivery completion and late follow-ups, overdue receipts, open claims, referrals and quotes. `?owner=me|all|<email>` scopes them to one responsible (policies/prospects/activities by `ownerEmail`; payments, renewals and claims through their policy; quotes through their prospect). Months are Mexico City calendar months (fixed UTC-6) and deltas compare with the previous month; that logic is pure in `src/modules/metrics/period.ts` (tested in `tests/metrics.test.ts`). Response times and content cases are not measured yet (they need WhatsApp and a content log).
 
 ## Further reading
 
 - README.md: setup, env vars, API contract and error codes, hosted DB and Google OAuth configuration.
 - docs/arquitectura.md: CRM flow, WhatsApp/AI pipeline, production hardening backlog.
 - docs/documentos-r2.md: R2 document flow details, folders, env var formats, error codes, and the documents backlog (4 MiB limit, per-record permissions).
-- docs/CONTINUIDAD-SISTEMA-AJ.md: full agreed product scope, implementation status, service configuration and remaining work. The dashboard still uses illustrative metrics.
+- docs/CONTINUIDAD-SISTEMA-AJ.md: full agreed product scope, implementation status, service configuration and remaining work.
 
 Production runs on Vercel at https://crm.segurosaleyjoel.com (`BETTER_AUTH_URL` must match it exactly; pushing to `main` deploys).
