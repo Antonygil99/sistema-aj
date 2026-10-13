@@ -60,9 +60,9 @@ Cada módulo tiene `schema.ts` y `service.ts`. El navegador no debe importar Pri
 
 ## 4. Modelo de datos
 
-Nueve modelos CRM: `Prospect`, `Client`, `Policy`, `Quote`, `Payment`, `Renewal`, `Claim`, `Document` y `Activity`. Más `WebhookEvent`, `AgentRun`, `AccessGrant`, `AuthUser`, `AuthSession`, `AuthAccount`, `AuthVerification`, `AuthRateLimit` y `AccessAudit`: **18 tablas de aplicación**, aparte del historial Prisma.
+Nueve modelos CRM: `Prospect`, `Client`, `Policy`, `Quote`, `Payment`, `Renewal`, `Claim`, `Document` y `Activity`. Más `DocumentFolder`, `WebhookEvent`, `AgentRun`, `AccessGrant`, `AuthUser`, `AuthSession`, `AuthAccount`, `AuthVerification`, `AuthRateLimit` y `AccessAudit`: **19 tablas de aplicación**, aparte del historial Prisma.
 
-Importes: `Decimal(12,2)`; fechas con zona horaria; relaciones con restricciones de borrado para proteger expedientes. No usar borrados de cartera ni `prisma db push` para desplegar. La migración inicial y la migración Google ya se aplicaron en producción. Las pantallas de contactos aprovechan el esquema existente y no necesitan nuevas tablas.
+Importes: `Decimal(12,2)`; fechas con zona horaria; relaciones con restricciones de borrado para proteger expedientes. No usar borrados de cartera ni `prisma db push` para desplegar. La migración inicial y la migración Google ya se aplicaron en producción. La migración `20261013010000_dossiers_folders` añade `DocumentFolder`, `Document.folderId` y `Policy.paymentFrequency`; debe aplicarse con `npm run db:verify-deploy` **antes** de publicar el código que la usa, porque el build de Vercel no ejecuta migraciones. Se verificó localmente sobre PostgreSQL (PGlite) que las tres migraciones se aplican en orden y que el índice de nombres de carpeta funciona.
 
 ## 5. Identidad, roles y seguridad existentes
 
@@ -105,6 +105,17 @@ Prospectos: nombre, correo y teléfono opcionales, origen, notas y estado (nuevo
 
 La edición envía `expectedUpdatedAt` y solo se aplica si coincide con la versión en la base. Un conflicto devuelve 409 `RECORD_CHANGED`, sin sobrescribir el trabajo ajeno. La interfaz conserva el borrador y pide revisar la versión actual. Para limpiar un campo opcional, el formulario envía la ficha completa sin ese valor; el servicio lo convierte en `null`. No hay eliminación ni conversión automática de prospecto a cliente: marcarlo ganado no crea un cliente.
 
+### Expedientes de clientes y carpetas
+
+`/crm/clientes` muestra los clientes como expedientes (tarjetas con estado de cobertura y próximo recibo); la lista de contactos sigue en `/crm/clientes?view=list`. Un asistente en `/crm/clientes/nuevo` (ADMIN) abre el expediente en cuatro pasos: cliente, póliza, calendario de recibos y revisión. Todo se guarda en una sola transacción (`POST /api/dossiers`): cliente, carpetas base (Identificación, Pólizas, Pagos, Siniestros) y, si se eligió, la póliza con sus recibos. La ficha `/crm/clientes/{id}` muestra vigencias, recibos (pendiente, vencido o pagado), siniestros y actividades, y permite añadir otra póliza (`POST /api/dossiers/{id}/policies`).
+
+Reglas implementadas en `src/modules/clientes/dossier-policy.ts` (probadas en `tests/dossiers.test.ts`):
+- La prima total es la suma exacta de los recibos, en centavos. El calendario propuesto reparte la prima y el último recibo absorbe el residuo; los vencimientos mensuales respetan el fin de mes. Los recibos van ordenados dentro de la vigencia; el pago único admite un solo recibo.
+- "Activo" significa cobertura vigente hoy. Los recibos vencidos se muestran aparte y no cancelan la póliza automáticamente. Sin pólizas, el expediente queda "Por completar".
+- Ningún recibo se marca como pagado de forma automática. Registrar pagos sigue pendiente.
+
+Documentos se organiza en carpetas del equipo o de cada expediente; detalles en `docs/documentos-r2.md`. Falta la prueba manual del usuario sobre expedientes y carpetas.
+
 ## 8. Variables de entorno y ejecución
 
 Variables del servidor (nombres, sin valores):
@@ -135,7 +146,8 @@ npm run check
 
 | Elemento | Estado real |
 | --- | --- |
-| Pólizas, cotizaciones, pagos, renovaciones, siniestros, actividades | Modelos y API de alta/listado. Pantallas operativas pendientes |
+| Pólizas y pagos | Se capturan dentro del expediente del cliente con su calendario de recibos. Faltan registrar pagos, editar o cancelar pólizas y sus pantallas propias |
+| Cotizaciones, renovaciones, siniestros, actividades | Modelos y API de alta/listado. Pantallas operativas pendientes |
 | Dashboard | Métricas ilustrativas; conectar consultas reales de cartera después de contactos |
 | WhatsApp | Verificación, HMAC e inbox idempotente por payload. Falta worker, deduplicación por ID Meta, consentimiento, plantillas parametrizadas y pruebas reales |
 | IA | Cinco agentes definidos y selección determinista por tema. Sin proveedor/modelo/runtime ejecutándose |
