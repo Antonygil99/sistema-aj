@@ -97,7 +97,7 @@ Pendientes de archivos: carga directa con URL PUT firmada para archivos grandes 
 
 ## 7. Prospectos y clientes: nueva entrega
 
-Implementación local preparada con pantallas de alta, listado paginado, búsqueda y edición. Confirmar el estado del último despliegue antes de darlo por publicado.
+Implementación publicada en producción con pantallas de alta, listado paginado, búsqueda y edición. El despliegue terminó READY y el dominio del CRM apunta a esa versión. Pasaron 22 pruebas locales y la compilación. Además, un despliegue ejecutó `npm run check && npm run crm:smoke`: se verificaron API y PostgreSQL reales para ambos módulos, incluyendo rechazo de cambios anónimos y ediciones antiguas. Los dos registros temporales se retiraron. Falta la prueba manual del usuario sobre estas nuevas pantallas; la prueba manual de R2 sí está confirmada.
 
 Prospectos: nombre, correo y teléfono opcionales, origen, notas y estado (nuevo, contactado, calificado, ganado, perdido). Clientes: nombre, correo, teléfono y RFC opcional. Usuarios consultan fichas; administradores crean y editan. Búsqueda por nombre/correo/teléfono y filtro de estado para prospectos.
 
