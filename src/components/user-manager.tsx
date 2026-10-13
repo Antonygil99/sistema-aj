@@ -1,11 +1,12 @@
 'use client';
 import { useState } from 'react';
 import { Add } from 'iconsax-reactjs';
+import { FcGoogle } from 'react-icons/fc';
 import { apiFetch } from './ui/client-api';
 import { useConfirm } from './ui/confirm';
 import { Modal } from './ui/modal';
 import { useToast } from './ui/toast';
-type Grant = { id: string; email: string; role: 'USER' | 'ADMIN' | 'SUPERADMIN'; enabled: boolean };
+type Grant = { id: string; email: string; role: 'USER' | 'ADMIN' | 'SUPERADMIN'; enabled: boolean; name?: string | null; image?: string | null };
 const roleLabels = { USER: 'Usuario', ADMIN: 'Administrador', SUPERADMIN: 'Superadmin' };
 export function UserManager({ initial }: { initial: Grant[] }) {
   const [grants, setGrants] = useState(initial);
@@ -19,7 +20,7 @@ export function UserManager({ initial }: { initial: Grant[] }) {
     setPending(true);
     try {
       const { data } = await apiFetch<{ data: Grant }>('/api/users', { method: 'PATCH', json: input, labels: { email: 'Correo de Google' } });
-      setGrants(current => current.some(grant => grant.id === data.id) ? current.map(grant => grant.id === data.id ? data : grant) : [...current, data]);
+      setGrants(current => current.some(grant => grant.id === data.id) ? current.map(grant => grant.id === data.id ? { ...grant, ...data } : grant) : [...current, data]);
       toast({ kind: input.enabled ? 'success' : 'security', title: success, message: data.email });
       return true;
     } catch (error) { toast({ kind: 'error', title: 'No se guardó el acceso', message: error instanceof Error ? error.message : undefined }); return false; }
@@ -37,7 +38,7 @@ export function UserManager({ initial }: { initial: Grant[] }) {
   return <>
     <div className="resource-toolbar"><span className="resource-count">{grants.length} cuenta{grants.length === 1 ? '' : 's'} autorizada{grants.length === 1 ? '' : 's'}</span><button type="button" className="button" onClick={() => setAdding(true)}><Add aria-hidden="true"/>Añadir acceso</button></div>
     <div className="table-wrap"><table><thead><tr><th>Cuenta</th><th>Rol</th><th>Estado</th><th><span className="sr-only">Acciones</span></th></tr></thead><tbody>{grants.map(grant => <tr key={grant.id}>
-      <td>{grant.email}</td><td>{roleLabels[grant.role]}</td><td><span className={`status-pill tone-${grant.enabled ? 'green' : 'red'}`}>{grant.enabled ? 'Activo' : 'Desactivado'}</span></td>
+      <td><GoogleAccount grant={grant}/></td><td>{roleLabels[grant.role]}</td><td><span className={`status-pill tone-${grant.enabled ? 'green' : 'red'}`}>{grant.enabled ? 'Activo' : 'Desactivado'}</span></td>
       <td className="row-actions">{grant.role === 'SUPERADMIN' ? <small>Cuenta principal protegida</small> : <><button type="button" disabled={pending} className={`text-button${grant.enabled ? ' is-danger' : ''}`} onClick={() => void toggle(grant)}>{grant.enabled ? 'Desactivar' : 'Activar'}</button><button type="button" disabled={pending} className="text-button" onClick={() => void changeRole(grant)}>{grant.role === 'ADMIN' ? 'Cambiar a usuario' : 'Cambiar a administrador'}</button></>}</td>
     </tr>)}</tbody></table></div>
     <p className="lead-small">Mientras el acceso de Google esté en pruebas, añade las cuentas nuevas también a sus usuarios de prueba.</p>
@@ -49,4 +50,16 @@ export function UserManager({ initial }: { initial: Grant[] }) {
       </form>
     </Modal>
   </>;
+}
+// Google profile photo (or initials before the first sign-in) with the Google mark on top.
+function GoogleAccount({ grant }: { grant: Grant }) {
+  const initials = (grant.name || grant.email).replace(/@.*/, '').split(/[\s._-]+/).filter(Boolean).slice(0, 2).map(part => part.charAt(0)).join('').toUpperCase() || '?';
+  return <div className="google-account">
+    <span className="google-avatar">
+      {/* eslint-disable-next-line @next/next/no-img-element -- remote Google avatar; next/image would need a remote host allowlist */}
+      {grant.image ? <img src={grant.image} alt="" width={34} height={34} referrerPolicy="no-referrer" loading="lazy"/> : <span aria-hidden="true">{initials}</span>}
+      <span className="google-mark" title="Cuenta de Google"><FcGoogle aria-hidden="true"/></span>
+    </span>
+    <span className="google-account-text">{grant.name ? <strong>{grant.name}</strong> : null}<span>{grant.email}</span>{!grant.name ? <small>Aún no ha iniciado sesión</small> : null}</span>
+  </div>;
 }
