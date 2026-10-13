@@ -24,7 +24,9 @@ El dominio propio ya aparece conectado al proyecto de Vercel. Cloudflare R2 es i
 
 ## 3. Arquitectura de código
 
-Stack: Next.js 16 App Router, React 19, TypeScript, Prisma 7, PostgreSQL, Zod 4 y Better Auth 1.7.7. Diseño actualizado por Claude: crema, verde profundo y ámbar, títulos Baskervville y cuerpo Clarity City; conservarlo al crear pantallas.
+Stack: Next.js 16 App Router, React 19, TypeScript, Prisma 7, PostgreSQL, Zod 4 y Better Auth 1.7.7. El CRM adopta las referencias visuales de Tony: barra lateral verde grisácea, navegación agrupada y plegable, paneles blancos redondeados, acentos pastel, botones oscuros y tipografía Clarity City. El login conserva intacto el diseño anterior de Claude, con fotografía y paleta cálida.
+
+El tema del CRM está aislado bajo `.workspace` en `src/app/(workspace)/workspace.css`; `WorkspaceShell` controla navegación, sección activa y cuenta. No modificar los estilos globales ni el login para extender este tema. En móvil la navegación se desplaza horizontalmente y cerrar sesión sigue disponible en la cabecera. La agenda es una etapa futura solicitada por Tony: por ahora solo hay una tarjeta identificada como “Más adelante”, sin calendario operativo ni datos de citas. El dashboard conserva indicadores explícitamente ilustrativos; conectar cifras reales sigue pendiente. La revisión visual usa componentes reales con datos ficticios locales, sin eludir la autenticación del CRM.
 
 ```text
 src/app/

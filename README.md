@@ -1,6 +1,6 @@
 # Sistema AJ
 
-Base full-stack de CRM de seguros con Next.js App Router, TypeScript, Prisma 7 y PostgreSQL. Interfaz en español, diseño editorial crema, verde y ámbar, títulos Baskervville y texto Clarity City. Prospectos y clientes permiten alta, consulta, búsqueda y edición; Documentos permite carga y descarga privada en R2. El dashboard todavía presenta datos ilustrativos.
+Base full-stack de CRM de seguros con Next.js App Router, TypeScript, Prisma 7 y PostgreSQL. Interfaz en español con paneles claros, navegación agrupada y plegable, acentos pastel y tipografía Clarity City. El login conserva su diseño cálido original. Prospectos y clientes permiten alta, consulta, búsqueda y edición; Documentos permite carga y descarga privada en R2. El dashboard todavía presenta datos ilustrativos. El calendario de agendas está previsto para una etapa posterior.
 
 Para continuar el proyecto, consultar [CONTINUIDAD-SISTEMA-AJ.md](docs/CONTINUIDAD-SISTEMA-AJ.md).
 
