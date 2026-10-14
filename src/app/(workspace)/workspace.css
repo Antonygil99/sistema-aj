@@ -78,6 +78,9 @@
 .workspace .drive-area{position:relative}.workspace .drop-hint{position:absolute;inset:10px;z-index:3;display:grid;place-content:center;justify-items:center;gap:10px;border-radius:14px;background:var(--c-eaf5eecc);color:var(--c-2f5a42);pointer-events:none}.workspace .drop-hint svg{width:30px;height:30px}
 .workspace .file-card .file-actions{margin-top:10px}.workspace .file-card>svg{width:28px;height:28px}.workspace .folder-open>svg{width:28px;height:28px;color:var(--c-656875)}
 .workspace .access-label{white-space:nowrap}
+/* Campana y buscador viven fuera del panel principal: en escritorio se centran en su barra superior (relleno 10 + borde 1, barra de 56 + borde, margen interior 30); en móvil van junto a la marca y la barra se oculta, porque cada pantalla ya tiene su título. */
+.workspace{position:relative}
+.workspace>.workspace-access{position:absolute;z-index:3;top:11px;right:41px;height:56px}
 .workspace .mobile-tabbar{display:none}
 .workspace .mobile-menu-group{margin-bottom:16px}.workspace .mobile-menu-label{margin:0 0 8px;font-size:12px;letter-spacing:.4px;text-transform:uppercase;color:var(--c-626a65)}
 .workspace .mobile-menu-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.workspace .mobile-menu-grid a{display:grid;justify-items:center;gap:7px;padding:14px 6px;border-radius:14px;background:var(--c-f5f7f6);font-size:13px;text-align:center;color:var(--c-3c4842)}.workspace .mobile-menu-grid a[aria-current=page]{background:var(--c-e5efe9);color:var(--c-1d2a23);font-weight:500}.workspace .mobile-menu-grid svg{width:20px;height:20px}.workspace .mobile-menu-account{border-top:1px solid var(--line);padding-top:12px}
@@ -86,6 +89,9 @@
   .workspace .workspace-nav{display:none}
   .workspace .sidebar-brand-row{margin-bottom:4px}
   .workspace .access-label{display:none}
+  .workspace .workspace-topbar,.workspace .access-dot{display:none}
+  .workspace>.workspace-access{top:12px;right:14px;height:44px}
+  .workspace[data-theme=gradient]>.workspace-access{top:25px}
   .workspace .mobile-tabbar{position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:60;display:grid;grid-template-columns:repeat(5,1fr);gap:2px;padding:6px;background:var(--c-ffffffeb);backdrop-filter:blur(14px);border:1px solid var(--c-ffffff);border-radius:22px;box-shadow:0 18px 40px -20px var(--c-1020194d)}
   .workspace .mobile-tabbar :is(a,button){display:grid;justify-items:center;gap:3px;padding:8px 2px;border-radius:16px;background:transparent;font-size:12px;color:var(--c-606b66);transition:background .2s,color .2s}
   .workspace .mobile-tabbar svg{width:21px;height:21px}

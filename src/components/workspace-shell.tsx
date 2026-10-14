@@ -57,7 +57,9 @@ function WorkspaceFrame({ children, user }: { children: ReactNode; user: Account
       </nav>
       <div className="sidebar-account"><AccountMenu user={user} roleLabel={roles[user.role]}/></div>
     </aside>
-    <div className="main workspace-main"><header className="workspace-topbar"><div className="workspace-breadcrumb"><Link href="/">Espacio AJ</Link><ArrowRight3 aria-hidden="true"/><span>{title}</span></div><div className="workspace-access"><span className="access-dot"/><span className="access-label">Acceso privado</span><NotificationCenter/><CommandSearch role={user.role}/></div></header><main id="workspace-content" tabIndex={-1} className="workspace-content">{children}</main><footer className="workspace-footer"><span>Sistema AJ</span><span>Seguros, relaciones y seguimiento.</span></footer></div>
+    {/* Outside the main panel so it can sit in the topbar on desktop and beside the brand on phones (CSS places it). */}
+    <div className="workspace-access"><span className="access-dot"/><span className="access-label">Acceso privado</span><NotificationCenter/><CommandSearch role={user.role}/></div>
+    <div className="main workspace-main"><header className="workspace-topbar"><div className="workspace-breadcrumb"><Link href="/">Espacio AJ</Link><ArrowRight3 aria-hidden="true"/><span>{title}</span></div></header><main id="workspace-content" tabIndex={-1} className="workspace-content">{children}</main><footer className="workspace-footer"><span>Sistema AJ</span><span>Seguros, relaciones y seguimiento.</span></footer></div>
     <MobileNav groups={groups} user={{ ...user, roleLabel: roles[user.role] }}/>
     </AccountPanelsProvider></TourProvider></UploadProvider></ConfirmProvider></ToastProvider><TooltipLayer/><div id="workspace-portal" className="workspace-portal"/>
   </div>;
