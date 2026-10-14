@@ -18,9 +18,10 @@ export type ViewKey = keyof typeof viewOptions;
 export type ViewValue<K extends ViewKey> = (typeof viewOptions)[K][number];
 export type Theme = (typeof themeOptions)[number];
 export type AssistantModel = (typeof assistantModels)[number]['id'];
-// emailProspects / emailClaims / emailAgenda: automatic emails (src/modules/email) for new records and meetings.
-export type NotificationSettings = { team: boolean; toasts: boolean; payments: boolean; renewals: boolean; followUps: boolean; emailProspects: boolean; emailClaims: boolean; emailAgenda: boolean; clearedAt: string | null; clearedReminders: string | null };
-export const notificationSwitches = ['team', 'toasts', 'payments', 'renewals', 'followUps', 'emailProspects', 'emailClaims', 'emailAgenda'] as const;
+// emailProspects / emailClaims / emailAgenda / emailDigest: automatic emails (src/modules/email) for new records,
+// meetings and the morning summary.
+export type NotificationSettings = { team: boolean; toasts: boolean; payments: boolean; renewals: boolean; followUps: boolean; emailProspects: boolean; emailClaims: boolean; emailAgenda: boolean; emailDigest: boolean; clearedAt: string | null; clearedReminders: string | null };
+export const notificationSwitches = ['team', 'toasts', 'payments', 'renewals', 'followUps', 'emailProspects', 'emailClaims', 'emailAgenda', 'emailDigest'] as const;
 export type Preferences = { views: { [K in ViewKey]?: ViewValue<K> }; tours: { enabled: boolean; seen: string[] }; theme: Theme; notifications: NotificationSettings; assistantModel: AssistantModel };
 export type PreferencesPatch = {
   views?: Preferences['views'];
@@ -30,7 +31,7 @@ export type PreferencesPatch = {
   notifications?: Partial<NotificationSettings>;
   assistantModel?: AssistantModel;
 };
-const defaultNotifications: NotificationSettings = { team: true, toasts: true, payments: true, renewals: true, followUps: true, emailProspects: true, emailClaims: true, emailAgenda: true, clearedAt: null, clearedReminders: null };
+const defaultNotifications: NotificationSettings = { team: true, toasts: true, payments: true, renewals: true, followUps: true, emailProspects: true, emailClaims: true, emailAgenda: true, emailDigest: true, clearedAt: null, clearedReminders: null };
 export const defaultPreferences: Preferences = { views: {}, tours: { enabled: false, seen: [] }, theme: 'light', notifications: defaultNotifications, assistantModel: 'claude-opus-5-5' };
 export const MAX_SEEN = 100;
 export const TOUR_ID = /^[a-z0-9:-]{1,60}$/;

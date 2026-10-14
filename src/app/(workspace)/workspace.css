@@ -457,8 +457,8 @@
 .workspace .email-history small{font-size:12px;color:var(--c-5d6a63);overflow-wrap:anywhere}
 .workspace .email-composer .email-recipients,.workspace .email-composer .email-files{border:0;padding:0;margin:0;min-width:0}
 .workspace .email-composer legend{padding:0;margin-bottom:6px}
-.workspace .email-composer .is-wide{grid-column:1/-1}.workspace .email-composer label.email-check{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border:1px solid var(--c-eceeef);border-radius:12px;cursor:pointer;font-size:14px}
-.workspace .email-composer label.email-check+label.email-check{margin-top:6px}
+.workspace .email-composer .is-wide{grid-column:1/-1}.workspace :is(.email-composer,.notice-channels) label.email-check{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border:1px solid var(--c-eceeef);border-radius:12px;cursor:pointer;font-size:14px}
+.workspace :is(.email-composer,.notice-channels) label.email-check+label.email-check{margin-top:6px}
 .workspace .email-check input{width:18px;height:18px;min-height:18px;margin:2px 0 0;flex:none;accent-color:var(--c-3f6b54)}
 .workspace .email-check>svg{width:18px;height:18px;flex:none;margin-top:1px;color:var(--c-5d6a63)}
 .workspace .email-check span{min-width:0;overflow-wrap:anywhere}
@@ -469,4 +469,43 @@
 .workspace .email-preview{border:1px solid var(--c-eceeef);border-radius:14px;overflow:hidden;background:rgb(243,245,244)}
 .workspace .email-preview iframe{display:block;width:100%;height:min(560px,62vh);border:0;background:rgb(243,245,244)}
 .workspace .settings-subtitle{margin:16px 0 4px;font-size:13px;font-weight:600;color:var(--c-1f2a25)}
-@media(max-width:760px){.workspace .contact-list li>svg{display:none}.workspace .contact-means{flex-direction:column}.workspace .email-composer label.email-check{min-height:44px;align-items:center}.workspace .email-check input{margin:0}.workspace .client-contacts .contact-toolbar .button,.workspace .dossier-emails .file-actions,.workspace .dossier-emails .file-actions .button{width:100%}.workspace .email-history-main{align-items:flex-start;flex-direction:column}}
+@media(max-width:760px){.workspace .contact-list li>svg{display:none}.workspace .contact-means{flex-direction:column}.workspace :is(.email-composer,.notice-channels) label.email-check{min-height:44px;align-items:center}.workspace .email-check input{margin:0}.workspace .client-contacts .contact-toolbar .button,.workspace .dossier-emails .file-actions,.workspace .dossier-emails .file-actions .button{width:100%}.workspace .email-history-main{align-items:flex-start;flex-direction:column}}
+
+/* Avisos a clientes (src/components/notices-board.tsx) y plantillas de correo (template-editor.tsx) */
+.workspace .notices{display:grid;gap:16px;margin-top:18px}
+.workspace .notices-tabs{justify-self:start}
+.workspace .notice-channels{border:0;padding:0;margin:0;min-width:0}
+.workspace .notices-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.workspace .notice-kinds,.workspace .placeholder-chips{display:flex;flex-wrap:wrap;gap:8px}
+.workspace .filter-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--c-e3e8e5);border-radius:999px;background:var(--c-ffffff);font-size:13px;font-weight:500;color:var(--c-3f494e)}
+.workspace .filter-chip span{font-size:12px;color:var(--c-5d6a63)}
+.workspace .filter-chip[aria-pressed=true]{border-color:var(--c-3f6b54);background:var(--c-eef6f1);color:var(--c-1f3a2c)}
+.workspace .filter-chip:hover{border-color:var(--c-9cc1aa)}
+.workspace .notice-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.workspace .notice-card{display:grid;gap:8px;align-content:start;padding:16px 16px 14px;border:1px solid var(--c-e9edeb);border-radius:18px;background:var(--c-ffffff)}
+.workspace .notice-card-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.workspace .notice-card-top strong{font-size:13px;color:var(--c-3f494e)}
+.workspace .notice-card-top strong.is-urgent{color:var(--c-9b3b2a)}
+.workspace .notice-card h3{margin:0;font-size:16px;overflow-wrap:anywhere}
+.workspace .notice-card h3 a{color:inherit}
+.workspace .notice-detail,.workspace .notice-owner{margin:0;font-size:13px;color:var(--c-5d6a63);overflow-wrap:anywhere}
+.workspace .notice-warning{display:flex;align-items:flex-start;gap:6px;margin:0;padding:8px 10px;border-radius:10px;background:var(--c-fbf3e6);color:var(--c-6b4a1c);font-size:12px;line-height:1.45}
+.workspace .notice-warning svg{width:15px;height:15px;flex:none;margin-top:1px}
+.workspace .notice-warning a{color:var(--c-6b4a1c);text-decoration:underline}
+.workspace .notice-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:4px}
+.workspace .notice-actions .button{padding-inline:14px}
+.workspace .notices-resolved ul{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:8px}
+.workspace .notices-resolved li{display:flex;gap:8px;font-size:13px;color:var(--c-3f494e)}
+.workspace .notices-resolved li>svg{width:16px;height:16px;flex:none;margin-top:2px;color:var(--c-3f6b54)}
+.workspace .notices-resolved small{display:block;color:var(--c-5d6a63)}
+.workspace .template-editor{display:grid;grid-template-columns:240px minmax(0,1fr);gap:16px;align-items:start}
+.workspace .template-list{display:grid;gap:6px;position:sticky;top:12px}
+.workspace .template-list button{display:grid;gap:2px;text-align:left;padding:10px 12px;border:1px solid var(--c-e9edeb);border-radius:14px;background:var(--c-ffffff)}
+.workspace .template-list button strong{font-size:14px}
+.workspace .template-list button small{font-size:12px;color:var(--c-5d6a63)}
+.workspace .template-list button[aria-current=true]{border-color:var(--c-3f6b54);background:var(--c-eef6f1)}
+.workspace .template-form{display:grid;gap:12px;margin:0}
+.workspace .template-form .contact-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.workspace .template-form h2{margin:0}
+.workspace .template-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+@media(max-width:760px){.workspace .notice-grid{grid-template-columns:1fr}.workspace .notice-actions .button{flex:1 1 auto;justify-content:center}.workspace .filter-chip{min-height:44px}.workspace .template-editor{grid-template-columns:1fr}.workspace .template-list{position:static;grid-auto-flow:column;grid-auto-columns:minmax(150px,1fr);overflow-x:auto;padding-bottom:4px}.workspace .template-list button{min-height:44px}.workspace .notices-tabs{justify-self:stretch}.workspace .notices-tabs button{flex:1}}

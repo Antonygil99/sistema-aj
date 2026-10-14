@@ -89,7 +89,11 @@ Las rutas CRM y de agentes admiten sesiones de Google autorizadas o Authorizatio
 | GET /api/emails/options?clientId= | Destinatarios permitidos, archivos que se pueden adjuntar y última bienvenida (ADMIN) |
 | POST /api/emails | Envía documentos o la bienvenida a un cliente y/o sus contactos (ADMIN); `requestId` evita duplicados. Ver docs/correo-resend.md |
 | POST /api/emails/webhook | Eventos de entrega de Resend firmados con Svix (`RESEND_WEBHOOK_SECRET`) |
-| GET /api/cron/email | Tarea diaria: programa recordatorios de agenda dentro de la ventana de 30 días (`CRON_SECRET` o token interno) |
+| GET /api/cron/email | Tarea diaria: recordatorios de agenda, avisos a clientes y resumen diario (`CRON_SECRET` o token interno) |
+| GET /api/notices?scope=mine\|all | Avisos a clientes pendientes (se actualizan al leer); `resolved=1` lista los resueltos en 14 días |
+| POST /api/notices/{id} | Registra que se avisó por otro medio, descarta o reabre un aviso (ADMIN) |
+| GET /api/email-templates | Plantillas de correo del equipo (ADMIN) |
+| PUT/DELETE /api/email-templates/{kind} | Guarda el texto del equipo o vuelve al sugerido (ADMIN) |
 
 Módulos: prospectos, clientes, polizas, cotizaciones, pagos, renovaciones, siniestros, documentos, actividades. Fechas: ISO 8601 con zona horaria. Importes: texto decimal positivo como "1250.00"; moneda: código de tres letras, MXN por defecto. El schema.ts de cada módulo define los campos aceptados. Las relaciones deben referenciar IDs existentes. Campos desconocidos se rechazan. POST /api/crm/documentos responde 405: los documentos solo se registran mediante la carga verificada de /api/documents.
 

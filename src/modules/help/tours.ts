@@ -101,6 +101,12 @@ export const tours: Tour[] = [
     { targets: ['.wizard-steps'], title: 'Cuatro pasos', body: 'Cliente, póliza, pagos y revisión. Nada se guarda hasta el último paso, y todo se guarda junto.' },
     { targets: ['.wizard-actions'], title: 'Avanza o regresa', body: 'Puedes volver a cualquier paso antes de guardar. Los recibos deben sumar exactamente la prima total.' },
   ] },
+  { id: 'modulo:avisos-clientes', kind: 'module', title: 'Avisos a clientes', summary: 'Renovaciones, recibos y siniestros que conviene avisar hoy, y los textos de correo del equipo.', route: '/avisos', steps: [
+    { title: 'Avisos a clientes', body: 'Cada mañana aparecen las renovaciones a 30, 20 y 10 días, los recibos a 20 y 10 días y el día que vencen, y los siniestros abiertos cada semana. Nada se envía solo.' },
+    { targets: ['.notice-kinds'], title: 'Filtra por tipo', body: 'Renovaciones, pagos o siniestros. «A mi cargo» incluye los avisos sin responsable.' },
+    { targets: ['.notice-actions', '.notices .empty-state'], title: 'Resuelve cada aviso', body: 'Envía el correo sugerido (lo revisas antes), registra que ya le avisaste por llamada o WhatsApp, o descártalo. Siempre puedes deshacer.' },
+    { targets: ['.notices-tabs'], title: 'Plantillas de correo', body: 'Ajusta el texto de la bienvenida, documentos, renovación, pago y siniestro con datos como {cliente} o {vence}. Quien envía aún puede editarlo.' },
+  ] },
   { id: 'modulo:agenda', kind: 'module', title: 'Mi agenda', summary: 'Reuniones y recordatorios en tu Google Calendar.', route: '/agenda', steps: [
     { targets: ['.calendar-connection'], title: 'Tu cuenta de Google', body: 'Conecta la misma cuenta con la que entras al CRM. Cada persona gestiona su propia agenda.' },
     { targets: ['.resource-toolbar .button'], title: 'Nueva reunión', body: 'Elige horario, recordatorio e invitados. Puedes solicitar un enlace de Google Meet y enviar invitaciones al crear.' },
@@ -118,6 +124,7 @@ export function tourForPath(pathname: string): Tour | null {
   if (pathname === '/') return tourById('modulo:resumen');
   if (pathname === '/usuarios') return tourById('modulo:usuarios');
   if (pathname === '/agenda') return tourById('modulo:agenda');
+  if (pathname === '/avisos') return tourById('modulo:avisos-clientes');
   if (pathname === '/crm/clientes/nuevo') return tourById('modulo:nuevo-expediente');
   if (/^\/crm\/clientes\/[^/]+$/.test(pathname)) return tourById('modulo:expediente');
   const match = /^\/crm\/([a-z]+)$/.exec(pathname);

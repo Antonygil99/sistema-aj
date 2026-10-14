@@ -3,17 +3,20 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { DocumentText, Eye, Send2 } from '@/components/icons';
 import { MAX_ATTACHMENTS, type Recipient } from '@/modules/email/rules';
-import { clientEmail, defaultClientMessage, type ClientEmailKind } from '@/modules/email/templates';
+import { clientEmail, type ClientEmailKind } from '@/modules/email/templates';
+import { BLANK } from '@/modules/email/template-text';
 import { apiFetch } from './ui/client-api';
 import { useConfirm } from './ui/confirm';
 import { Modal } from './ui/modal';
 import { RelationPicker } from './ui/relation-picker';
 import { useToast } from './ui/toast';
-type Options = { client: { id: string; name: string; email: string | null }; recipients: Recipient[]; documents: { id: string; name: string; detail: string }[]; welcomeSentAt: string | null; configured: boolean };
-// What opens the composer: the kind of email, the client (or null to pick one) and files chosen beforehand.
-export type ComposerRequest = { kind: ClientEmailKind; clientId: string | null; clientName?: string; documents?: { id: string; name: string }[] };
+type Options = { client: { id: string; name: string; email: string | null }; kind: ClientEmailKind; draft: { subject: string; message: string }; recipients: Recipient[]; documents: { id: string; name: string; detail: string }[]; welcomeSentAt: string | null; configured: boolean };
+// What opens the composer: the kind of email, the client (or null to pick one), files chosen beforehand and, from
+// Avisos, the notice it answers (its data fills the suggested text and sending marks it as sent).
+export type ComposerRequest = { kind: ClientEmailKind; clientId: string | null; clientName?: string; documents?: { id: string; name: string }[]; noticeId?: string };
 type Errors = Partial<Record<'client' | 'to' | 'subject' | 'message', string>>;
-const titles: Record<ClientEmailKind, string> = { DOCUMENTOS: 'Enviar documentos por correo', BIENVENIDA: 'Enviar bienvenida' };
+const titles: Record<ClientEmailKind, string> = { DOCUMENTOS: 'Enviar documentos por correo', BIENVENIDA: 'Enviar bienvenida', RENOVACION: 'Aviso de renovación', PAGO: 'Recordatorio de pago', SINIESTRO: 'Seguimiento de siniestro' };
+const sentTitles: Record<ClientEmailKind, string> = { DOCUMENTOS: 'Correo enviado', BIENVENIDA: 'Bienvenida enviada', RENOVACION: 'Aviso de renovación enviado', PAGO: 'Recordatorio enviado', SINIESTRO: 'Seguimiento enviado' };
 const newRequestId = () => crypto.randomUUID();
 // A person always reviews what goes to a client: recipients (the client and its registered contacts only), text and
 // attachments, with a preview of the exact email. Replies reach the sender's own inbox.
@@ -50,18 +53,18 @@ export function EmailComposer({ request, senderName, onClose, onSent }: { reques
   useEffect(() => {
     if (!loadFor) return;
     let active = true;
-    apiFetch<{ data: Options }>(`/api/emails/options?clientId=${encodeURIComponent(loadFor)}`)
+    const query = new URLSearchParams({ clientId: loadFor, kind, ...(request?.noticeId ? { noticeId: request.noticeId } : {}) });
+    apiFetch<{ data: Options }>(`/api/emails/options?${query}`)
       .then(({ data }) => {
         if (!active) return;
         setOptions(data);
         setTo(data.recipients.filter(recipient => recipient.label === 'Cliente').map(recipient => recipient.email));
-        const defaults = defaultClientMessage(kind, data.client.name);
-        setSubject(defaults.subject); setMessage(defaults.message);
+        setSubject(data.draft.subject); setMessage(data.draft.message);
       })
       .catch(error => { if (active) toast({ kind: 'error', title: 'No se pudo preparar el correo', message: error instanceof Error ? error.message : undefined }); })
       .finally(() => { if (active) setLoadFor(null); });
     return () => { active = false; };
-  }, [loadFor, kind, toast]);
+  }, [loadFor, kind, request?.noticeId, toast]);
   // Files chosen before opening that are not the client's own (team files) are listed first.
   const files = useMemo(() => {
     const own = options?.documents ?? [];
@@ -82,12 +85,13 @@ export function EmailComposer({ request, senderName, onClose, onSent }: { reques
     if (!to.length) next.to = 'Elige al menos un destinatario.';
     if (!subject.trim()) next.subject = 'Escribe el asunto.';
     if (!message.trim()) next.message = 'Escribe el mensaje.';
+    else if (BLANK.test(message)) next.message = 'Completa el texto entre corchetes antes de enviar.';
     setErrors(next);
     if (Object.keys(next).length) { formRef.current?.querySelector<HTMLElement>(next.client ? '.relation-picker input' : next.to ? '.email-recipients input' : '[aria-invalid="true"]')?.focus(); return; }
     setBusy(true);
     try {
-      await apiFetch('/api/emails', { method: 'POST', json: { requestId, kind, clientId, to, subject, message, documentIds }, labels: { to: 'Para', subject: 'Asunto', message: 'Mensaje', documentIds: 'Adjuntos' } });
-      toast({ kind: 'success', title: kind === 'BIENVENIDA' ? 'Bienvenida enviada' : 'Correo enviado', message: `Para ${to.join(', ')}` });
+      await apiFetch('/api/emails', { method: 'POST', json: { requestId, kind, clientId, to, subject, message, documentIds, ...(request?.noticeId ? { noticeId: request.noticeId } : {}) }, labels: { to: 'Para', subject: 'Asunto', message: 'Mensaje', documentIds: 'Adjuntos' } });
+      toast({ kind: 'success', title: sentTitles[kind], message: `Para ${to.join(', ')}` });
       onSent?.(kind);
       onClose();
     } catch (error) {

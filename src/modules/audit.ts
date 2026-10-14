@@ -4,6 +4,8 @@ export const auditActions = {
 } as const;
 export const auditModules: Record<string, string> = { prospectos: 'Prospectos', clientes: 'Clientes', polizas: 'Pólizas', cotizaciones: 'Cotizaciones', pagos: 'Pagos', renovaciones: 'Renovaciones', siniestros: 'Siniestros', actividades: 'Actividades', documentos: 'Documentos', carpetas: 'Carpetas', expedientes: 'Expedientes', productos: 'Productos', entregas: 'Entregas', usuarios: 'Usuarios y accesos', sesiones: 'Sesiones', preferencias: 'Preferencias' };
 auditModules.agenda = 'Agenda y Google Calendar';
+auditModules.avisos = 'Avisos a clientes';
+auditModules.plantillas = 'Plantillas de correo';
 export const auditRoles = { USER: 'Usuario', ADMIN: 'Administrador', SUPERADMIN: 'Superadmin' };
 const optional = <T extends z.ZodType>(schema: T) => z.preprocess(value => value === '' ? undefined : value, schema.optional());
 export const auditFilters = z.object({

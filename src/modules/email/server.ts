@@ -12,7 +12,9 @@ import { readPreferences, type NotificationSettings } from '@/modules/preference
 import { agendaReminders, allowedRecipients, checkRecipients, MAX_ATTACHMENT_BYTES, nextStatus, reminderPlan, teamRecipients, type EmailStatus } from './rules';
 import { agendaReminder, BRAND, claimNotice, clientEmail, prospectNotice, type Rendered } from './templates';
 import type { ComposeInput, ContactInput } from './schema';
-const appUrl = () => (process.env.BETTER_AUTH_URL || 'https://crm.segurosaleyjoel.com').replace(/\/$/, '');
+import { draftFor, type TemplateKind } from './template-text';
+import { markNoticeSent, noticeDraftValues, savedTemplate } from './notices-server';
+export const appUrl = () => (process.env.BETTER_AUTH_URL || 'https://crm.segurosaleyjoel.com').replace(/\/$/, '');
 const privacyUrl = () => process.env.AJ_PRIVACY_URL?.trim() || null;
 const failure = (error: unknown) => error instanceof EmailError ? error.code : 'EMAIL_UNAVAILABLE';
 const isDuplicate = (error: unknown) => (error as { code?: string })?.code === 'P2002';
@@ -25,8 +27,9 @@ export async function emailHistory(clientId: string, take = 20): Promise<EmailHi
   const rows = await getDb().emailMessage.findMany({ where: { clientId }, orderBy: { createdAt: 'desc' }, take, select: { id: true, kind: true, subject: true, to: true, status: true, sentByName: true, attachments: true, createdAt: true, sentAt: true } });
   return rows.map(row => ({ ...row, attachments: Array.isArray(row.attachments) ? row.attachments.flatMap(item => typeof item === 'object' && item && 'name' in item && typeof item.name === 'string' ? [item.name] : []) : [], createdAt: row.createdAt.toISOString(), sentAt: row.sentAt?.toISOString() ?? null }));
 }
-// Everything the composer needs for one client: who can receive, what can be attached and whether a welcome went out.
-export async function emailOptions(clientId: string) {
+// Everything the composer needs for one client: who can receive, what can be attached, whether a welcome went out
+// and the suggested text (the team's template filled with the client's, and the notice's, data).
+export async function emailOptions(clientId: string, { kind, noticeId, actor }: { kind: TemplateKind; noticeId?: string | null; actor: Actor }) {
   const db = getDb();
   const client = await db.client.findUnique({ where: { id: clientId }, select: { id: true, name: true, email: true, contacts: { orderBy: { name: 'asc' }, select: { name: true, email: true, role: true } } } });
   if (!client) throw new EmailError('CLIENT_NOT_FOUND', 404);
@@ -34,8 +37,12 @@ export async function emailOptions(clientId: string) {
     db.document.findMany({ where: { archivedAt: null, OR: [{ clientId }, { policy: { clientId } }, { claim: { policy: { clientId } } }] }, orderBy: { createdAt: 'desc' }, take: 100, select: { id: true, name: true, createdAt: true, policy: { select: { number: true } } } }),
     db.emailMessage.findFirst({ where: { clientId, kind: 'BIENVENIDA', status: { in: ['SENT', 'DELIVERED'] } }, orderBy: { createdAt: 'desc' }, select: { createdAt: true } }),
   ]);
+  const notice = noticeId ? await noticeDraftValues(noticeId, client.id) : null;
+  const draftKind = notice?.kind ?? kind;
+  const draft = draftFor(draftKind, await savedTemplate(draftKind), { cliente: client.name, asesor: actor.name, ...notice?.values });
   return {
     client: { id: client.id, name: client.name, email: client.email },
+    kind: draftKind, draft,
     recipients: allowedRecipients(client, client.contacts),
     documents: documents.map(doc => ({ id: doc.id, name: doc.name, detail: doc.policy ? `Póliza ${doc.policy.number}` : doc.createdAt.toISOString().slice(0, 10) })),
     welcomeSentAt: welcome?.createdAt.toISOString() ?? null,
@@ -77,6 +84,8 @@ export async function sendClientEmail(actor: Actor, input: ComposeInput) {
   const found = input.documentIds.length ? await db.document.findMany({ where: { id: { in: input.documentIds }, ...attachableWhere(client.id) }, select: { id: true, name: true, storageKey: true } }) : [];
   const documents = input.documentIds.map(id => found.find(doc => doc.id === id)).filter(doc => doc !== undefined);
   if (documents.length !== input.documentIds.length || documents.some(doc => !isManagedKey(doc.storageKey))) throw new EmailError('EMAIL_DOCUMENT_NOT_ALLOWED', 422);
+  // From Avisos: the notice must still be waiting for this client.
+  if (input.noticeId) await noticeDraftValues(input.noticeId, client.id);
   const { config, client: resend } = getResend();
   const files = await attachmentsFor(documents);
   const rendered = clientEmail({ subject: input.subject, message: input.message, senderName: actor.name, attachments: documents.map(doc => doc.name), privacyUrl: privacyUrl() });
@@ -84,6 +93,7 @@ export async function sendClientEmail(actor: Actor, input: ComposeInput) {
   try {
     const resendId = await resend.send({ from: sender(config.from, `${actor.name} · ${BRAND}`), to, subject: rendered.subject, html: rendered.html, text: rendered.text, replyTo: actor.email, idempotencyKey: `email-${row.id}`, attachments: files, tags: [{ name: 'kind', value: input.kind }] });
     const saved = await db.emailMessage.update({ where: { id: row.id }, data: { status: 'SENT', resendId, sentAt: new Date() } });
+    if (input.noticeId) await markNoticeSent(actor, input.noticeId, client.id, row.id);
     await recordEvent(actor, 'emailed', 'clientes', client.id, client.name, { kind: input.kind, subject: rendered.subject, recipients: to.length, attachments: documents.length });
     return saved;
   } catch (error) {
@@ -123,24 +133,25 @@ export async function deleteContact(actor: Actor, clientId: string, contactId: s
   await recordEvent(actor, 'updated', 'clientes', client.id, client.name, { contact: 'removed' });
 }
 
-// Automatic emails to teammates: one per recipient, deduplicated so a retry never repeats them.
-async function preferencesOf(emails: string[]) {
+// Automatic emails to teammates: one per recipient, deduplicated so a retry never repeats them (false = already sent).
+export async function preferencesOf(emails: string[]) {
   const rows = emails.length ? await getDb().userPreference.findMany({ where: { email: { in: emails } }, select: { email: true, data: true } }) : [];
   const byEmail = new Map(rows.map(row => [row.email.toLowerCase(), readPreferences(row.data).notifications]));
   return (email: string): NotificationSettings => byEmail.get(email) ?? readPreferences(null).notifications;
 }
-async function operators() {
+export async function operators() {
   return getDb().accessGrant.findMany({ where: { enabled: true, role: { in: ['ADMIN', 'SUPERADMIN'] } }, select: { email: true, role: true, enabled: true } });
 }
-async function sendTeamNotice(config: ResendConfig, notice: { kind: string; dedupeKey: string; to: string; rendered: Rendered; recordModule?: string; recordId?: string }) {
+export async function sendTeamNotice(config: ResendConfig, notice: { kind: string; dedupeKey: string; to: string; rendered: Rendered; recordModule?: string; recordId?: string }) {
   const db = getDb();
   let row;
   try { row = await db.emailMessage.create({ data: { kind: notice.kind, dedupeKey: notice.dedupeKey, to: [notice.to], subject: notice.rendered.subject, recordModule: notice.recordModule, recordId: notice.recordId, sentByName: 'Sistema AJ' } }); }
-  catch (error) { if (isDuplicate(error)) return; throw error; }
+  catch (error) { if (isDuplicate(error)) return false; throw error; }
   try {
     const resendId = await createResend(config).send({ from: sender(config.from, 'Sistema AJ'), to: [notice.to], subject: notice.rendered.subject, html: notice.rendered.html, text: notice.rendered.text, idempotencyKey: `email-${row.id}`, tags: [{ name: 'kind', value: notice.kind }] });
     await db.emailMessage.update({ where: { id: row.id }, data: { status: 'SENT', resendId, sentAt: new Date() } });
   } catch (error) { await db.emailMessage.update({ where: { id: row.id }, data: { status: 'FAILED', error: failure(error) } }).catch(() => undefined); }
+  return true;
 }
 // Runs after the response (next/server `after`), so a slow or failing email never delays or breaks the save.
 export async function notifyNewProspect(prospectId: string, actor: Actor) {

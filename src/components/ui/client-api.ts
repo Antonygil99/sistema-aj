@@ -49,6 +49,8 @@ export const errorMessages: Record<string, string> = {
   EMAIL_DOCUMENT_NOT_ALLOWED: 'Uno de los archivos ya no está disponible o pertenece a otro expediente.',
   EMAIL_DOCUMENT_UNAVAILABLE: 'No se pudo leer uno de los archivos del almacenamiento.',
   EMAIL_ATTACHMENTS_TOO_LARGE: 'Los adjuntos superan 20 MB en total. Envía menos archivos.',
+  NOTICE_NOT_FOUND: 'El aviso ya no existe. Actualiza la página.',
+  NOTICE_ALREADY_RESOLVED: 'Alguien ya resolvió este aviso. Actualiza la página.',
   CONTACT_NOT_FOUND: 'El contacto ya no existe. Actualiza la página.',
   STORAGE_NOT_CONFIGURED: 'El almacenamiento de archivos no está disponible.',
   CLIENT_NOT_FOUND: 'El cliente ya no existe. Actualiza la página.',

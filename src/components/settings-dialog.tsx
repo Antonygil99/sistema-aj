@@ -11,7 +11,7 @@ const themes: { value: Theme; label: string; Icon: typeof Sun1 }[] = [
   { value: 'system', label: 'Según el dispositivo', Icon: Monitor },
   { value: 'gradient', label: 'Gradiente', Icon: Colorfilter },
 ];
-type SwitchKey = keyof Pick<NotificationSettings, 'team' | 'toasts' | 'payments' | 'renewals' | 'followUps' | 'emailProspects' | 'emailClaims' | 'emailAgenda'>;
+type SwitchKey = keyof Pick<NotificationSettings, 'team' | 'toasts' | 'payments' | 'renewals' | 'followUps' | 'emailProspects' | 'emailClaims' | 'emailAgenda' | 'emailDigest'>;
 const notificationOptions: { key: SwitchKey; label: string; hint: string }[] = [
   { key: 'team', label: 'Actividad del equipo', hint: 'Lo que tus compañeros registran, editan o suben.' },
   { key: 'toasts', label: 'Avisos emergentes', hint: 'Un aviso en pantalla cuando llega una novedad del equipo.' },
@@ -21,6 +21,7 @@ const notificationOptions: { key: SwitchKey; label: string; hint: string }[] = [
 ];
 // Sent by Sistema AJ to the address you sign in with (src/modules/email).
 const emailOptions: { key: SwitchKey; label: string; hint: string }[] = [
+  { key: 'emailDigest', label: 'Resumen diario', hint: 'Cada mañana: tu agenda, avisos por revisar, renovaciones, recibos, seguimientos y siniestros abiertos.' },
   { key: 'emailProspects', label: 'Prospectos nuevos', hint: 'Un correo cuando entra un prospecto a tu cargo o sin responsable que no registraste tú.' },
   { key: 'emailClaims', label: 'Siniestros nuevos', hint: 'Un correo cuando se registra un siniestro de una póliza a tu cargo o sin responsable.' },
   { key: 'emailAgenda', label: 'Recordatorios de agenda', hint: 'Tus reuniones: un día antes, a las 8:00 del mismo día y 10 minutos antes.' },

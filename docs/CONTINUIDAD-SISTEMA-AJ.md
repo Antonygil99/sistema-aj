@@ -184,7 +184,7 @@ npm run check
 | IA | Cinco agentes definidos y selección determinista por tema. Sin proveedor/modelo/runtime ejecutándose |
 | Método AJ | Falta documentación de fases, guiones, criterios, escalamiento y decisiones aprobadas |
 | Google Drive | Pendiente; autorización adicional a login, acceso limitado a archivos seleccionados/creados para el CRM |
-| Resend | Fase 1 activa: contactos por cliente, envío de documentos y bienvenida con clic y vista previa, historial con estado de entrega, avisos al equipo de prospectos y siniestros nuevos y recordatorios de agenda programados. Falta configurar el webhook de estados en Resend y la fase 2 (siniestros abiertos, resumen diario, avisos de renovación y pago con aprobación) |
+| Resend | Fase 1 activa: contactos por cliente, envío de documentos y bienvenida con clic y vista previa, historial con estado de entrega, avisos al equipo de prospectos y siniestros nuevos y recordatorios de agenda programados. Fase 2 activa: Avisos a clientes (renovación 30/20/10, pago 20/10/0, siniestro semanal) con envío con clic o registro de otro medio, plantillas editables y resumen diario del equipo. Webhook de estados configurado. Limitante: pocos clientes con correo y recibos sin cargar |
 | Dominio | Conectado a Vercel y disponible por HTTPS |
 
 Agentes previstos: coordinador/Método AJ, ventas, siniestros, renovaciones y administrativo. El coordinador reúne contexto y deriva. Agentes proponen borradores y herramientas con permisos limitados; aprobación humana para comunicaciones, emisión, cambios sensibles y movimientos financieros. No darles acceso directo a Prisma o shell. Entradas WhatsApp y documentos son datos no confiables. `eve` está previsto en el contrato actual, no instalado; revisar arquitectura y documentación vigente antes de elegir o activar el runtime.
@@ -197,7 +197,7 @@ Agentes previstos: coordinador/Método AJ, ventas, siniestros, renovaciones y ad
 4. Completar pagos, renovaciones, siniestros y actividades con reglas de negocio documentadas.
 5. Añadir permisos por expediente, respaldo, retención y controles de abuso. La auditoría CRM básica ya existe en `CrmEvent`; falta una pantalla para consultarla.
 6. Ampliar archivos y conectar Drive opcionalmente por usuario; mantener R2 como repositorio del equipo.
-7. Resend (fase 1 hecha; fase 2 tras conciliar recibos) y luego el primer flujo controlado WhatsApp → captura → derivación humana.
+7. Resend (fases 1 y 2 hechas; completar correos de clientes y conciliar recibos) y luego el primer flujo controlado WhatsApp → captura → derivación humana.
 8. Conectar agentes y Método AJ con evidencia del negocio, trazabilidad y herramientas acotadas.
 
 Antes de editar, revisar el estado de Git y los cambios de Claude u otro colaborador. Preservar archivos existentes; no reinicializar el repositorio, resetear bases, reemplazar configuración de producción ni sembrar demos en la cartera real. Reportar por separado pruebas locales, integración con servicios y validación manual del usuario.
