@@ -7,7 +7,7 @@ export const viewOptions = {
   prospectos: ['board', 'list'],
 } as const;
 export const themeOptions = ['light', 'dark', 'system', 'gradient'] as const;
-// Current Claude models for the future assistants; nothing calls them yet (see docs/arquitectura.md).
+// Claude models the assistants can use (src/agents/server.ts reads the user's choice).
 export const assistantModels = [
   { id: 'claude-opus-5-5', label: 'Claude Opus 5.5', summary: 'Recomendado: el más completo para el trabajo diario del equipo.' },
   { id: 'claude-sonnet-5-5', label: 'Claude Sonnet 5.5', summary: 'Equilibrado: rápido y capaz para tareas frecuentes.' },

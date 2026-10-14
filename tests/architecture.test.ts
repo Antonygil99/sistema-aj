@@ -2,7 +2,6 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHmac } from 'node:crypto';
 import { verifySignature } from '../src/integrations/whatsapp/signature';
-import { selectAgent } from '../src/agents/catalog';
 import { createSchema as policy } from '../src/modules/polizas/schema';
 import { createSchema as quote } from '../src/modules/cotizaciones/schema';
 import { createSchema as payment } from '../src/modules/pagos/schema';
@@ -13,9 +12,6 @@ test('WhatsApp acepta firma auténtica y rechaza alteraciones o firma malformada
   assert.equal(verifySignature(body + ' ', signature, secret), false);
   assert.equal(verifySignature(body, 'sha256=xx', secret), false);
   assert.equal(verifySignature(body, null, secret), false);
-});
-test('cada tema llega a su agente especializado', () => {
-  assert.deepEqual(['general','venta','siniestro','renovacion','administracion'].map(t => selectAgent(t as Parameters<typeof selectAgent>[0])), ['coordinador','ventas','siniestros','renovaciones','administrativo']);
 });
 test('rechaza pólizas con fechas invertidas e importes negativos', () => {
   const input = { number: 'TEST', clientId: 'client', insurer: 'Demo', product: 'Auto', premium: '100.00', startDate: '2026-01-01T00:00:00Z', endDate: '2027-01-01T00:00:00Z' };

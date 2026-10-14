@@ -12,7 +12,7 @@ Meta → firma y validación → WebhookEvent persistente → futuro worker → 
 
 Inbox: hash único deduplica entregas idénticas. processedAt queda vacío hasta implementar consumidor. La siguiente etapa debe usar IDs de Meta para deduplicar eventos semánticamente y una cola durable con reintentos. AgentRun reserva trazabilidad del runtime; no se generan ejecuciones falsas en esta base.
 
-eve es el runtime previsto para sesiones durables. Antes de implementarlo, inicializarlo en una carpeta independiente de la aplicación existente y leer la documentación de la versión instalada. El adaptador implementará AgentRuntime y expondrá solo herramientas expresamente permitidas. Nunca otorgar acceso directo al cliente Prisma o shell a un LLM. Credenciales y datos privados permanecen del lado servidor.
+Los ocho asistentes de la Ruta AJ ya funcionan dentro del CRM con la API de Anthropic y herramientas acotadas que solo leen o proponen (docs/asistentes.md). eve es el runtime previsto para sesiones durables. Antes de implementarlo, inicializarlo en una carpeta independiente de la aplicación existente y leer la documentación de la versión instalada. El adaptador implementará AgentRuntime y expondrá solo herramientas expresamente permitidas. Nunca otorgar acceso directo al cliente Prisma o shell a un LLM. Credenciales y datos privados permanecen del lado servidor.
 
 ## Método AJ
 

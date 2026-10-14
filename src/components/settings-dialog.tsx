@@ -67,7 +67,7 @@ export function SettingsDialog({ open, section, onClose }: { open: boolean; sect
       {emailOptions.map(option => <SwitchRow key={option.key} label={option.label} hint={option.hint} checked={preferences.notifications[option.key]} onChange={next => update({ notifications: { [option.key]: next } })}/>)}
     </Section>
     <Section id="asistentes" title="Asistentes de IA">
-      <p className="settings-note">Los asistentes todavía no están activos. El modelo que elijas se usará cuando se conecten.</p>
+      <p className="settings-note">El modelo con el que responden tus asistentes (Asistentes, en el menú). Opus es el recomendado; Haiku es el más rápido y económico.</p>
       <fieldset className="model-list"><legend className="sr-only">Modelo de los asistentes</legend>
         {assistantModels.map(model => <label key={model.id} className="model-option">
           <input type="radio" name={modelName} value={model.id} checked={preferences.assistantModel === model.id} onChange={() => update({ assistantModel: model.id })}/>

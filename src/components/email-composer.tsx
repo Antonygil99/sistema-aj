@@ -13,7 +13,7 @@ import { useToast } from './ui/toast';
 type Options = { client: { id: string; name: string; email: string | null }; kind: ClientEmailKind; draft: { subject: string; message: string }; recipients: Recipient[]; documents: { id: string; name: string; detail: string }[]; welcomeSentAt: string | null; configured: boolean };
 // What opens the composer: the kind of email, the client (or null to pick one), files chosen beforehand and, from
 // Avisos, the notice it answers (its data fills the suggested text and sending marks it as sent).
-export type ComposerRequest = { kind: ClientEmailKind; clientId: string | null; clientName?: string; documents?: { id: string; name: string }[]; noticeId?: string };
+export type ComposerRequest = { kind: ClientEmailKind; clientId: string | null; clientName?: string; documents?: { id: string; name: string }[]; noticeId?: string; draft?: { subject: string; message: string } };
 type Errors = Partial<Record<'client' | 'to' | 'subject' | 'message', string>>;
 const titles: Record<ClientEmailKind, string> = { DOCUMENTOS: 'Enviar documentos por correo', BIENVENIDA: 'Enviar bienvenida', RENOVACION: 'Aviso de renovación', PAGO: 'Recordatorio de pago', SINIESTRO: 'Seguimiento de siniestro' };
 const sentTitles: Record<ClientEmailKind, string> = { DOCUMENTOS: 'Correo enviado', BIENVENIDA: 'Bienvenida enviada', RENOVACION: 'Aviso de renovación enviado', PAGO: 'Recordatorio enviado', SINIESTRO: 'Seguimiento enviado' };
@@ -59,12 +59,13 @@ export function EmailComposer({ request, senderName, onClose, onSent }: { reques
         if (!active) return;
         setOptions(data);
         setTo(data.recipients.filter(recipient => recipient.label === 'Cliente').map(recipient => recipient.email));
-        setSubject(data.draft.subject); setMessage(data.draft.message);
+        const draft = request?.draft ?? data.draft;
+        setSubject(draft.subject); setMessage(draft.message);
       })
       .catch(error => { if (active) toast({ kind: 'error', title: 'No se pudo preparar el correo', message: error instanceof Error ? error.message : undefined }); })
       .finally(() => { if (active) setLoadFor(null); });
     return () => { active = false; };
-  }, [loadFor, kind, request?.noticeId, toast]);
+  }, [loadFor, kind, request?.noticeId, request?.draft, toast]);
   // Files chosen before opening that are not the client's own (team files) are listed first.
   const files = useMemo(() => {
     const own = options?.documents ?? [];

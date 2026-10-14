@@ -158,7 +158,7 @@ Variables del servidor (nombres, sin valores):
 | Accesos | `AJ_SUPERADMIN_EMAIL`, `AJ_ADMIN_EMAILS`, `AJ_API_TOKEN` opcional interno |
 | R2 | `R2_BUCKET_NAME`, `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` |
 | Meta | `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_API_VERSION` |
-| IA futura | `AI_GATEWAY_API_KEY`, `AJ_AGENT_MODEL` (reservadas; no ejecutan IA actualmente) |
+| Asistentes IA | `ANTHROPIC_API_KEY` (API de Anthropic; el modelo lo elige cada persona en Preferencias) |
 
 Google, la base y R2 están guardados en Vercel Production; una variable sensible no se puede recuperar con el acceso actual. Para desarrollo local se necesitan valores privados en `.env`, o servicios locales. No publicar secretos ni usar `NEXT_PUBLIC_` para ellos.
 
@@ -181,7 +181,7 @@ npm run check
 | Ayuda y preferencias | Centro de ayuda en el menú de cuenta con recorridos guiados por módulo y componente (automáticos opcionales). Preferencias por persona: tema claro, oscuro, según el dispositivo o «Gradiente» (degradado granulado con color base #FC66FF y barra de solo íconos con tooltips; interruptor rápido de modo oscuro en el menú de cuenta), tipos de notificación, modelo de los asistentes (se guarda; la IA aún no está activa) y vistas recordadas en Clientes, Prospectos y Documentos. Las notificaciones se abren bajo la campana y se pueden limpiar. Reportes aparece como «Próximamente» |
 | Dashboard | Métricas reales con filtro por responsable; faltan tiempos de respuesta y casos convertidos en contenido |
 | WhatsApp | Verificación, HMAC e inbox idempotente por payload. Falta worker, deduplicación por ID Meta, consentimiento, plantillas parametrizadas y pruebas reales |
-| IA | Cinco agentes definidos y selección determinista por tema. Sin proveedor/modelo/runtime ejecutándose |
+| IA | Ocho asistentes de la Ruta AJ en /asistentes con Claude (API de Anthropic): consultan el CRM con herramientas acotadas y proponen acciones que una persona confirma. Falta `ANTHROPIC_API_KEY` en producción, WhatsApp conectado y los guiones del Método AJ. Ver docs/asistentes.md |
 | Método AJ | Falta documentación de fases, guiones, criterios, escalamiento y decisiones aprobadas |
 | Google Drive | Pendiente; autorización adicional a login, acceso limitado a archivos seleccionados/creados para el CRM |
 | Resend | Fase 1 activa: contactos por cliente, envío de documentos y bienvenida con clic y vista previa, historial con estado de entrega, avisos al equipo de prospectos y siniestros nuevos y recordatorios de agenda programados. Fase 2 activa: Avisos a clientes (renovación 30/20/10, pago 20/10/0, siniestro semanal) con envío con clic o registro de otro medio, plantillas editables y resumen diario del equipo. Webhook de estados configurado. Limitante: pocos clientes con correo y recibos sin cargar |
