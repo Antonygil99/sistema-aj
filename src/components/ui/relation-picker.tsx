@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useId, useRef, useState } from 'react';
-import { CloseCircle, SearchNormal1 } from 'iconsax-reactjs';
+import { CloseCircle, SearchNormal1 } from '@/components/icons';
 import { relationLabel, type RelationSlug, type Row } from '@/modules/resources/config';
 import { apiFetch } from './client-api';
 // Searchable combobox over another CRM table (clients, policies, prospects, claims).

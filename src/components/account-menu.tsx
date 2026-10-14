@@ -2,7 +2,7 @@
 import { useEffect, useId, useRef, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { ArrowRight2, Chart, MessageQuestion, Moon, Setting2, UserOctagon } from 'iconsax-reactjs';
+import { ArrowRight2, Chart, MessageQuestion, Moon, Setting2, UserOctagon } from '@/components/icons';
 import { Avatar } from './ui/avatar';
 import { SignOutButton } from './sign-out-button';
 import { useAccountPanels } from './ui/account-panels';

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowDown2, ArrowRight, ArrowUp2, Calendar, Add, Danger, MagicStar, Minus } from 'iconsax-reactjs';
+import { ArrowDown2, ArrowRight, ArrowUp2, Calendar, Add, Danger, MagicStar, Minus } from '@/components/icons';
 import { modules } from '@/modules/catalog';
 import { agents } from '@/agents/catalog';
 import type { DashboardMetrics } from '@/modules/metrics/server';

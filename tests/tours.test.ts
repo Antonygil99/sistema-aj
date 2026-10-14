@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { modules } from '../src/modules/catalog';
-import { preferencesPatch } from '../src/modules/preferences';
+import { preferencesPatch } from '../src/modules/preferences-schema';
 import { canSeeTour, tourById, tourForPath, tours } from '../src/modules/help/tours';
 
 test('cada módulo del menú tiene su recorrido guiado', () => {

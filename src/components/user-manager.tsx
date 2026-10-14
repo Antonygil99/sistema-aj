@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Add } from 'iconsax-reactjs';
+import { Add } from '@/components/icons';
 import { FcGoogle } from 'react-icons/fc';
 import { Avatar } from './ui/avatar';
 import { apiFetch } from './ui/client-api';

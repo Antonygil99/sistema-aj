@@ -1,4 +1,4 @@
-import { Folder2, RowVertical } from 'iconsax-reactjs';
+import { Folder2, RowVertical } from '@/components/icons';
 import { ViewLink } from './ui/view-link';
 // Clients open as dossiers or as the editable list; the same switch sits in both toolbars and remembers the choice.
 export function ClientViewSwitch({ current }: { current: 'dossiers' | 'list' }) {

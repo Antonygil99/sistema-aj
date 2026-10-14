@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { authenticate, apiError } from '@/lib/api';
-import { preferencesPatch } from '@/modules/preferences';
+import { preferencesPatch } from '@/modules/preferences-schema';
 import { savePreferences } from '@/modules/preferences-server';
 import { recordEvent } from '@/modules/events';
 export const runtime = 'nodejs';

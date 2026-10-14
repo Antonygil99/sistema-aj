@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import Link from 'next/link';
-import { Add, Archive, ArrowRight, ArrowRotateLeft, Category, Edit2, Eye, MessageText, Refresh2, RowVertical, SearchNormal1, Trash } from 'iconsax-reactjs';
+import { Add, Archive, ArrowRight, ArrowRotateLeft, Category, Edit2, Eye, MessageText, Refresh2, RowVertical, SearchNormal1, Trash } from '@/components/icons';
 import { currencies, formToBody, resources, rowToForm, type Field, type ResourceSlug, type Row, type Tone } from '@/modules/resources/config';
 import { apiFetch, ApiError } from './ui/client-api';
 import { useConfirm } from './ui/confirm';

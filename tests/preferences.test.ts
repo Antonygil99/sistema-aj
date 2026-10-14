@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultPreferences, isViewKey, mergePreferences, preferencesPatch, readPreferences } from '../src/modules/preferences';
+import { defaultPreferences, isViewKey, mergePreferences, readPreferences } from '../src/modules/preferences';
+import { preferencesPatch } from '../src/modules/preferences-schema';
 import { feedView } from '../src/modules/notifications';
 
 test('las preferencias guardadas conservan solo valores válidos', () => {

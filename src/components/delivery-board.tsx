@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Calendar, Danger, MessageText, TickCircle } from 'iconsax-reactjs';
+import { Calendar, Danger, MessageText, TickCircle } from '@/components/icons';
 import { checklist, completedChecks, followUpSchedule, followUps, stages, type ChecklistField, type DeliveryCard, type FollowUpKind } from '@/modules/polizas/delivery';
 import { formatDate } from '@/modules/resources/config';
 import { apiFetch, ApiError } from './ui/client-api';

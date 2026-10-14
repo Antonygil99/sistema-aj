@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Category, Chart, DocumentText, Element3, FolderOpen, MessageQuestion, Moon, People, Setting2, UserAdd, UserOctagon } from 'iconsax-reactjs';
+import { Category, Chart, DocumentText, Element3, FolderOpen, MessageQuestion, Moon, People, Setting2, UserAdd, UserOctagon } from '@/components/icons';
 import { modules, type ModuleSlug } from '@/modules/catalog';
 import { moduleIcons } from '../module-icons';
 import { SignOutButton } from '../sign-out-button';

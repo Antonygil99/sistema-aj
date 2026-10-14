@@ -1,0 +1,15 @@
+# Mantiene despierta la base de datos: Prisma Postgres se suspende tras un rato sin uso y la primera consulta
+# tarda varios segundos. Cada 5 minutos, en horario de trabajo (Ciudad de México, UTC-6), hace una consulta mínima.
+name: Mantener la base despierta
+on:
+  schedule:
+    - cron: '*/5 0-4,12-23 * * *' # 06:00 a 22:59 en la Ciudad de México
+  workflow_dispatch:
+permissions: {}
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Consultar /api/health?db=1
+        run: curl --fail --silent --show-error --max-time 45 --retry 2 "https://crm.segurosaleyjoel.com/api/health?db=1"

@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type DragEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Add, Archive, ArrowRight3, Category, DocumentDownload, DocumentText, DocumentUpload, Edit2, Folder2, FolderOpen, More, RowVertical, Trash } from 'iconsax-reactjs';
+import { Add, Archive, ArrowRight3, Category, DocumentDownload, DocumentText, DocumentUpload, Edit2, Folder2, FolderOpen, More, RowVertical, Trash } from '@/components/icons';
 import { apiFetch } from './ui/client-api';
 import { useConfirm } from './ui/confirm';
 import { EmptyState } from './ui/empty-state';

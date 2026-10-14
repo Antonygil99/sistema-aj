@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Add, Folder2, FolderOpen, SearchNormal1 } from 'iconsax-reactjs';
+import { Add, Folder2, FolderOpen, SearchNormal1 } from '@/components/icons';
 import { getDb } from '@/lib/db';
 import { requireUser } from '@/lib/session';
 import { hasRole } from '@/lib/access-policy';

@@ -1,5 +1,5 @@
-import type { Icon as IconType } from 'iconsax-reactjs';
-import { Box, Calculator, CalendarTick, Card, ClipboardTick, FolderOpen, Refresh2, ShieldTick, Warning2, UserAdd, People } from 'iconsax-reactjs';
+import type { Icon as IconType } from '@/components/icons';
+import { Box, Calculator, CalendarTick, Card, ClipboardTick, FolderOpen, Refresh2, ShieldTick, Warning2, UserAdd, People } from '@/components/icons';
 import type { ModuleSlug } from '@/modules/catalog';
 export const moduleIcons: Record<ModuleSlug, IconType> = {
   prospectos: UserAdd,

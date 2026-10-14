@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { CloseCircle } from 'iconsax-reactjs';
+import { CloseCircle } from '@/components/icons';
 import { gsap, growFrom, isMobile, prefersReducedMotion, shrinkTo } from './motion';
 import { useDrag } from './use-drag';
 type Props = {

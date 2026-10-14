@@ -362,3 +362,23 @@
 .workspace .audit-filters input{font:inherit;border:1px solid var(--c-eceff0);background:var(--c-ffffff);border-radius:11px;min-height:38px;padding:0 12px;color:var(--c-3f494e)}
 .workspace .audit-detail{max-width:380px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
 .workspace .audit-pagination{justify-content:center;margin-top:20px}
+
+/* Pantallas de carga (loading.tsx): la estructura de la siguiente pantalla aparece al instante al navegar */
+.workspace .page-skeleton{display:block}
+.workspace .skeleton{display:block;border-radius:10px;background:var(--c-e8ecea);animation:skeleton-pulse 1.1s ease-in-out infinite alternate}
+@keyframes skeleton-pulse{from{opacity:.55}to{opacity:1}}
+.workspace .skeleton.is-line{height:12px;border-radius:6px}
+.workspace .skeleton.is-title{height:34px;border-radius:10px}
+.workspace .skeleton.is-card{height:132px;border-radius:20px}
+.workspace .skeleton.is-panel{height:340px;border-radius:22px}
+.workspace .skeleton.is-panel.is-short{height:160px}
+.workspace .skeleton.is-pill{height:36px;border-radius:999px}
+.workspace .skeleton.is-input{height:42px;margin-bottom:16px;border-radius:12px}
+.workspace .skeleton-heading{display:grid;gap:12px;margin-bottom:28px}
+.workspace .skeleton-row.is-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.workspace .skeleton-columns{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:18px}
+.workspace .skeleton-stack{display:grid;gap:18px}
+.workspace .skeleton-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:14px}.workspace .skeleton-toolbar .is-end{margin-left:auto}
+.workspace .skeleton-table{display:grid;border:1px solid var(--c-e9edeb);border-radius:18px;background:var(--c-ffffff);overflow:hidden}
+.workspace .skeleton-table-row{display:flex;align-items:center;gap:6%;padding:18px 20px;border-top:1px solid var(--c-eef1ef)}.workspace .skeleton-table-row:first-child{border-top:0}
+@media(max-width:760px){.workspace .skeleton-row.is-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.workspace .skeleton-columns{grid-template-columns:1fr}.workspace .skeleton-toolbar .is-end{display:none}}

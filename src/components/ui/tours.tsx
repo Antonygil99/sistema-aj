@@ -1,8 +1,7 @@
 'use client';
-import 'driver.js/dist/driver.css';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { driver, type Driver, type DriveStep } from 'driver.js';
+import type { Driver, DriveStep } from 'driver.js';
 import { canSeeTour, tourById, tourForPath, type Tour } from '@/modules/help/tours';
 import { usePreferences } from './preferences';
 import { useToast } from './toast';
@@ -54,6 +53,8 @@ export function TourProvider({ role, children }: { role: Role; children: ReactNo
     active.current?.destroy();
     const steps = await resolveSteps(tour);
     if (!steps.length) { toast({ kind: 'info', title: 'Nada que señalar todavía', message: 'Este recorrido necesita registros en pantalla. Inténtalo de nuevo cuando haya datos.' }); return; }
+    // driver.js (and its CSS) only downloads the first time a tour runs.
+    const { driver } = await import('./tour-engine');
     const instance: Driver = driver({
       steps, showProgress: steps.length > 1, progressText: '{{current}} de {{total}}',
       nextBtnText: 'Siguiente', prevBtnText: 'Anterior', doneBtnText: 'Listo',

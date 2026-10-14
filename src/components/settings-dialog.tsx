@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useId, type ReactNode } from 'react';
-import { Colorfilter, Monitor, Moon, Sun1 } from 'iconsax-reactjs';
+import { Colorfilter, Monitor, Moon, Sun1 } from '@/components/icons';
 import { assistantModels, type NotificationSettings, type Theme } from '@/modules/preferences';
 import { Modal } from './ui/modal';
 import { usePreferences } from './ui/preferences';

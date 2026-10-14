@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ArrowRight3, Category, DocumentText, SidebarLeft, SidebarRight, UserOctagon } from 'iconsax-reactjs';
+import { ArrowRight3, Category, DocumentText, SidebarLeft, SidebarRight, UserOctagon } from '@/components/icons';
 import { modules, type ModuleSlug } from '@/modules/catalog';
 import { moduleIcons } from './module-icons';
 import { AccountMenu, type AccountUser } from './account-menu';

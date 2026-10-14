@@ -1,6 +1,6 @@
-import { z } from 'zod';
-// Per-user UI preferences: views, guided tours, theme, notifications and the assistants' model. Pure, shared by
-// the API, the server pages and the browser (unit tested in tests/preferences.test.ts).
+// Per-user UI preferences: views, guided tours, theme, notifications and the assistants' model. Pure and free of
+// zod, because the browser loads it on every screen; the API validates patches with preferences-schema.ts
+// (both unit tested in tests/preferences.test.ts).
 export const viewOptions = {
   clientes: ['dossiers', 'list'],
   documentos: ['grid', 'list'],
@@ -20,22 +20,22 @@ export type Theme = (typeof themeOptions)[number];
 export type AssistantModel = (typeof assistantModels)[number]['id'];
 export type NotificationSettings = { team: boolean; toasts: boolean; payments: boolean; renewals: boolean; followUps: boolean; clearedAt: string | null; clearedReminders: string | null };
 export type Preferences = { views: { [K in ViewKey]?: ViewValue<K> }; tours: { enabled: boolean; seen: string[] }; theme: Theme; notifications: NotificationSettings; assistantModel: AssistantModel };
+export type PreferencesPatch = {
+  views?: Preferences['views'];
+  resetViews?: true;
+  tours?: { enabled?: boolean; seen?: string[] };
+  theme?: Theme;
+  notifications?: Partial<NotificationSettings>;
+  assistantModel?: AssistantModel;
+};
 const defaultNotifications: NotificationSettings = { team: true, toasts: true, payments: true, renewals: true, followUps: true, clearedAt: null, clearedReminders: null };
 export const defaultPreferences: Preferences = { views: {}, tours: { enabled: false, seen: [] }, theme: 'light', notifications: defaultNotifications, assistantModel: 'claude-opus-5-5' };
-const MAX_SEEN = 100;
-const tourId = z.string().regex(/^[a-z0-9:-]{1,60}$/);
-const timestamp = z.iso.datetime({ offset: true });
-const reminderKey = z.string().regex(/^[0-9:-]{1,60}$/);
-const modelIds = assistantModels.map(model => model.id) as [AssistantModel, ...AssistantModel[]];
-export const preferencesPatch = z.object({
-  views: z.object({ clientes: z.enum(viewOptions.clientes), documentos: z.enum(viewOptions.documentos), prospectos: z.enum(viewOptions.prospectos) }).partial().strict().optional(),
-  resetViews: z.literal(true).optional(),
-  tours: z.object({ enabled: z.boolean().optional(), seen: z.array(tourId).max(MAX_SEEN).optional() }).strict().optional(),
-  theme: z.enum(themeOptions).optional(),
-  notifications: z.object({ team: z.boolean(), toasts: z.boolean(), payments: z.boolean(), renewals: z.boolean(), followUps: z.boolean(), clearedAt: timestamp.nullable(), clearedReminders: reminderKey.nullable() }).partial().strict().optional(),
-  assistantModel: z.enum(modelIds).optional(),
-}).strict();
-export type PreferencesPatch = z.infer<typeof preferencesPatch>;
+export const MAX_SEEN = 100;
+export const TOUR_ID = /^[a-z0-9:-]{1,60}$/;
+export const REMINDER_KEY = /^[0-9:-]{1,60}$/;
+const TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/;
+export const isTimestamp = (value: unknown): value is string => typeof value === 'string' && TIMESTAMP.test(value) && !Number.isNaN(Date.parse(value));
+export const modelIds = assistantModels.map(model => model.id) as [AssistantModel, ...AssistantModel[]];
 export function isViewKey(value: string): value is ViewKey { return Object.hasOwn(viewOptions, value); }
 const record = (value: unknown) => typeof value === 'object' && value !== null ? value as Record<string, unknown> : {};
 // Stored JSON may be old or hand-edited: keep each value that is still valid instead of discarding everything.
@@ -48,12 +48,12 @@ export function readPreferences(stored: unknown): Preferences {
     if (typeof choice === 'string' && (viewOptions[key] as readonly string[]).includes(choice)) views[key] = choice;
   }
   const tours = record(value.tours);
-  const seen = Array.isArray(tours.seen) ? tours.seen.filter((item): item is string => tourId.safeParse(item).success) : [];
+  const seen = Array.isArray(tours.seen) ? tours.seen.filter((item): item is string => typeof item === 'string' && TOUR_ID.test(item)) : [];
   const rawNotifications = record(value.notifications);
   const notifications = { ...defaultNotifications };
   for (const key of ['team', 'toasts', 'payments', 'renewals', 'followUps'] as const) if (typeof rawNotifications[key] === 'boolean') notifications[key] = rawNotifications[key] as boolean;
-  if (timestamp.safeParse(rawNotifications.clearedAt).success) notifications.clearedAt = rawNotifications.clearedAt as string;
-  if (reminderKey.safeParse(rawNotifications.clearedReminders).success) notifications.clearedReminders = rawNotifications.clearedReminders as string;
+  if (isTimestamp(rawNotifications.clearedAt)) notifications.clearedAt = rawNotifications.clearedAt;
+  if (typeof rawNotifications.clearedReminders === 'string' && REMINDER_KEY.test(rawNotifications.clearedReminders)) notifications.clearedReminders = rawNotifications.clearedReminders;
   return {
     views: views as Preferences['views'],
     tours: { enabled: tours.enabled === true, seen: [...new Set(seen)].slice(-MAX_SEEN) },

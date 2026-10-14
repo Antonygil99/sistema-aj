@@ -1,5 +1,4 @@
 // Active policy delivery (Ruta de implementación AJ v1, etapas 5–7). Pure and unit tested.
-import { z } from 'zod';
 // "Una póliza emitida no se considera terminada cuando se envía el PDF": these five checks complete it.
 export const checklist = [
   { field: 'deliveryReceived', label: 'Recibió la póliza' },
@@ -60,12 +59,3 @@ export type DeliveryCard = {
   followUps: { id: string; kind: FollowUpKind; status: string; dueDate: string | null }[];
   stage: StageId; completed: boolean; next: ReturnType<typeof nextFollowUp>;
 };
-export const deliveryInput = z.object({
-  expectedUpdatedAt: z.iso.datetime({ offset: true }),
-  deliveredAt: z.iso.date().nullable(),
-  referralPotential: z.boolean(),
-  checks: z.object(Object.fromEntries(checklist.map(item => [item.field, z.boolean()])) as Record<ChecklistField, z.ZodBoolean>).strict(),
-  followUps: z.object(Object.fromEntries(followUps.map(item => [item.kind, z.boolean()])) as Record<FollowUpKind, z.ZodBoolean>).partial().strict().default({}),
-}).strict().superRefine((value, ctx) => {
-  if (!value.deliveredAt && (Object.values(value.checks).some(Boolean) || value.referralPotential)) ctx.addIssue({ code: 'custom', message: 'Primero registra la fecha de entrega.' });
-});

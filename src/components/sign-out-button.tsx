@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Logout } from 'iconsax-reactjs';
+import { Logout } from '@/components/icons';
 import { authClient } from '@/lib/auth-client';
 export function SignOutButton({ className = 'text-button' }: { className?: string }) {
   const router = useRouter();

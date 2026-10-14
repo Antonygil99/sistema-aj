@@ -1,7 +1,7 @@
 'use client';
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { ArrowDown2, ArrowRotateRight, ArrowUp2, CloseCircle, DocumentUpload, TickCircle, Warning2 } from 'iconsax-reactjs';
-import { FILE_TYPES, MAX_FILE_BYTES } from '@/modules/documentos/file-policy';
+import { ArrowDown2, ArrowRotateRight, ArrowUp2, CloseCircle, DocumentUpload, TickCircle, Warning2 } from '@/components/icons';
+import { FILE_TYPES, MAX_FILE_BYTES } from '@/modules/documentos/file-types';
 import { messageFor, signalSecurity } from './client-api';
 import { gsap, prefersReducedMotion } from './motion';
 import { useToast } from './toast';

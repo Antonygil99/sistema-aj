@@ -1,7 +1,7 @@
 'use client';
 import { useCallback,useEffect,useRef,useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight,Refresh2,Danger } from 'iconsax-reactjs';
+import { ArrowRight,Refresh2,Danger } from '@/components/icons';
 import type { ModuleSlug } from '@/modules/catalog';
 import type { ModuleMetrics } from '@/modules/metrics/module-types';
 import type { RadarPage } from '@/modules/metrics/radar';

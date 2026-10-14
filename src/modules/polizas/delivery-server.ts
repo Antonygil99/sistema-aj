@@ -1,7 +1,8 @@
 import 'server-only';
 import { getDb } from '@/lib/db';
 import { ResourceError } from '../resources/rules';
-import { checklist, deliveryInput, deliveryStage, followUps, followUpSchedule, isComplete, isFollowUpKind, nextFollowUp, type DeliveryCard } from './delivery';
+import { deliveryInput } from './delivery-schema';
+import { checklist, deliveryStage, followUps, followUpSchedule, isComplete, isFollowUpKind, nextFollowUp, type DeliveryCard } from './delivery';
 
 const policySelect = {
   id: true, number: true, product: true, insurer: true, updatedAt: true, ownerEmail: true, deliveredAt: true, referralPotential: true,

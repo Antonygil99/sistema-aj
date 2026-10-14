@@ -1,18 +1,7 @@
 import { z } from 'zod';
 
-export const MAX_FILE_BYTES = 4 * 1024 * 1024;
-export const MAX_REQUEST_BYTES = MAX_FILE_BYTES + 64 * 1024;
-export const FILE_TYPES = {
-  'application/pdf': ['pdf'],
-  'image/jpeg': ['jpg', 'jpeg'],
-  'image/png': ['png'],
-  'image/webp': ['webp'],
-  'audio/mpeg': ['mp3'],
-  'audio/ogg': ['ogg'],
-  'audio/wav': ['wav'],
-  'video/mp4': ['mp4'],
-} as const;
-export type FileMime = keyof typeof FILE_TYPES;
+export { MAX_FILE_BYTES, MAX_REQUEST_BYTES, FILE_TYPES, type FileMime } from './file-types';
+import { MAX_FILE_BYTES, MAX_REQUEST_BYTES, FILE_TYPES, type FileMime } from './file-types';
 export class FileError extends Error {
   constructor(public readonly code: string, public readonly status: number) { super(code); }
 }

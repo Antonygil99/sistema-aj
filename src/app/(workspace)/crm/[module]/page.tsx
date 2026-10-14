@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { ModuleKpis } from '@/components/module-kpis';
 import { notFound } from 'next/navigation';
-import { ArrowLeft } from 'iconsax-reactjs';
+import { ArrowLeft } from '@/components/icons';
 import { modules } from '@/modules/catalog';
 import { isResourceSlug } from '@/modules/resources/config';
 import { DocumentsPage } from '@/components/documents-page';

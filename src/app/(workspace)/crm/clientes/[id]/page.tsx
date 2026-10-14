@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { PolicySourceDetails } from '@/components/policy-source-details';
-import { ArrowLeft } from 'iconsax-reactjs';
+import { ArrowLeft } from '@/components/icons';
 import { notFound } from 'next/navigation';
 import { getDb } from '@/lib/db';
 import { requireUser } from '@/lib/session';

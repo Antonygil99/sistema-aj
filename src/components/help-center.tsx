@@ -1,6 +1,6 @@
 'use client';
 import { useId } from 'react';
-import { ArrowRight2, PlayCircle, TickCircle } from 'iconsax-reactjs';
+import { ArrowRight2, PlayCircle, TickCircle } from '@/components/icons';
 import { canSeeTour, tours, type Tour } from '@/modules/help/tours';
 import { Modal } from './ui/modal';
 import { usePreferences } from './ui/preferences';

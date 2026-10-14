@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { Card, CloseCircle, Clock, DocumentText, DocumentUpload, Folder2, FolderAdd, Refresh2, SearchNormal1, Send2, UserOctagon } from 'iconsax-reactjs';
+import { Card, CloseCircle, Clock, DocumentText, DocumentUpload, Folder2, FolderAdd, Refresh2, SearchNormal1, Send2, UserOctagon } from '@/components/icons';
 import { groupResults, kindLabels, type SearchKind, type SearchResult } from '@/modules/search';
 import { moduleIcons } from '../module-icons';
 import { apiFetch } from './client-api';

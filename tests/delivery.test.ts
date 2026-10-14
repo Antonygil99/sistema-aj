@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { checklist, completedChecks, deliveryInput, deliveryStage, followUpSchedule, isComplete, nextFollowUp, type DeliveryState } from '../src/modules/polizas/delivery';
+import { deliveryInput } from '../src/modules/polizas/delivery-schema';
+import { checklist, completedChecks, deliveryStage, followUpSchedule, isComplete, nextFollowUp, type DeliveryState } from '../src/modules/polizas/delivery';
 const none = Object.fromEntries(checklist.map(item => [item.field, false])) as Omit<DeliveryState, 'deliveredAt' | 'referralPotential'>;
 const all = Object.fromEntries(checklist.map(item => [item.field, true])) as Omit<DeliveryState, 'deliveredAt' | 'referralPotential'>;
 const delivered = '2026-10-01T00:00:00.000Z';

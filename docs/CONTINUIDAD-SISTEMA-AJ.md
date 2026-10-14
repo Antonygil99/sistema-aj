@@ -202,7 +202,7 @@ Agentes previstos: coordinador/Método AJ, ventas, siniestros, renovaciones y ad
 
 Antes de editar, revisar el estado de Git y los cambios de Claude u otro colaborador. Preservar archivos existentes; no reinicializar el repositorio, resetear bases, reemplazar configuración de producción ni sembrar demos en la cartera real. Reportar por separado pruebas locales, integración con servicios y validación manual del usuario.
 
-Iconografía del CRM: Iconsax, variante Linear, mediante iconsax-reactjs. Mantener esta familia al añadir controles y módulos. El icono oficial de Google del login permanece sin cambios.
+Iconografía del CRM: Iconsax, variante Linear. Los iconos se importan desde @/components/icons, un archivo generado con npm run icons que solo incluye los iconos usados como SVG en línea (iconsax-reactjs queda como dependencia de desarrollo). Mantener esta familia al añadir controles y módulos y regenerar el archivo al importar un icono nuevo. El icono oficial de Google del login permanece sin cambios.
 
 ## KPIs por módulo y notas de voz del cliente
 

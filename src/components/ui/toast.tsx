@@ -1,7 +1,7 @@
 'use client';
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import { CloseCircle, Danger, InfoCircle, ShieldSecurity, TickCircle, Warning2 } from 'iconsax-reactjs';
+import { CloseCircle, Danger, InfoCircle, ShieldSecurity, TickCircle, Warning2 } from '@/components/icons';
 import { gsap, isMobile, prefersReducedMotion } from './motion';
 import { useDrag } from './use-drag';
 import { messageFor } from './client-api';

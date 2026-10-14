@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useId, useRef, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { Notification, Card, ClipboardTick, Refresh2, Setting2, TickCircle } from 'iconsax-reactjs';
+import { Notification, Card, ClipboardTick, Refresh2, Setting2, TickCircle } from '@/components/icons';
 import { describeEvent, eventHref, feedView, type NotificationEvent, type Reminders } from '@/modules/notifications';
 import { apiFetch, ApiError } from './client-api';
 import { portalTarget } from './modal';
