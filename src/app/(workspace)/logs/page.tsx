@@ -21,7 +21,7 @@ export default async function Logs({ searchParams }: { searchParams: Promise<Sea
   };
   return <>
     <div className="eyebrow">ADMINISTRACIÓN</div><h1>Registro de actividad</h1>
-    <p>Consulta las acciones del equipo, quién las realizó y cuándo. Solo el superadmin puede ver este historial.</p>
+    <p>Consulta las acciones del equipo de los últimos tres días, quién las realizó y cuándo. Los registros más antiguos se eliminan automáticamente. Solo el superadmin puede ver este historial.</p>
     <form action="/logs" className="resource-filters audit-filters">
       <label className="search-field"><span>Buscar persona o registro</span><input name="q" defaultValue={filters.q} placeholder="Nombre, correo o registro" maxLength={120}/></label>
       <label>Acción<select name="action" defaultValue={filters.action ?? ''}><option value="">Todas las acciones</option>{Object.entries(auditActions).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>

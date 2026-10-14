@@ -448,6 +448,7 @@ model AccessAudit {
   change Json
   createdAt DateTime @default(now())
   @@index([actorId, createdAt])
+  @@index([createdAt])
 }
 // Per-user UI preferences (view choices, guided tours). Keyed by the lowercase account email.
 model UserPreference {
