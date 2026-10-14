@@ -276,6 +276,7 @@ model Activity {
   claimId    String?
   claim      Claim? @relation(fields: [claimId], references: [id], onDelete: Restrict)
   archivedAt DateTime?
+  calendarMeetings CalendarMeeting[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   @@index([status, dueDate])
@@ -350,6 +351,45 @@ model AuthUser {
   sessions AuthSession[]
   accounts AuthAccount[]
   audits AccessAudit[]
+  calendarConnection CalendarConnection?
+  calendarMeetings CalendarMeeting[]
+}
+// Google credentials remain encrypted in AuthAccount; calendar ownership always comes from the session.
+model CalendarConnection {
+  userId String @id
+  user AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enabled Boolean @default(true)
+  connectNonce String?
+  connectExpiresAt DateTime?
+  connectedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model CalendarMeeting {
+  id String @id
+  userId String
+  user AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activityId String?
+  activity Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
+  title String
+  description String @default("")
+  location String @default("")
+  startAt DateTime
+  endAt DateTime
+  attendees Json @default("[]")
+  reminderMinutes Int?
+  reminderMethod String @default("popup")
+  useDefaultReminders Boolean @default(false)
+  googleMeet Boolean @default(false)
+  notifyGuests Boolean @default(false)
+  // PENDING -> SYNCED -> CANCEL_PENDING -> CANCELLED; retry uses the same Google event ID.
+  status String @default("PENDING")
+  googleEventId String @unique
+  googleUrl String?
+  meetUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([userId, startAt])
+  @@index([activityId])
 }
 model AuthSession {
   id String @id

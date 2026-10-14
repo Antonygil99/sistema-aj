@@ -37,11 +37,11 @@ function createAuth() {
     emailAndPassword: { enabled: false },
     user: { modelName: 'authUser', changeEmail: { enabled: false }, deleteUser: { enabled: false } },
     session: { modelName: 'authSession', expiresIn: 60 * 60 * 24, updateAge: 60 * 60, cookieCache: { enabled: false } },
-    account: { modelName: 'authAccount', accountLinking: { enabled: false }, encryptOAuthTokens: true },
+    account: { modelName: 'authAccount', accountLinking: { enabled: true, trustedProviders: ['google'], allowDifferentEmails: false }, encryptOAuthTokens: true },
     verification: { modelName: 'authVerification' },
     rateLimit: { enabled: true, storage: 'database', modelName: 'authRateLimit', window: 60, max: 60 },
     socialProviders: {
-      google: { clientId: process.env.GOOGLE_CLIENT_ID!, clientSecret: process.env.GOOGLE_CLIENT_SECRET!, prompt: 'select_account', accessType: 'online', includeGrantedScopes: false },
+      google: { clientId: process.env.GOOGLE_CLIENT_ID!, clientSecret: process.env.GOOGLE_CLIENT_SECRET!, prompt: 'select_account', accessType: 'online', includeGrantedScopes: true },
     },
     databaseHooks: {
       user: { create: { before: async user => { await assertAccess(user.email, user.emailVerified); return { data: { ...user, email: normalizeEmail(user.email) } }; } }, update: { before: async data => { if(data.email !== undefined) { if(!data.emailVerified) throw new APIError('FORBIDDEN', { message: 'El correo debe estar verificado.' }); await assertAccess(data.email, data.emailVerified); } return { data }; } } },

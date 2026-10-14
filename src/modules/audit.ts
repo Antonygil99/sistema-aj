@@ -3,6 +3,7 @@ export const auditActions = {
   created: 'Creación', updated: 'Actualización', archived: 'Archivado', restored: 'Restauración', deleted: 'Eliminación', uploaded: 'Carga de archivo', moved: 'Movimiento', renamed: 'Cambio de nombre', downloaded: 'Descarga de archivo', viewed: 'Consulta', signed_in: 'Inicio de sesión', signed_out: 'Cierre de sesión', access_changed: 'Cambio de acceso',
 } as const;
 export const auditModules: Record<string, string> = { prospectos: 'Prospectos', clientes: 'Clientes', polizas: 'Pólizas', cotizaciones: 'Cotizaciones', pagos: 'Pagos', renovaciones: 'Renovaciones', siniestros: 'Siniestros', actividades: 'Actividades', documentos: 'Documentos', carpetas: 'Carpetas', expedientes: 'Expedientes', productos: 'Productos', entregas: 'Entregas', usuarios: 'Usuarios y accesos', sesiones: 'Sesiones', preferencias: 'Preferencias' };
+auditModules.agenda = 'Agenda y Google Calendar';
 export const auditRoles = { USER: 'Usuario', ADMIN: 'Administrador', SUPERADMIN: 'Superadmin' };
 const optional = <T extends z.ZodType>(schema: T) => z.preprocess(value => value === '' ? undefined : value, schema.optional());
 export const auditFilters = z.object({

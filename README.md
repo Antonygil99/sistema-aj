@@ -129,3 +129,7 @@ AJ_SUPERADMIN_EMAIL define la identidad principal. AJ_ADMIN_EMAILS enumera, sepa
 Las rutas CRM y de agentes aceptan sesiones autorizadas además del token interno opcional. Los cambios con cookies exigen Origin igual a BETTER_AUTH_URL. Todas las pantallas del CRM validan sesión del lado servidor. El registro de usuarios y la creación de sesiones rechazan cuentas no autorizadas o no verificadas por Google. Revocar un acceso invalida las sesiones existentes. No se admiten enlaces entre proveedores ni cambios de correo.
 
 Resend y los correos de bienvenida se integrarán en una etapa posterior, con remitente verificado; no se enviaron correos. WhatsApp y la ejecución de IA siguen pendientes. Las métricas de tiempos de respuesta y de casos convertidos en contenido se medirán cuando existan WhatsApp y el registro de contenido.
+
+## Agenda y Google Calendar
+
+Cada usuario puede abrir **Mi agenda** y conectar su propia cuenta Google para crear reuniones, recordatorios e invitaciones, con Google Meet cuando la cuenta lo admite. Las actividades pendientes asignadas se pueden agendar sin cambiar su estado. Consulta [configuraci?n y funcionamiento](docs/google-calendar.md). Aplicar la migraci?n `20261013120000_google_calendar` antes de desplegar.

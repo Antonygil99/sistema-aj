@@ -97,6 +97,11 @@ export const tours: Tour[] = [
     { targets: ['.wizard-steps'], title: 'Cuatro pasos', body: 'Cliente, póliza, pagos y revisión. Nada se guarda hasta el último paso, y todo se guarda junto.' },
     { targets: ['.wizard-actions'], title: 'Avanza o regresa', body: 'Puedes volver a cualquier paso antes de guardar. Los recibos deben sumar exactamente la prima total.' },
   ] },
+  { id: 'modulo:agenda', kind: 'module', title: 'Mi agenda', summary: 'Reuniones y recordatorios en tu Google Calendar.', route: '/agenda', steps: [
+    { targets: ['.calendar-connection'], title: 'Tu cuenta de Google', body: 'Conecta la misma cuenta con la que entras al CRM. Cada persona gestiona su propia agenda.' },
+    { targets: ['.resource-toolbar .button'], title: 'Nueva reunión', body: 'Elige horario, recordatorio e invitados. Puedes solicitar un enlace de Google Meet y enviar invitaciones al crear.' },
+    { targets: ['.calendar-activities'], title: 'De actividad a cita', body: 'Agendar prellena una reunión con una actividad pendiente asignada a ti. La actividad mantiene su estado en el CRM.' },
+  ] },
   { id: 'modulo:usuarios', kind: 'module', title: 'Usuarios y accesos', summary: 'Quién entra al sistema y con qué permisos.', route: '/usuarios', minRole: 'SUPERADMIN', steps: [
     { targets: ['.resource-toolbar > .button'], title: 'Dar acceso', body: 'Autoriza una cuenta de Google. Solo entran los correos que estén en esta lista.' },
     { targets: ['.table-wrap'], title: 'Roles', body: 'Usuario consulta, Administrador además captura y edita, Superadmin además borra y administra accesos.' },
@@ -108,6 +113,7 @@ export function canSeeTour(tour: Tour, role: Role) { return !tour.minRole || ran
 export function tourForPath(pathname: string): Tour | null {
   if (pathname === '/') return tourById('modulo:resumen');
   if (pathname === '/usuarios') return tourById('modulo:usuarios');
+  if (pathname === '/agenda') return tourById('modulo:agenda');
   if (pathname === '/crm/clientes/nuevo') return tourById('modulo:nuevo-expediente');
   if (/^\/crm\/clientes\/[^/]+$/.test(pathname)) return tourById('modulo:expediente');
   const match = /^\/crm\/([a-z]+)$/.exec(pathname);

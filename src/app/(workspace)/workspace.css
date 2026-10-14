@@ -382,3 +382,12 @@
 .workspace .skeleton-table{display:grid;border:1px solid var(--c-e9edeb);border-radius:18px;background:var(--c-ffffff);overflow:hidden}
 .workspace .skeleton-table-row{display:flex;align-items:center;gap:6%;padding:18px 20px;border-top:1px solid var(--c-eef1ef)}.workspace .skeleton-table-row:first-child{border-top:0}
 @media(max-width:760px){.workspace .skeleton-row.is-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.workspace .skeleton-columns{grid-template-columns:1fr}.workspace .skeleton-toolbar .is-end{display:none}}
+.workspace .calendar-connection{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.workspace .calendar-connection>svg{width:36px;height:36px;color:var(--accent)}
+.workspace .calendar-connection>div:first-of-type{flex:1;min-width:220px}
+.workspace .calendar-connection-actions,.workspace .calendar-row-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.workspace .calendar-form-fields{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;border:0;padding:0;margin:0;min-width:0}
+.workspace .calendar-check{grid-column:1/-1;display:flex;align-items:center;gap:10px;font-size:13px}
+.workspace .calendar-check input{width:18px;min-height:18px;flex:0 0 auto}
+.workspace .calendar-activities>div{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+@media(max-width:760px){.workspace .calendar-form-fields{grid-template-columns:1fr}.workspace .calendar-connection-actions{width:100%}.workspace .calendar-connection-actions .button{width:100%}}

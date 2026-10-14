@@ -5,6 +5,16 @@ export class ApiError extends Error {
   constructor(public readonly code: string, public readonly status: number, message: string, public readonly issues: Issue[] = []) { super(message); }
 }
 export const errorMessages: Record<string, string> = {
+  SESSION_REQUIRED: 'Entra con tu cuenta de Google para gestionar tu calendario.',
+  CALENDAR_NOT_CONNECTED: 'Conecta Google Calendar para continuar.',
+  CALENDAR_RECONNECT: 'Vuelve a conectar Google Calendar para renovar el permiso.',
+  CALENDAR_PERMISSION: 'Google rechazó el acceso. Comprueba que Calendar API esté habilitada y autoriza el permiso de calendario al reconectar.',
+  CALENDAR_UNAVAILABLE: 'Google Calendar no respondió. Puedes reintentar sin duplicar la reunión.',
+  CALENDAR_RATE_LIMIT: 'Google limitó temporalmente las solicitudes. Espera un momento y vuelve a intentar.',
+  CALENDAR_EVENT_INVALID: 'Google no aceptó la reunión. Revisa los datos o desmarca Google Meet si tu cuenta no lo admite.',
+  CALENDAR_EVENT_NOT_FOUND: 'La reunión ya no está disponible en tu agenda.',
+  CALENDAR_EVENT_CHANGED: 'La reunión cambió o ya se está cancelando. Actualiza la agenda antes de continuar.',
+  CALENDAR_ACTIVITY_NOT_FOUND: 'La actividad ya no está pendiente o no está asignada a tu cuenta.',
   INVALID_INPUT: 'Revisa los datos marcados e inténtalo de nuevo.',
   INVALID_JSON: 'La solicitud no se pudo leer. Recarga la página.',
   ALREADY_EXISTS: 'Ya existe un registro con ese identificador o nombre.',

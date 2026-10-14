@@ -2,7 +2,7 @@
 import { useEffect, useId, useRef, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { ArrowRight2, Chart, MessageQuestion, Moon, Setting2, UserOctagon } from '@/components/icons';
+import { ArrowRight2, Calendar, Chart, MessageQuestion, Moon, Setting2, UserOctagon } from '@/components/icons';
 import { Avatar } from './ui/avatar';
 import { SignOutButton } from './sign-out-button';
 import { useAccountPanels } from './ui/account-panels';
@@ -52,7 +52,7 @@ export function AccountMenu({ user, roleLabel }: { user: AccountUser; roleLabel:
         <div className="account-menu-identity"><strong>{user.name}</strong><span>{user.email}</span><small className="account-role">{roleLabel}</small></div>
       </div>
       <button type="button" className="account-menu-item" onClick={() => { setPlace(null); openHelp(); }}><MessageQuestion aria-hidden="true"/>Centro de ayuda</button>
-      <button type="button" className="account-menu-item" onClick={() => { setPlace(null); openSettings(); }}><Setting2 aria-hidden="true"/>Preferencias</button>
+      <Link className="account-menu-item" href="/agenda" onClick={() => setPlace(null)}><Calendar aria-hidden="true"/>Mi agenda y Google Calendar</Link><button type="button" className="account-menu-item" onClick={() => { setPlace(null); openSettings(); }}><Setting2 aria-hidden="true"/>Preferencias</button>
       <button type="button" className="account-menu-item" disabled aria-describedby={`${menuId}-soon`}><Chart aria-hidden="true"/>Reportes<span className="soon-pill" id={`${menuId}-soon`}>Próximamente</span></button>
       {user.role === 'SUPERADMIN' ? <Link className="account-menu-item" href="/usuarios" onClick={() => setPlace(null)}><UserOctagon aria-hidden="true"/>Usuarios y accesos</Link> : null}
       <div className="account-menu-divider" role="separator"/>
