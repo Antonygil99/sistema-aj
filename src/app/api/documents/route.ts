@@ -5,7 +5,7 @@ import { recordEvent } from '@/modules/events';
 import { getDb } from '@/lib/db';
 import { getDocumentFiles } from '@/modules/documentos/files';
 import { attachmentSchema, boundedFormData, FileError } from '@/modules/documentos/file-policy';
-import { documentSelect, folderScope, scopeWhere } from '@/modules/documentos/folders';
+import { documentSelect, folderScope, folderSelect, scopeWhere } from '@/modules/documentos/folders';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -24,7 +24,7 @@ export async function GET(request: Request) {
       getDb().document.findMany({ where, take, skip, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], select: documentSelect }),
       getDb().document.count({ where }),
     ]);
-    const folders = await getDb().documentFolder.findMany({ where: { clientId }, orderBy: { name:'asc' } });
+    const folders = await getDb().documentFolder.findMany({ where: { clientId, archivedAt: null }, orderBy: { name:'asc' }, select: folderSelect });
     return NextResponse.json({ data, folders, total, take, skip }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) { if(error instanceof FileError)return NextResponse.json({error:error.code},{status:error.status});return apiError(error); }
 }

@@ -59,6 +59,8 @@ function moduleTour(slug: ModuleSlug): Tour {
   if (slug === 'documentos') return { ...base, steps: [
     intro('La biblioteca privada del equipo y de cada expediente, organizada en carpetas.'),
     { targets: ['.drive-breadcrumb'], title: 'Dónde estás', body: 'La ruta de carpetas. Toca cualquier nivel para regresar.' },
+    { targets: ['.dossier-grid .doc-folder', '.drive-area .row-link'], title: 'Tus carpetas', body: 'Usa ⋯ o clic derecho sobre una carpeta para renombrarla, cambiarle el color, archivarla o eliminarla. Clic derecho en un espacio vacío para crear una carpeta o subir archivos.' },
+    { targets: ['.drive-archived'], title: 'Carpetas archivadas', body: 'Lo que archivas sale de la biblioteca con todo su contenido. Restáuralo desde aquí cuando lo necesites.' },
     { targets: ['.drive-toolbar button.button:not(.button-soft)'], title: 'Subir archivos', body: 'También puedes arrastrarlos a la ventana. Se suben en segundo plano aunque cambies de pantalla.' },
     { targets: ['.drive-toolbar .segmented'], title: 'Tarjetas o lista', body: 'Cambia la forma de ver los archivos. Recordamos la vista que elijas.' },
     { targets: filters, title: 'Buscar', body: 'Busca archivos y carpetas por nombre dentro de la carpeta abierta.' },

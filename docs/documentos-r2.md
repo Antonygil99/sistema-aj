@@ -34,7 +34,10 @@ Solo se sirven filas cuya `storageKey` cumple el formato gestionado (`isManagedK
 
 `DocumentFolder` forma un árbol (`parentId`) dentro de una biblioteca: la del equipo (`clientId` nulo) o la de un expediente. Al abrir un expediente se crean las carpetas Identificación, Pólizas, Pagos y Siniestros.
 
-- Crear (`POST /api/folders`) exige que la carpeta padre pertenezca a la misma biblioteca. Renombrar (`PATCH /api/folders/{id}`) usa `expectedUpdatedAt` y responde 409 `RECORD_CHANGED` ante un cambio ajeno. No hay borrado ni cambio de carpeta padre, así que no pueden formarse ciclos.
+- Crear (`POST /api/folders`) exige que la carpeta padre pertenezca a la misma biblioteca. Renombrar o cambiar el color (`PATCH /api/folders/{id}` con `name` y/o `color`) usa `expectedUpdatedAt` y responde 409 `RECORD_CHANGED` ante un cambio ajeno. No hay cambio de carpeta padre, así que no pueden formarse ciclos.
+- Colores: `lavanda`, `cielo`, `arena`, `menta`, `rosa` y `gris` (`src/modules/documentos/folder-view.ts`). Con `color` nulo la carpeta toma uno de los tres primeros tonos, fijo para cada carpeta.
+- Archivar (`POST /api/folders/{id}/archive` con `{ archived }`, ADMIN) saca la carpeta de la biblioteca con todo lo que contiene (subcarpetas y archivos siguen intactos y aparecen en la búsqueda global de archivos); `GET /api/folders` (`?clientId=` para un expediente) lista las archivadas para restaurarlas. Una carpeta archivada conserva su nombre, así que no se puede crear otra igual en el mismo nivel. Eliminar (`DELETE /api/folders/{id}`, ADMIN) solo funciona con la carpeta vacía (409 `FOLDER_NOT_EMPTY`).
+- En la interfaz, el menú ⋯ o el clic derecho sobre una carpeta ofrece Abrir, Renombrar, Color, Archivar y Eliminar; el clic derecho en un espacio vacío ofrece Nueva carpeta, Subir archivos y Carpetas archivadas.
 - Nombres de 1 a 100 caracteres, sin `/`, `\`, caracteres de control, `.` ni `..`. El índice `DocumentFolder_sibling_name` impide dos carpetas con el mismo nombre (sin distinguir mayúsculas) en el mismo nivel de la misma biblioteca; un duplicado responde 409 `ALREADY_EXISTS`.
 - Cargar en una carpeta o mover un archivo (`PATCH /api/documents/{id}`) exige que, si la carpeta es de un expediente, el archivo pertenezca a ese cliente directamente o mediante su póliza o siniestro (422 `FOLDER_SCOPE_MISMATCH`). Mover no cambia el vínculo del archivo con el expediente.
 - La biblioteca de un expediente incluye los archivos del cliente y los de sus pólizas y siniestros. La búsqueda se limita a la carpeta abierta.
@@ -92,7 +95,7 @@ npx tsx --test tests/documents.test.ts
 ## Pendientes
 
 - **Límite de 4 MiB:** se debe al cuerpo máximo de las funciones de Vercel (~4.5 MB). Para videos o archivos mayores, cambiar a carga directa con URL firmada de `PUT`, seguida de una confirmación en el servidor que verifique el objeto (tamaño y firma) antes de crear la fila.
-- **Carpetas:** solo se eliminan vacías y no se pueden cambiar de carpeta padre. No hay forma de reasignar el expediente de un archivo ya cargado.
+- **Carpetas:** solo se eliminan vacías y no se pueden cambiar de carpeta padre. Archivar una carpeta no archiva sus archivos uno por uno: siguen apareciendo en la búsqueda global. No hay forma de reasignar el expediente de un archivo ya cargado.
 - **Archivar y borrar:** archivar (ADMIN) oculta el archivo y conserva el objeto en R2; borrar (superadmin) elimina la fila y después el objeto. No hay edición del nombre ni papelera con caducidad.
 - **Permisos por expediente:** hoy cualquier usuario autorizado puede listar y descargar todos los documentos. Falta restringir por cartera o rol cuando existan reglas de acceso por expediente.
 - **Auditoría:** cargas, movimientos, archivados y borrados quedan en `CrmEvent`; las descargas todavía no se registran.

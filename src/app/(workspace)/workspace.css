@@ -392,3 +392,48 @@
 .workspace .calendar-check input{width:18px;min-height:18px;flex:0 0 auto}
 .workspace .calendar-activities>div{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
 @media(max-width:760px){.workspace .calendar-form-fields{grid-template-columns:1fr}.workspace .calendar-connection-actions{width:100%}.workspace .calendar-connection-actions .button{width:100%}}
+
+/* Carpetas de la biblioteca de documentos: la misma carpeta de tres capas que los expedientes, con color elegido */
+.workspace .folder-color-lavanda{--folder:var(--c-eeeaf9);--folder-back:var(--c-ded7f2);--folder-ink:var(--c-6a5fa8)}
+.workspace .folder-color-cielo{--folder:var(--c-e4f1f8);--folder-back:var(--c-d2e5f0);--folder-ink:var(--c-3d7697)}
+.workspace .folder-color-arena{--folder:var(--c-f7eadd);--folder-back:var(--c-eedac6);--folder-ink:var(--c-9a6a3a)}
+.workspace .folder-color-menta{--folder:var(--c-e2f2e7);--folder-back:var(--c-cbe5d4);--folder-ink:var(--c-3f6b54)}
+.workspace .folder-color-rosa{--folder:var(--c-f8e6ed);--folder-back:var(--c-efd0dc);--folder-ink:var(--c-a8506f)}
+.workspace .folder-color-gris{--folder:var(--c-eef0ef);--folder-back:var(--c-dde1df);--folder-ink:var(--c-5d6a63)}
+.workspace .doc-folder .folder-front{padding:20px 18px 16px}
+.workspace .doc-folder .folder-open{min-height:82px;padding-right:34px}
+.workspace .doc-folder .folder-open h3{margin:14px 0 6px}
+.workspace .doc-folder .folder-icon{color:var(--folder-ink)}
+.workspace .doc-folder .folder-menu{top:10px;right:8px}
+.workspace .doc-folder:has(:focus-visible) .folder-front{transform:rotateX(-10deg);box-shadow:0 12px 18px -14px var(--c-10201959)}
+.workspace .doc-folder:has(:focus-visible) .folder-sheet{transform:translateY(-15px)}
+.workspace .doc-folder:has(:focus-visible) .folder-glyph-closed{opacity:0;transform:scale(.85)}
+.workspace .doc-folder:has(:focus-visible) .folder-glyph-open{opacity:1;transform:none}
+.workspace .folder-ink,.workspace .row-link .folder-ink{color:var(--folder-ink)}
+.workspace .drive-path{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.workspace .drive-path .drive-breadcrumb{min-width:0}
+.workspace .drive-archived{display:inline-flex;align-items:center;gap:6px;font-size:13px}
+.workspace .drive-archived svg{width:16px;height:16px}
+/* Menú contextual (clic derecho o ⋯): acciones de la carpeta y paleta de colores */
+.workspace .drive-context{width:236px}
+.workspace .drive-context svg{width:18px;height:18px;flex:none}
+.workspace .drive-context hr{border:0;border-top:1px solid var(--c-eceeef);margin:6px 4px}
+.workspace .drive-context-label{padding:8px 12px 2px;font-size:12px;color:var(--c-5d6a63)}
+.workspace .drive-context button:focus-visible{outline:2px solid var(--c-3f6b54);outline-offset:-2px}
+.workspace .drive-context button:disabled{opacity:.5;cursor:not-allowed}
+.workspace .drive-context button.is-danger{color:var(--c-a8432f)}
+.workspace .drive-context button.is-danger:hover{background:var(--c-fbecea)}
+.workspace .folder-swatches{display:flex;gap:6px;padding:6px 12px 8px}
+.workspace .drive-context button.folder-swatch{width:28px;height:28px;flex:none;justify-content:center;padding:0;border-radius:50%;border:2px solid var(--folder-back);background:var(--folder)}
+.workspace .drive-context button.folder-swatch:hover{background:var(--folder);border-color:var(--folder-ink)}
+.workspace .drive-context button.folder-swatch[aria-checked="true"]{border-color:var(--folder-ink);box-shadow:0 0 0 2px var(--c-ffffff),0 0 0 4px var(--c-3f6b54)}
+.workspace .archived-folders{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.workspace .archived-folders li{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--c-eceeef);border-radius:14px}
+.workspace .archived-folders li>svg{width:24px;height:24px;flex:none}
+.workspace .archived-folders li>div{flex:1;min-width:0;display:grid;gap:2px}
+.workspace .archived-folders strong{font-size:14px;overflow-wrap:anywhere}
+.workspace .archived-folders small{font-size:12px;color:var(--c-5d6a63)}
+.workspace .archived-folders .button{flex:none}
+@media(max-width:760px){.workspace .drive-context{width:min(300px,calc(100vw - 16px))}.workspace .drive-context button{min-height:44px}.workspace .folder-swatches{gap:0;padding:4px 6px 8px;justify-content:space-between}.workspace .drive-context button.folder-swatch{width:44px;height:44px;border-width:6px;border-color:var(--c-ffffff);box-shadow:inset 0 0 0 2px var(--folder-back)}.workspace .drive-context button.folder-swatch[aria-checked="true"]{border-color:var(--c-ffffff);box-shadow:inset 0 0 0 2px var(--c-3f6b54)}.workspace .archived-folders li{flex-wrap:wrap}.workspace .archived-folders .button{width:100%}}
+.workspace .drive-context:focus{outline:none}
+.workspace .drive-context{z-index:70}

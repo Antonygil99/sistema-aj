@@ -77,7 +77,9 @@ Las rutas CRM y de agentes admiten sesiones de Google autorizadas o Authorizatio
 | POST /api/documents/{id}/archive | Archiva o restaura un archivo (ADMIN) |
 | DELETE /api/documents/{id} | Borra el archivo de la base y de R2 (SUPERADMIN) |
 | POST /api/folders | Crea una carpeta o subcarpeta (ADMIN) |
-| PATCH /api/folders/{id} | Renombra una carpeta (ADMIN); requiere `expectedUpdatedAt` |
+| GET /api/folders | Carpetas archivadas de la biblioteca del equipo o, con `?clientId=`, de un expediente |
+| PATCH /api/folders/{id} | Renombra una carpeta o cambia su color (ADMIN); requiere `expectedUpdatedAt` |
+| POST /api/folders/{id}/archive | Archiva o restaura una carpeta con su contenido (ADMIN); body `{ archived }` |
 | DELETE /api/folders/{id} | Elimina una carpeta vacía (ADMIN); si tiene contenido, 409 FOLDER_NOT_EMPTY |
 | POST /api/dossiers | Abre un expediente: cliente, carpetas base y, opcionalmente, su primera póliza con recibos (ADMIN) |
 | POST /api/dossiers/{id}/policies | Añade una póliza con su calendario de recibos a un expediente (ADMIN) |

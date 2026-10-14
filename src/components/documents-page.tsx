@@ -3,7 +3,7 @@ import { getDb } from '@/lib/db';
 import { requireUser } from '@/lib/session';
 import { hasRole } from '@/lib/access-policy';
 import { storageStatus } from '@/integrations/r2/server';
-import { documentSelect, scopeWhere } from '@/modules/documentos/folders';
+import { documentSelect, folderSelect, scopeWhere } from '@/modules/documentos/folders';
 import { DocumentLibrary, type DocumentOption } from './document-library';
 export async function DocumentsPage({ clientId = null, folderId = null }: { clientId?: string | null; folderId?: string | null }) {
   const user = await requireUser();
@@ -20,7 +20,7 @@ export async function DocumentsPage({ clientId = null, folderId = null }: { clie
   const [documents, total, folders, clients, policies, claims] = await Promise.all([
     db.document.findMany({ where, take: 20, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], select: documentSelect }),
     db.document.count({ where }),
-    db.documentFolder.findMany({ where: { clientId }, orderBy: { name: 'asc' } }),
+    db.documentFolder.findMany({ where: { clientId, archivedAt: null }, orderBy: { name: 'asc' }, select: folderSelect }),
     db.client.findMany({ where: active, take: 100, orderBy: { name: 'asc' }, select: { id: true, name: true } }),
     canUpload ? db.policy.findMany({ where: active, take: 100, orderBy: { createdAt: 'desc' }, select: { id: true, number: true } }) : [],
     canUpload ? db.claim.findMany({ where: active, take: 100, orderBy: { createdAt: 'desc' }, select: { id: true, reference: true } }) : [],
@@ -28,6 +28,6 @@ export async function DocumentsPage({ clientId = null, folderId = null }: { clie
   const options: DocumentOption[] = [...clients.map(c => ({ id: c.id, label: c.name, kind: 'clientId' as const })), ...policies.map(p => ({ id: p.id, label: `Póliza · ${p.number}`, kind: 'policyId' as const })), ...claims.map(c => ({ id: c.id, label: `Siniestro · ${c.reference}`, kind: 'claimId' as const }))];
   return <DocumentLibrary key={`${clientId || 'team'}:${openFolder ?? ''}`} clientId={clientId} initialFolderId={openFolder} clientName={client?.name}
     initial={documents.map(d => ({ ...d, createdAt: d.createdAt.toISOString(), updatedAt: d.updatedAt.toISOString() }))} initialTotal={total}
-    initialFolders={folders.map(f => ({ id: f.id, name: f.name, parentId: f.parentId, clientId: f.clientId, updatedAt: f.updatedAt.toISOString() }))}
+    initialFolders={folders.map(f => ({ ...f, updatedAt: f.updatedAt.toISOString() }))}
     options={options} canUpload={canUpload} canDelete={user.role === 'SUPERADMIN'} configured={storage.configured} configurationMessage={canUpload ? storage.message : undefined}/>;
 }

@@ -237,6 +237,10 @@ model DocumentFolder {
   clientId String?
   client Client? @relation(fields: [clientId], references: [id], onDelete: Restrict)
   documents Document[]
+  // Color chosen in the library (ids in src/modules/documentos/folder-view.ts); null keeps the alternating tone.
+  color String?
+  // Archived folders (and everything inside) leave the library until restored.
+  archivedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([parentId])

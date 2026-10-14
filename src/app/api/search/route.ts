@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     const [tables, documents, folders, users] = await Promise.all([
       Promise.all(slugs.map(async slug => (await searchResource(slug, q)).map(row => resourceResult(slug, JSON.parse(JSON.stringify(row)) as Row)))),
       db.document.findMany({ where: { archivedAt: null, name: contains(q) }, take: 6, orderBy: { createdAt: 'desc' }, select: { id: true, name: true, mimeType: true, client: { select: { name: true } }, policy: { select: { number: true } } } }),
-      db.documentFolder.findMany({ where: { name: contains(q) }, take: 4, orderBy: { name: 'asc' }, select: { id: true, name: true, clientId: true, client: { select: { name: true } } } }),
+      db.documentFolder.findMany({ where: { name: contains(q), archivedAt: null }, take: 4, orderBy: { name: 'asc' }, select: { id: true, name: true, clientId: true, client: { select: { name: true } } } }),
       auth.actor.role === 'SUPERADMIN' ? searchUsers(q) : Promise.resolve([]),
     ]);
     const results: SearchResult[] = [...tables.flat(), ...documents.map(documentResult), ...folders.map(folderResult), ...users.map(userResult)];
