@@ -1,0 +1,11 @@
+# Registro de actividad
+
+Administración → Registro de actividad (`/logs`) permite al superadmin consultar el historial con filtros por nombre/correo/registro, acción, módulo, rol y fechas. La página y `GET /api/logs` exigen una sesión SUPERADMIN; el token de integración no permite consultar el historial. Se muestran 50 eventos por página, del más reciente al más antiguo. Las fechas y los límites del filtro corresponden a Ciudad de México.
+
+Los eventos CRM existentes se conservan. Los eventos nuevos guardan el correo y el rol del actor en el momento de la acción, además del nombre, módulo, identificador y fecha. La migración recupera el correo de eventos anteriores e incorpora los cambios de acceso históricos de `AccessAudit`; el rol histórico queda sin registrar porque no puede reconstruirse con certeza.
+
+Se registran las creaciones, actualizaciones, archivos, restauraciones, eliminaciones, cargas y movimientos ya instrumentados en el CRM, las consultas de módulos y expedientes, las consultas de fichas/listados por la API del CRM, los enlaces de descarga autorizados, cambios de preferencias, altas de sesión y cierres de sesión explícitos. Las precargas de enlaces no cuentan como consultas. No se registran los sondeos automáticos de indicadores/notificaciones, las búsquedas globales ni los intentos fallidos. Una descarga registra la autorización del enlace, no garantiza que el navegador recibiera el archivo completo.
+
+Los eventos exclusivos de auditoría (`auditOnly`) se excluyen del feed general de notificaciones. No hay rutas para editar o eliminar el historial. Los cambios de permisos y su evento se guardan en la misma transacción. El resto conserva la política existente de escritura de auditoría de mejor esfuerzo: si la escritura falla, se registra `CRM_EVENT_NOT_RECORDED` en el servidor sin revertir la operación de negocio. No es un registro inmutable frente a quien tiene acceso directo a PostgreSQL.
+
+Antes de desplegar la aplicación, aplicar la migración `20261013100000_activity_logs` con `npm.cmd run db:deploy` en el entorno correspondiente y generar el cliente Prisma (incluido en el build). La migración añade columnas e índices e importa el historial de permisos sin eliminar datos.

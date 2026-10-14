@@ -18,6 +18,7 @@ export async function GET(request: Request, context: Context) {
     if (!isResourceSlug(module)) return NextResponse.json({ error: 'MODULE_NOT_FOUND' }, { status: 404 });
     const data = await findResource(module, recordId.parse(id));
     if (!data) return NextResponse.json({ error: 'RECORD_NOT_FOUND' }, { status: 404 });
+    await recordEvent(auth.actor, 'viewed', module, data.id, resources[module].title(plain(data)));
     return NextResponse.json({ data: redact(module, data, auth.actor.role) }, { headers: noStore });
   } catch (error) { return apiError(error); }
 }

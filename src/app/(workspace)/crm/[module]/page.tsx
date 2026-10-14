@@ -12,12 +12,14 @@ import { DeliveryPage } from '@/components/delivery-page';
 import { ClientViewSwitch } from '@/components/client-view-switch';
 import { requireUser } from '@/lib/session';
 import { getPreferences } from '@/modules/preferences-server';
+import { recordPageView } from '@/modules/page-events';
 export function generateStaticParams() { return modules.map(m => ({ module: m.slug })); }
 export default async function ModulePage({ params, searchParams }: { params: Promise<{ module: string }>; searchParams: Promise<{ q?: string; page?: string; view?: string; clientId?: string; open?: string; folder?: string; owner?: string }> }) {
   const slug = (await params).module;
   const search = await searchParams;
   const selected = modules.find(m => m.slug === slug);
   if (!selected) notFound();
+  await recordPageView(await requireUser(), slug, slug, `Listado de ${selected.label.toLowerCase()}`);
   const clientView = slug === 'clientes' ? search.view === 'list' || search.view === 'dossiers' ? search.view : (await getPreferences((await requireUser()).email)).views.clientes ?? 'dossiers' : null;
   const kpis = <Suspense fallback={<p role="status">Consultando indicadores…</p>}><ModuleKpis slug={selected.slug} clientId={slug === 'documentos' ? search.clientId || null : null}/></Suspense>;
   if (clientView === 'dossiers') return <><div className="eyebrow">RELACIONES / CLIENTES</div><h1>Expedientes</h1><p className="lead">Cada cliente, sus pólizas, sus pagos y sus documentos.</p>{kpis}<DossiersPage query={search.q} page={Number.isFinite(Number(search.page)) ? Math.floor(Number(search.page)) : 0}/></>;

@@ -5,6 +5,19 @@ import { nextCookies } from 'better-auth/next-js';
 import { APIError } from 'better-auth/api';
 import { getDb } from './db';
 import { normalizeEmail, permittedRole } from './access-policy';
+import { recordEvent } from '@/modules/events';
+
+async function recordSessionEvent(userId: string, action: 'signed_in' | 'signed_out') {
+  try {
+    const db = getDb();
+    const user = await db.authUser.findUnique({ where: { id: userId } });
+    if (!user) return;
+    const email = normalizeEmail(user.email);
+    const grant = await db.accessGrant.findUnique({ where: { email } });
+    const role = permittedRole(grant, user.emailVerified, email, process.env.AJ_SUPERADMIN_EMAIL);
+    if (role) await recordEvent({ id: user.id, name: user.name, email, role }, action, 'sesiones', user.id, 'Sesión de la plataforma');
+  } catch { console.error('SESSION_EVENT_NOT_RECORDED'); }
+}
 
 export function authConfigured() {
   return Boolean(process.env.BETTER_AUTH_SECRET && process.env.BETTER_AUTH_URL && process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && (process.env.DATABASE_URL || process.env.DATA_URL) && process.env.AJ_SUPERADMIN_EMAIL);
@@ -32,7 +45,13 @@ function createAuth() {
     },
     databaseHooks: {
       user: { create: { before: async user => { await assertAccess(user.email, user.emailVerified); return { data: { ...user, email: normalizeEmail(user.email) } }; } }, update: { before: async data => { if(data.email !== undefined) { if(!data.emailVerified) throw new APIError('FORBIDDEN', { message: 'El correo debe estar verificado.' }); await assertAccess(data.email, data.emailVerified); } return { data }; } } },
-      session: { create: { before: async session => { const user = await getDb().authUser.findUnique({ where: { id: session.userId } }); if(!user) throw new APIError('FORBIDDEN'); await assertAccess(user.email, user.emailVerified); return { data: session }; } } },
+      session: {
+        create: {
+          before: async session => { const user = await getDb().authUser.findUnique({ where: { id: session.userId } }); if(!user) throw new APIError('FORBIDDEN'); await assertAccess(user.email, user.emailVerified); return { data: session }; },
+          after: async session => { await recordSessionEvent(session.userId, 'signed_in'); },
+        },
+        delete: { after: async (session, context) => { if (context?.path === '/sign-out') await recordSessionEvent(session.userId, 'signed_out'); } },
+      },
     },
     plugins: [nextCookies()],
   });

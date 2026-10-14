@@ -358,3 +358,7 @@
 .workspace .theme-swatch.is-gradient{background:linear-gradient(180deg,rgb(20 10 23),rgb(58 16 70) 50%,rgb(138 28 158))}.workspace .theme-swatch.is-gradient i{background:rgb(35 23 37)}.workspace .theme-swatch.is-gradient i:first-child{background:linear-gradient(135deg,rgb(252 102 255),rgb(179 31 207))}
 .workspace .theme-picker{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:760px){.workspace .theme-picker{grid-template-columns:1fr}}
+.workspace .audit-filters label{display:grid;gap:6px;font-size:12px;color:var(--muted)}
+.workspace .audit-filters input{font:inherit;border:1px solid var(--c-eceff0);background:var(--c-ffffff);border-radius:11px;min-height:38px;padding:0 12px;color:var(--c-3f494e)}
+.workspace .audit-detail{max-width:380px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
+.workspace .audit-pagination{justify-content:center;margin-top:20px}

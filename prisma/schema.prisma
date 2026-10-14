@@ -295,9 +295,15 @@ model CrmEvent {
   label     String
   actorId   String?
   actorName String
+  actorEmail String?
+  actorRole AccessRole?
+  details   Json?
+  auditOnly Boolean @default(false)
   createdAt DateTime @default(now())
   @@index([createdAt])
   @@index([module, recordId])
+  @@index([actorEmail, createdAt])
+  @@index([action, createdAt])
 }
 model WebhookEvent {
   id          String @id @default(cuid())

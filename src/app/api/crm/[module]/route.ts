@@ -18,6 +18,7 @@ export async function GET(request: Request, context: Context) {
     if (slug === 'documentos') return NextResponse.json(await listDocuments(Number(params.take ?? 20) || 20, Number(params.skip ?? 0) || 0), { headers: noStore });
     if (!isResourceSlug(slug)) return NextResponse.json({ error: 'MODULE_NOT_FOUND' }, { status: 404 });
     const result = await listResource(slug, params);
+    await recordEvent(auth.actor, 'viewed', slug, slug, `Listado de ${slug}`);
     return NextResponse.json({ ...result, data: result.data.map(row => redact(slug, row, auth.actor.role)) }, { headers: noStore });
   } catch (error) { return apiError(error); }
 }

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ArrowRight3, Category, SidebarLeft, SidebarRight, UserOctagon } from 'iconsax-reactjs';
+import { ArrowRight3, Category, DocumentText, SidebarLeft, SidebarRight, UserOctagon } from 'iconsax-reactjs';
 import { modules, type ModuleSlug } from '@/modules/catalog';
 import { moduleIcons } from './module-icons';
 import { AccountMenu, type AccountUser } from './account-menu';
@@ -43,7 +43,7 @@ function WorkspaceFrame({ children, user }: { children: ReactNode; user: Account
     document.getElementById('workspace-content')?.focus({ preventScroll: true });
   }, [pathname]);
   const current = modules.find(item => pathname === `/crm/${item.slug}` || pathname.startsWith(`/crm/${item.slug}/`));
-  const title = current?.label ?? (pathname === '/usuarios' ? 'Usuarios y accesos' : 'Resumen');
+  const title = current?.label ?? (pathname === '/usuarios' ? 'Usuarios y accesos' : pathname === '/logs' ? 'Registro de actividad' : 'Resumen');
   // The gradient theme is the minimal one: icon-only sidebar with tooltips, so it is always compact.
   const iconsOnly = compact || preferences.theme === 'gradient';
   return <div className={`shell workspace${iconsOnly ? ' is-compact' : ''}`} data-theme={preferences.theme}><ToastProvider><ConfirmProvider><UploadProvider><TourProvider role={user.role}><AccountPanelsProvider role={user.role}>
@@ -53,7 +53,7 @@ function WorkspaceFrame({ children, user }: { children: ReactNode; user: Account
       <nav aria-label="Navegación principal" className="workspace-nav">
         <div className="nav-group"><p className="nav-label sidebar-label">Principal</p><Link href="/" aria-current={pathname === '/' ? 'page' : undefined} aria-label="Resumen" data-tooltip="Resumen"><Category aria-hidden="true"/><span className="sidebar-label">Resumen</span></Link></div>
         {groups.map(group => <div className="nav-group" key={group.label}><p className="nav-label sidebar-label">{group.label}</p>{group.slugs.map(slug => { const item = modules.find(module => module.slug === slug)!; const Icon = moduleIcons[slug]; return <Link key={slug} href={`/crm/${slug}`} aria-current={pathname === `/crm/${slug}` ? 'page' : undefined} aria-label={item.label} data-tooltip={item.label}><Icon aria-hidden="true"/><span className="sidebar-label">{item.label}</span></Link>; })}</div>)}
-        {user.role === 'SUPERADMIN' ? <div className="nav-group"><p className="nav-label sidebar-label">Administración</p><Link href="/usuarios" aria-current={pathname === '/usuarios' ? 'page' : undefined} aria-label="Usuarios y accesos" data-tooltip="Usuarios y accesos"><UserOctagon aria-hidden="true"/><span className="sidebar-label">Usuarios y accesos</span></Link></div> : null}
+        {user.role === 'SUPERADMIN' ? <div className="nav-group"><p className="nav-label sidebar-label">Administración</p><Link href="/usuarios" aria-current={pathname === '/usuarios' ? 'page' : undefined} aria-label="Usuarios y accesos" data-tooltip="Usuarios y accesos"><UserOctagon aria-hidden="true"/><span className="sidebar-label">Usuarios y accesos</span></Link><Link href="/logs" aria-current={pathname === '/logs' ? 'page' : undefined} aria-label="Registro de actividad" data-tooltip="Registro de actividad"><DocumentText aria-hidden="true"/><span className="sidebar-label">Registro de actividad</span></Link></div> : null}
       </nav>
       <div className="sidebar-account"><AccountMenu user={user} roleLabel={roles[user.role]}/></div>
     </aside>

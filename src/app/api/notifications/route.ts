@@ -14,8 +14,8 @@ export async function GET(request: Request) {
     const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
     const week = new Date(today.getTime() + 7 * 86400000);
     const [events, recent, overdue, renewals, followUpsDue] = await Promise.all([
-      since ? db.crmEvent.findMany({ where: { createdAt: { gt: since, lte: now }, ...(auth.actor.id ? { NOT: { actorId: auth.actor.id } } : {}) }, orderBy: { createdAt: 'asc' }, take: 20 }) : [],
-      db.crmEvent.findMany({ orderBy: { createdAt: 'desc' }, take: 15 }),
+      since ? db.crmEvent.findMany({ where: { auditOnly: false, createdAt: { gt: since, lte: now }, ...(auth.actor.id ? { NOT: { actorId: auth.actor.id } } : {}) }, orderBy: { createdAt: 'asc' }, take: 20 }) : [],
+      db.crmEvent.findMany({ where: { auditOnly: false }, orderBy: { createdAt: 'desc' }, take: 15 }),
       db.payment.count({ where: { archivedAt: null, status: { not: 'PAID' }, dueDate: { lt: today } } }),
       db.renewal.count({ where: { archivedAt: null, status: { in: ['PENDING', 'CONTACTED'] }, dueDate: { gte: today, lte: week } } }),
       // Follow-ups of active deliveries assigned to this person, due today or earlier.

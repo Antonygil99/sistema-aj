@@ -1,10 +1,15 @@
 import 'server-only';
 import { getDb } from '@/lib/db';
 import type { Actor } from '@/lib/api';
-export type EventAction = 'created' | 'updated' | 'archived' | 'restored' | 'deleted' | 'uploaded' | 'moved' | 'renamed';
+import type { Prisma } from '@/generated/prisma/client';
+export type EventAction = 'created' | 'updated' | 'archived' | 'restored' | 'deleted' | 'uploaded' | 'moved' | 'renamed' | 'downloaded' | 'viewed' | 'signed_in' | 'signed_out' | 'access_changed';
+export function eventData(actor: Actor, action: EventAction, module: string, recordId: string, label: string, details?: Prisma.InputJsonObject) {
+  return { action, module, recordId, label: label.slice(0, 250) || 'Registro', actorId: actor.id, actorName: actor.name.slice(0, 120), actorEmail: actor.email, actorRole: actor.role, details,
+    auditOnly: ['downloaded', 'viewed', 'signed_in', 'signed_out', 'access_changed'].includes(action) || module === 'preferencias' };
+}
 // Best effort: the business change already happened, so a failed audit write is logged, never surfaced.
-export async function recordEvent(actor: Actor, action: EventAction, module: string, recordId: string, label: string) {
+export async function recordEvent(actor: Actor, action: EventAction, module: string, recordId: string, label: string, details?: Prisma.InputJsonObject) {
   try {
-    await getDb().crmEvent.create({ data: { action, module, recordId, label: label.slice(0, 250) || 'Registro', actorId: actor.id, actorName: actor.name.slice(0, 120) } });
+    await getDb().crmEvent.create({ data: eventData(actor, action, module, recordId, label, details) });
   } catch { console.error('CRM_EVENT_NOT_RECORDED'); }
 }
