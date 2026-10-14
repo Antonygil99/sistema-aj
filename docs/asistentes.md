@@ -15,12 +15,21 @@ La pantalla `/asistentes` reúne los ocho asistentes de un solo propósito de la
 
 ## Cómo funciona
 
-- **Modelo:** Claude por la API de Anthropic (`@anthropic-ai/sdk`), solo modelos ligeros y económicos, elegidos en Preferencias → Asistentes de IA: **Claude Haiku 5.5** (por defecto) o **Claude Sonnet 5.5** (más capaz, unas 20 veces más caro por token). Una elección guardada que ya no está en la lista vuelve a Haiku. El esfuerzo se mantiene bajo para ahorrar: «Pensar a fondo» lo sube a medio. Pensamiento adaptativo siempre activo.
-- **Bucle:** `src/agents/loop.ts` (puro, probado en `tests/agents.test.ts`) llama al modelo con streaming, ejecuta las herramientas de consulta, valida cada entrada contra su esquema, devuelve todos los resultados juntos, se detiene ante un rechazo o una entrada cortada y reintenta solo cuando una entrada no se pudo leer. Hasta 8 vueltas por respuesta.
+- **Modelos:** solo ligeros y económicos, elegidos en Preferencias → Asistentes de IA. Una elección guardada que ya no está en la lista vuelve a Haiku. El esfuerzo de razonamiento se mantiene bajo para ahorrar; «Pensar a fondo» lo sube a medio.
+
+  | Modelo | Proveedor | Precio por millón de tokens (entrada / salida) | Para qué |
+  | --- | --- | --- | --- |
+  | Claude Haiku 5.5 (`claude-haiku-5-5`, por defecto) | Anthropic | 0.10 / 0.50 USD | Consultas, avisos y borradores |
+  | Claude Sonnet 5.5 (`claude-sonnet-5-5`) | Anthropic | 2 / 10 USD | Análisis y redacción más elaborados |
+  | GPT-6 Luna (`gpt-6-luna`) | OpenAI | 0.10 / 0.50 USD | Equivalente económico de OpenAI |
+  | GPT-6.1 Sol (`gpt-6.1-sol`) | OpenAI | 2 / 10 USD | Equivalente capaz de OpenAI |
+
+- **Proveedores:** el bucle (`src/agents/loop.ts`) no depende del proveedor; cada uno tiene su controlador. Claude (`drivers/anthropic.ts`, `@anthropic-ai/sdk`): Messages API con streaming, pensamiento adaptativo, instrucciones en caché y respaldo ante rechazos en Sonnet. OpenAI (`drivers/openai.ts`, `openai`): Responses API con streaming y `store: false`, para que OpenAI no conserve la conversación (el razonamiento vuelve cifrado entre llamadas).
+- **Bucle:** `src/agents/loop.ts` (puro, probado en `tests/agents.test.ts` con controladores simulados de ambos proveedores) ejecuta las herramientas de consulta, valida cada entrada contra su esquema, devuelve todos los resultados juntos y se detiene ante un rechazo o una entrada cortada. Hasta 8 vueltas por respuesta.
 - **Herramientas:** `src/agents/tools.ts`. Las de consulta devuelven JSON compacto con enlaces internos (`/crm/...`). Nunca incluyen el valor de antecedentes médicos ni la descripción de los siniestros. Las de escritura (`crear_actividad`, `registrar_prospecto`, `mover_prospecto`, `resolver_aviso`, `preparar_correo`) solo describen la propuesta; `POST /api/assistant/actions` las ejecuta al confirmar, con los permisos de quien confirma (ADMIN) y validando de nuevo. `preparar_correo` abre el redactor del CRM con el texto: los destinatarios, adjuntos y el envío siguen siendo de la persona. Quien tiene acceso de consulta recibe solo herramientas de lectura.
 - **Instrucciones:** `src/agents/prompts.ts`, estables por asistente (se aprovecha la caché). Usan solo lo documentado por el cliente: regla de oro de WhatsApp, las cinco preguntas, el checklist de entrega, las ventanas de avisos. El Método AJ (guiones, criterios) lo está documentando Ale; los asistentes lo dicen en lugar de inventarlo. Los datos de las herramientas y los mensajes de WhatsApp son información, nunca instrucciones.
 - **Contexto:** la fecha, el nombre y el rol viajan en un mensaje de sistema a mitad de la conversación, no en las instrucciones. El navegador conserva la conversación (texto de turnos anteriores, con el resultado de las propuestas); el servidor no guarda transcripciones.
-- **Rechazos:** con Sonnet 5.5, respaldo del lado del servidor (`fallbacks: "default"`, beta `server-side-fallback-2026-07-01`); Haiku 5.5 no lo admite. Si se rechaza, el chat lo explica.
+- **Rechazos:** con Sonnet 5.5, respaldo del lado del servidor (`fallbacks: "default"`, beta `server-side-fallback-2026-07-01`); Haiku 5.5 no lo admite. En OpenAI, un rechazo o el filtro de contenido terminan la respuesta. En todos los casos el chat lo explica.
 - **Registro:** cada turno queda en `AgentRun` (asistente, pregunta, respuesta recortada, herramientas usadas, propuestas, tokens, modelo y duración). Las acciones confirmadas se registran como cualquier cambio del CRM (`CrmEvent`).
 - **Streaming:** `POST /api/assistant/chat` responde JSON delimitado por líneas (`step`, `text`, `proposal`, `notice`, `done`, `error`). La interfaz (`components/ui/thinking-prompt-input.tsx`, adaptado del componente ThinkingPromptInput al sistema de estilos del CRM) muestra los pasos con «Pensando», la respuesta conforme llega y permite detenerla.
 
@@ -28,16 +37,20 @@ La pantalla `/asistentes` reúne los ocho asistentes de un solo propósito de la
 
 | Variable | Uso |
 | --- | --- |
-| `ANTHROPIC_API_KEY` | Llave de la API de Anthropic (obligatoria). Sin ella la pantalla avisa que los asistentes no están configurados y `POST /api/assistant/chat` responde 503 `AI_NOT_CONFIGURED`. |
+| `ANTHROPIC_API_KEY` | Llave de Anthropic, para Claude Haiku 5.5 y Sonnet 5.5. |
+| `OPENAI_API_KEY` | Llave de OpenAI, para GPT-6 Luna y GPT-6.1 Sol. |
+
+Basta una de las dos. Sin ninguna, la pantalla avisa que los asistentes no están configurados y `POST /api/assistant/chat` responde 503 `AI_NOT_CONFIGURED`; si falta la del modelo elegido, el chat lo dice y sugiere cambiar de modelo.
 
 Pasos:
 
 1. En https://console.anthropic.com crea una organización (o usa la tuya), agrega un método de pago o créditos y, en Settings → API Keys, crea una llave para «Sistema AJ».
 2. En Settings → Limits fija un límite de gasto mensual (por ejemplo 10 USD) para que el costo nunca se dispare.
 3. Copia la llave en `ANTHROPIC_API_KEY` del `.env` local y en Vercel → Settings → Environment Variables (Production), y vuelve a desplegar.
-4. En el CRM, Preferencias → Asistentes de IA: deja Claude Haiku 5.5 o cambia a Claude Sonnet 5.5 cuando quieras respuestas más elaboradas.
+4. Para OpenAI: en https://platform.openai.com crea un proyecto, agrega créditos, fija su límite de gasto (Settings → Limits) y crea una llave en API keys; cópiala como `OPENAI_API_KEY` en el `.env` y en Vercel.
+5. En el CRM, Preferencias → Asistentes de IA: deja Claude Haiku 5.5 o elige Sonnet 5.5, GPT-6 Luna o GPT-6.1 Sol.
 
-Costo orientativo por pregunta (incluye las consultas al CRM que haga el asistente): Haiku 5.5, menos de un centavo de dólar; Sonnet 5.5, de 3 a 10 centavos. Precios por millón de tokens: Haiku 0.10 USD de entrada y 0.50 de salida; Sonnet 2 y 10. Cada respuesta tiene un límite de 60 segundos (función de Vercel).
+Costo orientativo por pregunta (incluye las consultas al CRM que haga el asistente): Haiku 5.5 o GPT-6 Luna, menos de un centavo de dólar; Sonnet 5.5 o GPT-6.1 Sol, de 3 a 10 centavos. Cada respuesta tiene un límite de 60 segundos (función de Vercel).
 
 ## Pendiente
 

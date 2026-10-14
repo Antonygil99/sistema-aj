@@ -1,10 +1,8 @@
-// The assistant's tool loop, free of server-only code so tests/agents.test.ts can drive it with a scripted stream.
+// The assistant's tool loop, independent of the model provider: a ModelDriver (drivers/anthropic.ts,
+// drivers/openai.ts) talks to the API and keeps the conversation in its own format; this loop runs the tools.
 // Read tools run right away; write tools never run here: they become proposals the user confirms in the chat
-// (POST /api/assistant/actions executes them with the user's own permissions). Streaming manual loop per the Claude
-// API guidance: validate every tool input against its schema, stop on refusal or on a tool call cut off at
-// max_tokens, resume pause_turn, and re-issue a turn only when the SDK could not parse a tool input at all.
-import Anthropic from '@anthropic-ai/sdk';
-import type { BetaMessage, BetaMessageParam, BetaToolResultBlockParam, BetaToolUseBlock } from '@anthropic-ai/sdk/resources/beta/messages/messages';
+// (POST /api/assistant/actions executes them with the user's own permissions). Every input is validated against
+// the tool's schema. Free of server-only code: tests/agents.test.ts drives it with a scripted driver.
 export type Proposal = { title: string; details: [string, string][] };
 export type AgentTool = {
   name: string; write: boolean;
@@ -20,47 +18,39 @@ export type AgentEvent =
   | { type: 'notice'; code: 'REFUSAL' | 'TRUNCATED' | 'TURN_LIMIT'; text: string }
   | { type: 'done' }
   | { type: 'error'; code: string; text: string };
-export type StreamLike = { on(event: 'text', listener: (delta: string) => void): unknown; finalMessage(): Promise<BetaMessage> };
-export type LoopResult = { answer: string; tools: string[]; proposals: number; usage: { input: number; output: number; cacheRead: number }; stop: string };
-const MAX_JSON_RETRIES = 2;
-const errorResult = (id: string, content: string): BetaToolResultBlockParam => ({ type: 'tool_result', tool_use_id: id, is_error: true, content });
-export async function runAgentLoop({ createStream, messages, tools, emit, maxTurns = 8 }: { createStream: (messages: BetaMessageParam[]) => StreamLike; messages: BetaMessageParam[]; tools: AgentTool[]; emit: (event: AgentEvent) => void; maxTurns?: number }): Promise<LoopResult> {
+// A tool call as the driver understood it; `invalid` when its arguments could not be read at all.
+export type ToolCall = { id: string; name: string; input: unknown; invalid?: boolean };
+export type ToolOutcome = { id: string; content: string; isError?: boolean };
+export type Usage = { input: number; output: number; cacheRead: number };
+// end: the answer is complete · tools: run `calls` and continue · continue: ask again without results (a paused
+// server turn) · refusal: the model declined · truncated: a tool call was cut off by the output limit.
+export type TurnResult = { calls: ToolCall[]; stop: 'end' | 'tools' | 'continue' | 'refusal' | 'truncated'; usage: Usage };
+export interface ModelDriver { next(onText: (delta: string) => void): Promise<TurnResult>; pushResults(results: ToolOutcome[]): void }
+export type LoopResult = { answer: string; tools: string[]; proposals: number; usage: Usage; stop: string };
+export async function runAgentLoop({ driver, tools, emit, maxTurns = 8 }: { driver: ModelDriver; tools: AgentTool[]; emit: (event: AgentEvent) => void; maxTurns?: number }): Promise<LoopResult> {
   const byName = new Map(tools.map(tool => [tool.name, tool]));
   const used: string[] = [];
-  const usage = { input: 0, output: 0, cacheRead: 0 };
-  let answer = '', proposals = 0, jsonRetries = 0, stop = 'end_turn';
+  const usage: Usage = { input: 0, output: 0, cacheRead: 0 };
+  let answer = '', proposals = 0, stop = 'end';
   for (let turn = 0; turn < maxTurns; turn++) {
-    const stream = createStream(messages);
     // Text from a new model turn starts its own paragraph.
     let started = false;
-    stream.on('text', delta => {
+    const result = await driver.next(delta => {
       if (!started && answer && !answer.endsWith('\n')) { answer += '\n\n'; emit({ type: 'text', delta: '\n\n' }); }
       started = true; answer += delta; emit({ type: 'text', delta });
     });
-    let message: BetaMessage;
-    try {
-      message = await stream.finalMessage();
-      jsonRetries = 0;
-    } catch (error) {
-      // Only an unparseable tool input is retried; API errors (auth, rate limit, aborts) go to the caller.
-      if (error instanceof Anthropic.APIError || (error as Error)?.name === 'AbortError' || jsonRetries++ >= MAX_JSON_RETRIES) throw error;
-      turn--;
-      continue;
-    }
-    usage.input += message.usage.input_tokens; usage.output += message.usage.output_tokens; usage.cacheRead += message.usage.cache_read_input_tokens ?? 0;
-    stop = message.stop_reason ?? 'end_turn';
-    if (stop === 'refusal') { emit({ type: 'notice', code: 'REFUSAL', text: 'El asistente no puede ayudar con esta solicitud. Reformúlala o consúltala con Ale.' }); break; }
-    if (stop === 'pause_turn') { messages.push({ role: 'assistant', content: message.content }); continue; }
-    const calls = message.content.filter((block): block is BetaToolUseBlock => block.type === 'tool_use');
-    if (!calls.length) break;
-    if (stop === 'max_tokens') { emit({ type: 'notice', code: 'TRUNCATED', text: 'La respuesta se cortó antes de terminar. Pide algo más acotado.' }); break; }
-    messages.push({ role: 'assistant', content: message.content });
-    // Every result goes back in a single user message so the model keeps calling tools in parallel.
-    const results = await Promise.all(calls.map(async (call): Promise<BetaToolResultBlockParam> => {
+    usage.input += result.usage.input; usage.output += result.usage.output; usage.cacheRead += result.usage.cacheRead;
+    stop = result.stop;
+    if (result.stop === 'refusal') { emit({ type: 'notice', code: 'REFUSAL', text: 'El asistente no puede ayudar con esta solicitud. Reformúlala o consúltala con Ale.' }); break; }
+    if (result.stop === 'truncated') { emit({ type: 'notice', code: 'TRUNCATED', text: 'La respuesta se cortó antes de terminar. Pide algo más acotado.' }); break; }
+    if (result.stop === 'continue') continue;
+    if (result.stop === 'end' || !result.calls.length) break;
+    // Every result goes back together so the model keeps calling tools in parallel.
+    const outcomes = await Promise.all(result.calls.map(async (call): Promise<ToolOutcome> => {
       const tool = byName.get(call.name);
-      if (!tool) return errorResult(call.id, `Herramienta desconocida: ${call.name}`);
-      const parsed = tool.parse(call.input);
-      if (!parsed.ok) return errorResult(call.id, JSON.stringify({ INVALID_JSON: JSON.stringify(call.input) }));
+      if (!tool) return { id: call.id, content: `Herramienta desconocida: ${call.name}`, isError: true };
+      const parsed = call.invalid ? { ok: false as const } : tool.parse(call.input);
+      if (!parsed.ok) return { id: call.id, content: JSON.stringify({ INVALID_JSON: JSON.stringify(call.input) }), isError: true };
       used.push(call.name);
       const text = tool.label(parsed.data);
       emit({ type: 'step', id: call.id, text, status: 'active' });
@@ -70,18 +60,18 @@ export async function runAgentLoop({ createStream, messages, tools, emit, maxTur
           proposals++;
           emit({ type: 'proposal', id: call.id, tool: call.name, input: parsed.data, ...proposal });
           emit({ type: 'step', id: call.id, text, status: 'complete' });
-          return { type: 'tool_result', tool_use_id: call.id, content: 'Propuesta mostrada a la persona para que la confirme. Todavía no está hecha: no digas que ya ocurrió.' };
+          return { id: call.id, content: 'Propuesta mostrada a la persona para que la confirme. Todavía no está hecha: no digas que ya ocurrió.' };
         }
         const output = await tool.run(parsed.data);
         emit({ type: 'step', id: call.id, text, status: 'complete' });
-        return { type: 'tool_result', tool_use_id: call.id, content: typeof output === 'string' ? output : JSON.stringify(output) };
+        return { id: call.id, content: typeof output === 'string' ? output : JSON.stringify(output) };
       } catch (error) {
         emit({ type: 'step', id: call.id, text, status: 'error' });
         const code = typeof (error as { code?: unknown })?.code === 'string' ? (error as { code: string }).code : 'ERROR';
-        return errorResult(call.id, `No se pudo completar: ${code}`);
+        return { id: call.id, content: `No se pudo completar: ${code}`, isError: true };
       }
     }));
-    messages.push({ role: 'user', content: results });
+    driver.pushResults(outcomes);
     if (turn === maxTurns - 1) { stop = 'turn_limit'; emit({ type: 'notice', code: 'TURN_LIMIT', text: 'Llegué al límite de consultas para una respuesta. Pregunta de nuevo con algo más específico.' }); }
   }
   return { answer, tools: [...new Set(used)], proposals, usage, stop };

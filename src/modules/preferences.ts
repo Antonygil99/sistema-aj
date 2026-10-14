@@ -7,12 +7,16 @@ export const viewOptions = {
   prospectos: ['board', 'list'],
 } as const;
 export const themeOptions = ['light', 'dark', 'system', 'gradient'] as const;
-// Claude models the assistants can use (src/agents/server.ts reads the user's choice): light and inexpensive ones
-// only. A stored choice that is no longer listed falls back to the default on read.
+// Models the assistants can use (src/agents/server.ts reads the user's choice): light and inexpensive ones only,
+// from Anthropic and OpenAI. A stored choice that is no longer listed falls back to the default on read.
 export const assistantModels = [
-  { id: 'claude-haiku-5-5', label: 'Claude Haiku 5.5', summary: 'Recomendado: el más rápido y económico. Suficiente para consultas, avisos y borradores.' },
-  { id: 'claude-sonnet-5-5', label: 'Claude Sonnet 5.5', summary: 'Más capaz para análisis y redacción largos; cada respuesta cuesta unas 20 veces más.' },
+  { id: 'claude-haiku-5-5', provider: 'anthropic', label: 'Claude Haiku 5.5', summary: 'Recomendado: el más rápido y económico. Suficiente para consultas, avisos y borradores.' },
+  { id: 'claude-sonnet-5-5', provider: 'anthropic', label: 'Claude Sonnet 5.5', summary: 'Más capaz para análisis y redacción largos; cada respuesta cuesta unas 20 veces más.' },
+  { id: 'gpt-6-luna', provider: 'openai', label: 'GPT-6 Luna', summary: 'El más eficiente de OpenAI; costo similar a Haiku.' },
+  { id: 'gpt-6.1-sol', provider: 'openai', label: 'GPT-6.1 Sol', summary: 'OpenAI, más capaz; costo similar a Sonnet.' },
 ] as const;
+export type AssistantProvider = (typeof assistantModels)[number]['provider'];
+export const providerLabels: Record<AssistantProvider, string> = { anthropic: 'Anthropic', openai: 'OpenAI' };
 export type ViewKey = keyof typeof viewOptions;
 export type ViewValue<K extends ViewKey> = (typeof viewOptions)[K][number];
 export type Theme = (typeof themeOptions)[number];

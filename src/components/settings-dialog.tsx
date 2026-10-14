@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useId, type ReactNode } from 'react';
 import { Colorfilter, Monitor, Moon, Sun1 } from '@/components/icons';
-import { assistantModels, type NotificationSettings, type Theme } from '@/modules/preferences';
+import { assistantModels, providerLabels, type NotificationSettings, type Theme } from '@/modules/preferences';
 import { Modal } from './ui/modal';
 import { usePreferences } from './ui/preferences';
 export type SettingsSection = 'apariencia' | 'notificaciones' | 'asistentes' | 'ayuda' | 'vistas';
@@ -67,11 +67,11 @@ export function SettingsDialog({ open, section, onClose, role = 'USER' }: { open
       {emailOptions.map(option => <SwitchRow key={option.key} label={option.label} hint={option.hint} checked={preferences.notifications[option.key]} onChange={next => update({ notifications: { [option.key]: next } })}/>)}
     </Section>
     {role === 'SUPERADMIN' ? <Section id="asistentes" title="Asistentes de IA">
-      <p className="settings-note">El modelo con el que responden los asistentes (Asistentes, en el menú). Haiku es el recomendado por rápido y económico.</p>
+      <p className="settings-note">El modelo con el que responden los asistentes (Asistentes, en el menú). Haiku es el recomendado por rápido y económico; los de OpenAI necesitan su propia llave.</p>
       <fieldset className="model-list"><legend className="sr-only">Modelo de los asistentes</legend>
         {assistantModels.map(model => <label key={model.id} className="model-option">
           <input type="radio" name={modelName} value={model.id} checked={preferences.assistantModel === model.id} onChange={() => update({ assistantModel: model.id })}/>
-          <span><strong>{model.label}</strong><small>{model.summary}</small></span>
+          <span><strong>{model.label} <em className="model-provider">{providerLabels[model.provider]}</em></strong><small>{model.summary}</small></span>
         </label>)}
       </fieldset>
     </Section> : null}

@@ -1,7 +1,6 @@
 import 'server-only';
 import { after } from 'next/server';
 import { z } from 'zod';
-import type { BetaTool } from '@anthropic-ai/sdk/resources/beta/messages/messages';
 import { getDb } from '@/lib/db';
 import type { Actor } from '@/lib/api';
 import { createResource } from '@/modules/resources/server';
@@ -310,14 +309,15 @@ const tools = {
   }),
 } satisfies Record<ToolName, Definition<z.ZodType>>;
 
-// API definition of a tool: JSON Schema from its zod input, streamed eagerly (inputs are validated before running).
-function schemaOf(schema: z.ZodType) {
-  const json = z.toJSONSchema(schema, { io: 'input' }) as Record<string, unknown>;
-  delete json.$schema;
-  return json as BetaTool['input_schema'];
-}
-export function toolDefinitions(names: readonly ToolName[]): BetaTool[] {
-  return names.map(name => ({ name, description: tools[name].description, input_schema: schemaOf(tools[name].input), eager_input_streaming: true }));
+// What a provider needs to declare a tool: its name, description and the JSON Schema of its zod input (every input
+// is validated against the zod schema again before running, whatever the provider).
+export type ToolSpec = { name: ToolName; description: string; schema: { type: 'object'; [key: string]: unknown } };
+export function toolSpecs(names: readonly ToolName[]): ToolSpec[] {
+  return names.map(name => {
+    const schema = z.toJSONSchema(tools[name].input, { io: 'input' }) as Record<string, unknown>;
+    delete schema.$schema;
+    return { name, description: tools[name].description, schema: schema as ToolSpec['schema'] };
+  });
 }
 export function loopTools(names: readonly ToolName[], ctx: ToolContext): AgentTool[] {
   return names.map(name => {

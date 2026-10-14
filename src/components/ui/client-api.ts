@@ -50,6 +50,8 @@ export const errorMessages: Record<string, string> = {
   EMAIL_DOCUMENT_UNAVAILABLE: 'No se pudo leer uno de los archivos del almacenamiento.',
   EMAIL_ATTACHMENTS_TOO_LARGE: 'Los adjuntos superan 20 MB en total. Envía menos archivos.',
   AI_NOT_CONFIGURED: 'Los asistentes aún no están configurados. Avisa al administrador.',
+  AI_ANTHROPIC_NOT_CONFIGURED: 'Falta la llave de Anthropic para el modelo elegido. Configúrala o elige un modelo de OpenAI en Preferencias.',
+  AI_OPENAI_NOT_CONFIGURED: 'Falta la llave de OpenAI para el modelo elegido. Configúrala o elige un modelo de Claude en Preferencias.',
   AI_RATE_LIMITED: 'Los asistentes recibieron demasiadas solicitudes. Intenta en un momento.',
   AI_REJECTED: 'El asistente no pudo procesar la solicitud. Intenta reformularla.',
   AI_UNAVAILABLE: 'El asistente no respondió. Intenta de nuevo en un momento.',

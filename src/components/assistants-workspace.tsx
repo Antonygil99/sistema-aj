@@ -162,7 +162,7 @@ export function AssistantsWorkspace({ initialAgent, configured, canAct, isSupera
         <div><h2 id="asistente-titulo">{agent.name}</h2><p>{agent.purpose}</p></div>
         <div className="assistant-head-actions"><span className="subtle-pill" title="Se cambia en Preferencias">{modelLabel}</span>{turns.length ? <button type="button" className="text-button" onClick={() => { abort.current?.abort(); setConversations(all => ({ ...all, [agentId]: [] })); }}><Add aria-hidden="true"/>Nueva conversación</button> : null}</div>
       </div>
-      {!configured ? <p className="notice" role="alert">{isSuperadmin ? 'Falta configurar la llave de Claude (ANTHROPIC_API_KEY) en el servidor para que los asistentes respondan.' : 'Los asistentes aún no están configurados. Avisa al administrador.'}</p> : null}
+      {!configured ? <p className="notice" role="alert">{isSuperadmin ? 'Falta configurar en el servidor la llave de Anthropic (ANTHROPIC_API_KEY) u OpenAI (OPENAI_API_KEY) para que los asistentes respondan.' : 'Los asistentes aún no están configurados. Avisa al administrador.'}</p> : null}
       <ThinkingPromptInput
         key={agentId}
         className="assistant-thread"

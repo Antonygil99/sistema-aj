@@ -6,6 +6,8 @@ import { agents, isWriteTool, toolNames, writeTools } from '../src/agents/catalo
 import { systemPrompt } from '../src/agents/prompts';
 import { parseAnswer, parseInline } from '../src/agents/format';
 import { runAgentLoop, type AgentEvent, type AgentTool } from '../src/agents/loop';
+import { anthropicDriver } from '../src/agents/drivers/anthropic';
+import { openaiDriver, type OpenAIStream } from '../src/agents/drivers/openai';
 
 test('los ocho asistentes de la Ruta AJ existen con herramientas conocidas', () => {
   assert.deepEqual(agents.map(agent => agent.name), ['Primer contacto por WhatsApp', 'Captura para cotización', 'Entrega de póliza', 'Renovaciones y pagos', 'Siniestros y orientación médica', 'Contenidos y guiones', 'Análisis de casos', 'Aprendizaje interno AJ']);
@@ -82,7 +84,7 @@ const toolUse = (id: string, name: string, input: unknown) => ({ type: 'tool_use
 test('el bucle ejecuta las consultas, devuelve todos los resultados juntos y transmite la respuesta', async () => {
   const log: string[] = [], events: AgentEvent[] = [];
   const model = fakeModel([{ content: [toolUse('t1', 'buscar_polizas', { vence_en_dias: 30 }), toolUse('t2', 'buscar_polizas', { texto: 'MV' })], stop_reason: 'tool_use' }, { content: [{ type: 'text', text: 'Hay 2 pólizas.' }], stop_reason: 'end_turn' }]);
-  const result = await runAgentLoop({ createStream: model.createStream, messages: [{ role: 'user', content: '¿Qué vence?' }], tools: fakeTools(log), emit: event => events.push(event) });
+  const result = await runAgentLoop({ driver: anthropicDriver({ createStream: model.createStream, messages: [{ role: 'user', content: '¿Qué vence?' }] }), tools: fakeTools(log), emit: event => events.push(event) });
   assert.equal(result.answer, 'Hay 2 pólizas.');
   assert.deepEqual(result.tools, ['buscar_polizas']);
   assert.deepEqual(result.usage, { input: 20, output: 10, cacheRead: 4 });
@@ -98,7 +100,7 @@ test('el bucle ejecuta las consultas, devuelve todos los resultados juntos y tra
 test('una escritura nunca se ejecuta en el bucle: se convierte en propuesta', async () => {
   const log: string[] = [], events: AgentEvent[] = [];
   const model = fakeModel([{ content: [toolUse('w1', 'crear_actividad', { titulo: 'Llamar' })], stop_reason: 'tool_use' }, { content: [{ type: 'text', text: 'Te dejé la propuesta.' }], stop_reason: 'end_turn' }]);
-  const result = await runAgentLoop({ createStream: model.createStream, messages: [{ role: 'user', content: 'Agenda una llamada' }], tools: fakeTools(log), emit: event => events.push(event) });
+  const result = await runAgentLoop({ driver: anthropicDriver({ createStream: model.createStream, messages: [{ role: 'user', content: 'Agenda una llamada' }] }), tools: fakeTools(log), emit: event => events.push(event) });
   assert.deepEqual(log, []);
   assert.equal(result.proposals, 1);
   const proposal = events.find(event => event.type === 'proposal') as Extract<AgentEvent, { type: 'proposal' }>;
@@ -110,7 +112,7 @@ test('una escritura nunca se ejecuta en el bucle: se convierte en propuesta', as
 test('una entrada inválida vuelve como error sin ejecutar nada', async () => {
   const log: string[] = [];
   const model = fakeModel([{ content: [toolUse('x1', 'buscar_polizas', { malo: true })], stop_reason: 'tool_use' }, { content: [{ type: 'text', text: 'No pude.' }], stop_reason: 'end_turn' }]);
-  await runAgentLoop({ createStream: model.createStream, messages: [{ role: 'user', content: 'x' }], tools: fakeTools(log), emit: () => undefined });
+  await runAgentLoop({ driver: anthropicDriver({ createStream: model.createStream, messages: [{ role: 'user', content: 'x' }] }), tools: fakeTools(log), emit: () => undefined });
   const result = (model.calls[1].at(-1)!.content as { is_error?: boolean; content: string }[])[0];
   assert.equal(result.is_error, true);
   assert.match(result.content, /INVALID_JSON/);
@@ -119,17 +121,71 @@ test('una entrada inválida vuelve como error sin ejecutar nada', async () => {
 
 test('un rechazo detiene el turno y una entrada truncada no se ejecuta', async () => {
   const events: AgentEvent[] = [], log: string[] = [];
-  await runAgentLoop({ createStream: fakeModel([{ content: [], stop_reason: 'refusal' }]).createStream, messages: [{ role: 'user', content: 'x' }], tools: fakeTools(log), emit: event => events.push(event) });
+  await runAgentLoop({ driver: anthropicDriver({ createStream: fakeModel([{ content: [], stop_reason: 'refusal' }]).createStream, messages: [{ role: 'user', content: 'x' }] }), tools: fakeTools(log), emit: event => events.push(event) });
   assert.equal((events[0] as { code: string }).code, 'REFUSAL');
   const truncated: AgentEvent[] = [];
-  await runAgentLoop({ createStream: fakeModel([{ content: [toolUse('t', 'buscar_polizas', {})], stop_reason: 'max_tokens' }]).createStream, messages: [{ role: 'user', content: 'x' }], tools: fakeTools(log), emit: event => truncated.push(event) });
+  await runAgentLoop({ driver: anthropicDriver({ createStream: fakeModel([{ content: [toolUse('t', 'buscar_polizas', {})], stop_reason: 'max_tokens' }]).createStream, messages: [{ role: 'user', content: 'x' }] }), tools: fakeTools(log), emit: event => truncated.push(event) });
   assert.equal((truncated[0] as { code: string }).code, 'TRUNCATED');
   assert.deepEqual(log, []);
 });
 
 test('solo un JSON ilegible se reintenta; los errores del API se propagan', async () => {
   const retried = fakeModel([new SyntaxError('Unexpected token'), { content: [{ type: 'text', text: 'Listo' }], stop_reason: 'end_turn' }]);
-  assert.equal((await runAgentLoop({ createStream: retried.createStream, messages: [{ role: 'user', content: 'x' }], tools: [], emit: () => undefined })).answer, 'Listo');
+  assert.equal((await runAgentLoop({ driver: anthropicDriver({ createStream: retried.createStream, messages: [{ role: 'user', content: 'x' }] }), tools: [], emit: () => undefined })).answer, 'Listo');
   const failing = fakeModel([new Anthropic.APIError(529, { type: 'error' }, 'overloaded', new Headers())]);
-  await assert.rejects(runAgentLoop({ createStream: failing.createStream, messages: [{ role: 'user', content: 'x' }], tools: [], emit: () => undefined }), (error: unknown) => error instanceof Anthropic.APIError);
+  await assert.rejects(runAgentLoop({ driver: anthropicDriver({ createStream: failing.createStream, messages: [{ role: 'user', content: 'x' }] }), tools: [], emit: () => undefined }), (error: unknown) => error instanceof Anthropic.APIError);
+});
+
+// A scripted OpenAI Responses stream: yields its events, then finalResponse() returns the assembled response.
+type OpenAIScript = { events?: { type: string; delta?: string }[]; output: unknown[]; status?: string; reason?: string };
+function fakeOpenAI(scripts: OpenAIScript[]) {
+  const inputs: unknown[][] = [];
+  const createStream = (input: unknown[]) => {
+    inputs.push(structuredClone(input));
+    const script = scripts.shift()!;
+    return {
+      async *[Symbol.asyncIterator]() { for (const event of script.events ?? []) yield event; },
+      finalResponse: async () => ({ output: script.output, status: script.status ?? 'completed', incomplete_details: script.reason ? { reason: script.reason } : null, usage: { input_tokens: 8, output_tokens: 3, input_tokens_details: { cached_tokens: 1 } } }),
+    } as unknown as OpenAIStream;
+  };
+  return { createStream, inputs };
+}
+const reasoning = { type: 'reasoning', id: 'rs_1', summary: [], encrypted_content: 'cifrado' };
+const call = (callId: string, name: string, args: string) => ({ type: 'function_call', id: `fc_${callId}`, call_id: callId, name, arguments: args, status: 'completed' });
+const said = (text: string) => ({ type: 'message', id: 'msg_1', role: 'assistant', status: 'completed', content: [{ type: 'output_text', text, annotations: [] }] });
+
+test('con OpenAI, el razonamiento y la llamada vuelven antes del resultado de la función', async () => {
+  const log: string[] = [];
+  const model = fakeOpenAI([{ output: [reasoning, call('c1', 'buscar_polizas', '{"vence_en_dias":30}')] }, { events: [{ type: 'response.output_text.delta', delta: 'Hay 2 pólizas.' }], output: [said('Hay 2 pólizas.')] }]);
+  const result = await runAgentLoop({ driver: openaiDriver({ createStream: model.createStream as never, input: [{ role: 'user', content: '¿Qué vence?' }] }), tools: fakeTools(log), emit: () => undefined });
+  assert.equal(result.answer, 'Hay 2 pólizas.');
+  assert.deepEqual(log, ['run:{"vence_en_dias":30}']);
+  assert.deepEqual(result.usage, { input: 16, output: 6, cacheRead: 2 });
+  const second = model.inputs[1] as { type?: string; call_id?: string; output?: string; encrypted_content?: string }[];
+  assert.deepEqual(second.slice(1).map(item => item.type), ['reasoning', 'function_call', 'function_call_output']);
+  assert.equal(second[1].encrypted_content, 'cifrado');
+  assert.deepEqual([second[3].call_id, second[3].output], ['c1', '{"total":2}']);
+});
+
+test('con OpenAI, unos argumentos ilegibles no ejecutan nada y una escritura sigue siendo propuesta', async () => {
+  const log: string[] = [], events: AgentEvent[] = [];
+  const model = fakeOpenAI([{ output: [call('c1', 'buscar_polizas', '{"vence_en'), call('c2', 'crear_actividad', '{"titulo":"Llamar"}')] }, { output: [said('Listo')] }]);
+  await runAgentLoop({ driver: openaiDriver({ createStream: model.createStream as never, input: [] }), tools: fakeTools(log), emit: event => events.push(event) });
+  assert.deepEqual(log, []);
+  const outputs = (model.inputs[1] as { type?: string; output?: string }[]).filter(item => item.type === 'function_call_output');
+  assert.match(outputs[0].output!, /^ERROR: .*INVALID_JSON/);
+  assert.match(outputs[1].output!, /Todavía no está hecha/);
+  assert.ok(events.some(event => event.type === 'proposal'));
+});
+
+test('con OpenAI, un rechazo o el filtro de contenido detienen el turno y una llamada truncada no corre', async () => {
+  for (const script of [{ events: [{ type: 'response.refusal.delta', delta: 'No puedo' }], output: [] }, { output: [], status: 'incomplete', reason: 'content_filter' }]) {
+    const events: AgentEvent[] = [];
+    await runAgentLoop({ driver: openaiDriver({ createStream: fakeOpenAI([script]).createStream as never, input: [] }), tools: [], emit: event => events.push(event) });
+    assert.equal((events[0] as { code: string }).code, 'REFUSAL');
+  }
+  const log: string[] = [], events: AgentEvent[] = [];
+  await runAgentLoop({ driver: openaiDriver({ createStream: fakeOpenAI([{ output: [call('c1', 'buscar_polizas', '{}')], status: 'incomplete', reason: 'max_output_tokens' }]).createStream as never, input: [] }), tools: fakeTools(log), emit: event => events.push(event) });
+  assert.equal((events[0] as { code: string }).code, 'TRUNCATED');
+  assert.deepEqual(log, []);
 });

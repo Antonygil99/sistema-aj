@@ -67,7 +67,7 @@ Las rutas CRM y de agentes admiten sesiones de Google autorizadas o Authorizatio
 | GET /api/search?q= | Búsqueda global (mínimo 2 letras): registros de todos los módulos, archivos, carpetas y, para el superadmin, accesos |
 | GET /api/notifications?since= | Novedades de otras personas del equipo y recordatorios (recibos vencidos, renovaciones de la semana) |
 | GET /api/agents | Catálogo de los ocho asistentes y si la IA está configurada (SUPERADMIN) |
-| POST /api/assistant/chat | Un turno de un asistente en streaming (JSON por líneas; SUPERADMIN); requiere `ANTHROPIC_API_KEY` |
+| POST /api/assistant/chat | Un turno de un asistente en streaming (JSON por líneas; SUPERADMIN); requiere `ANTHROPIC_API_KEY` u `OPENAI_API_KEY` según el modelo |
 | POST /api/assistant/actions | Ejecuta una propuesta confirmada (SUPERADMIN): crear actividad, registrar o mover prospecto, resolver aviso, preparar correo |
 | GET /api/whatsapp/webhook | Desafío de verificación Meta |
 | POST /api/whatsapp/webhook | Firma HMAC + persistencia idempotente del payload |
@@ -116,7 +116,7 @@ sendTemplate es un adaptador de servidor para plantillas aprobadas sin parámetr
 
 ## Asistentes IA
 
-Ocho asistentes de la Ruta AJ en `/asistentes`, visibles solo para el superadmin (primer contacto por WhatsApp, captura para cotización, entrega de póliza, renovaciones y pagos, siniestros y orientación médica, contenidos y guiones, análisis de casos y aprendizaje interno). Usan modelos ligeros de Claude (Haiku 5.5 por defecto o Sonnet 5.5) por la API de Anthropic (`ANTHROPIC_API_KEY`), consultan el CRM y solo proponen cambios: cada propuesta se confirma en el chat y los correos se revisan y envían desde el redactor. El Método AJ todavía requiere documentación del negocio: no se inventaron reglas. Ver docs/asistentes.md.
+Ocho asistentes de la Ruta AJ en `/asistentes`, visibles solo para el superadmin (primer contacto por WhatsApp, captura para cotización, entrega de póliza, renovaciones y pagos, siniestros y orientación médica, contenidos y guiones, análisis de casos y aprendizaje interno). Usan modelos ligeros de Anthropic (Claude Haiku 5.5 por defecto o Sonnet 5.5, `ANTHROPIC_API_KEY`) u OpenAI (GPT-6 Luna o GPT-6.1 Sol, `OPENAI_API_KEY`), consultan el CRM y solo proponen cambios: cada propuesta se confirma en el chat y los correos se revisan y envían desde el redactor. El Método AJ todavía requiere documentación del negocio: no se inventaron reglas. Ver docs/asistentes.md.
 
 ## Alcance y siguientes pasos
 
