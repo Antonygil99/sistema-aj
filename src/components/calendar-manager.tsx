@@ -1,6 +1,7 @@
 'use client';
 import { useRef, useState, type FormEvent } from 'react';
-import { Add, Calendar, Refresh2 } from '@/components/icons';
+import { Add, Refresh2 } from '@/components/icons';
+import Image from 'next/image';
 import { ApiError, apiFetch } from './ui/client-api';
 import { useToast } from './ui/toast';
 import { useConfirm } from './ui/confirm';
@@ -87,7 +88,7 @@ export function CalendarManager({ initial, connectionResult }: { initial: Calend
     await action(async () => { await apiFetch(`/api/calendar/events/${entry.id}`, { method: 'POST', json: { action: task } }); await reload(); });
   }
   return <>
-    <section className="document-panel calendar-connection" aria-label="Conexión con Google Calendar"><Calendar aria-hidden="true"/><div><h2>{data.connected ? 'Google Calendar conectado' : 'Conecta tu Google Calendar'}</h2><p>{data.email} · Calendario principal</p><p className="lead-small">Los eventos se guardan en tu cuenta. Aquí se muestran las reuniones creadas desde Sistema AJ.</p></div><div className="calendar-connection-actions">
+    <section className="document-panel calendar-connection" aria-label="Conexión con Google Calendar"><Image className="calendar-connection-logo" src="/brands/google-calendar.svg" width={36} height={36} alt="Google Calendar"/><div><h2>{data.connected ? 'Google Calendar conectado' : 'Conecta tu Google Calendar'}</h2><p>{data.email} · Calendario principal</p><p className="lead-small">Los eventos se guardan en tu cuenta. Aquí se muestran las reuniones creadas desde Sistema AJ.</p></div><div className="calendar-connection-actions">
       <button type="button" className="button" disabled={busy} onClick={() => void connect()}>{data.connected ? 'Renovar conexión' : 'Conectar Google Calendar'}</button>
       {data.connected ? <button type="button" className="text-button" disabled={busy} onClick={() => void disconnect()}>Desconectar</button> : null}
     </div></section>
