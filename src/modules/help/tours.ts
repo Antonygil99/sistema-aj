@@ -94,6 +94,8 @@ export const tours: Tour[] = [
     { title: 'Expediente del cliente', body: 'Todo lo de este cliente en un solo lugar: sus pólizas, su entrega activa, sus recibos y sus documentos.' },
     { targets: ['.delivery-strip'], title: 'Entrega de cada póliza', body: 'La etapa de entrega y el avance de las cinco señales. «Abrir entrega activa» te lleva a su tarjeta.' },
     { targets: ['.document-panel .table-wrap'], title: 'Recibos y vencimientos', body: 'El calendario de recibos de la póliza con su estado: pendiente, vencido o pagado.' },
+    { targets: ['.client-contacts'], title: 'Contactos', body: 'Personas además del cliente a quienes se les puede escribir, como RH de una empresa o un familiar. Solo ellos y el cliente pueden recibir correos de este expediente.' },
+    { targets: ['.dossier-emails'], title: 'Correos', body: 'Envía la bienvenida o documentos con sus adjuntos. Revisas el texto y la vista previa antes de enviar, las respuestas te llegan a ti y aquí queda el historial.' },
   ] },
   { id: 'modulo:nuevo-expediente', kind: 'module', title: 'Nuevo expediente', summary: 'El asistente de 4 pasos para abrir un expediente.', route: '/crm/clientes/nuevo', minRole: 'ADMIN', steps: [
     { targets: ['.wizard-steps'], title: 'Cuatro pasos', body: 'Cliente, póliza, pagos y revisión. Nada se guarda hasta el último paso, y todo se guarda junto.' },

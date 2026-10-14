@@ -1,5 +1,7 @@
 import { z } from 'zod';
+import { after } from 'next/server';
 import { apiError } from '@/lib/api';
+import { syncMeetingReminders } from '@/modules/email/server';
 import { recordEvent } from '@/modules/events';
 import { CalendarError } from '@/modules/calendar/schema';
 import { calendarNoStore, calendarRepo, calendarService, calendarUser, refreshMeeting } from '@/modules/calendar/server';
@@ -13,6 +15,8 @@ export async function POST(request: Request, context: Context) {
     const { action } = z.object({ action: z.enum(['retry', 'refresh']) }).strict().parse(await request.json());
     const entry = await calendarRepo.find(auth.actor.id, id);
     if (!entry) throw new CalendarError('CALENDAR_EVENT_NOT_FOUND', 404);
+    // Email reminders follow the meeting: a refreshed time or title reschedules them, a cancellation removes them.
+    after(() => syncMeetingReminders(id));
     if (action === 'refresh') return Response.json({ data: await refreshMeeting(auth.actor.id, id, request.headers) }, { headers: calendarNoStore });
     const result = await (await calendarService(auth.actor, request.headers)).publish(auth.actor.id, entry);
     if (result.changed) await recordEvent(auth.actor, 'created', 'agenda', id, result.entry.title);
@@ -24,6 +28,7 @@ export async function DELETE(request: Request, context: Context) {
   try {
     const id = idSchema.parse((await context.params).id);
     const result = await (await calendarService(auth.actor, request.headers)).cancel(auth.actor.id, id);
+    after(() => syncMeetingReminders(id));
     if (result.changed) await recordEvent(auth.actor, 'deleted', 'agenda', id, result.entry.title);
     return Response.json({ data: result.entry }, { headers: calendarNoStore });
   } catch (error) { return apiError(error); }

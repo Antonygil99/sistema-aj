@@ -1,0 +1,146 @@
+'use client';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
+import { DocumentText, Eye, Send2 } from '@/components/icons';
+import { MAX_ATTACHMENTS, type Recipient } from '@/modules/email/rules';
+import { clientEmail, defaultClientMessage, type ClientEmailKind } from '@/modules/email/templates';
+import { apiFetch } from './ui/client-api';
+import { useConfirm } from './ui/confirm';
+import { Modal } from './ui/modal';
+import { RelationPicker } from './ui/relation-picker';
+import { useToast } from './ui/toast';
+type Options = { client: { id: string; name: string; email: string | null }; recipients: Recipient[]; documents: { id: string; name: string; detail: string }[]; welcomeSentAt: string | null; configured: boolean };
+// What opens the composer: the kind of email, the client (or null to pick one) and files chosen beforehand.
+export type ComposerRequest = { kind: ClientEmailKind; clientId: string | null; clientName?: string; documents?: { id: string; name: string }[] };
+type Errors = Partial<Record<'client' | 'to' | 'subject' | 'message', string>>;
+const titles: Record<ClientEmailKind, string> = { DOCUMENTOS: 'Enviar documentos por correo', BIENVENIDA: 'Enviar bienvenida' };
+const newRequestId = () => crypto.randomUUID();
+// A person always reviews what goes to a client: recipients (the client and its registered contacts only), text and
+// attachments, with a preview of the exact email. Replies reach the sender's own inbox.
+export function EmailComposer({ request, senderName, onClose, onSent }: { request: ComposerRequest | null; senderName: string; onClose: () => void; onSent?: (kind: ClientEmailKind) => void }) {
+  const toast = useToast();
+  const confirm = useConfirm();
+  const [opened, setOpened] = useState<ComposerRequest | null>(null);
+  const [clientId, setClientId] = useState<string | null>(null);
+  const [loadFor, setLoadFor] = useState<string | null>(null);
+  const [options, setOptions] = useState<Options | null>(null);
+  const [to, setTo] = useState<string[]>([]);
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
+  const [documentIds, setDocumentIds] = useState<string[]>([]);
+  const [preview, setPreview] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [errors, setErrors] = useState<Errors>({});
+  const [dirty, setDirty] = useState(false);
+  const [requestId, setRequestId] = useState(newRequestId);
+  const formRef = useRef<HTMLFormElement>(null);
+  const ids = { to: useId(), subject: useId(), message: useId(), files: useId() };
+  const kind = request?.kind ?? 'DOCUMENTOS';
+  const loading = loadFor !== null;
+  // Each opening starts a fresh draft, with a fresh requestId so the same draft never sends twice.
+  if (request !== opened) {
+    setOpened(request);
+    if (request) {
+      setRequestId(newRequestId());
+      setClientId(request.clientId); setLoadFor(request.clientId); setOptions(null);
+      setTo([]); setErrors({}); setDirty(false); setPreview(false); setSubject(''); setMessage('');
+      setDocumentIds((request.documents ?? []).map(doc => doc.id));
+    }
+  }
+  useEffect(() => {
+    if (!loadFor) return;
+    let active = true;
+    apiFetch<{ data: Options }>(`/api/emails/options?clientId=${encodeURIComponent(loadFor)}`)
+      .then(({ data }) => {
+        if (!active) return;
+        setOptions(data);
+        setTo(data.recipients.filter(recipient => recipient.label === 'Cliente').map(recipient => recipient.email));
+        const defaults = defaultClientMessage(kind, data.client.name);
+        setSubject(defaults.subject); setMessage(defaults.message);
+      })
+      .catch(error => { if (active) toast({ kind: 'error', title: 'No se pudo preparar el correo', message: error instanceof Error ? error.message : undefined }); })
+      .finally(() => { if (active) setLoadFor(null); });
+    return () => { active = false; };
+  }, [loadFor, kind, toast]);
+  // Files chosen before opening that are not the client's own (team files) are listed first.
+  const files = useMemo(() => {
+    const own = options?.documents ?? [];
+    const extra = (request?.documents ?? []).filter(doc => !own.some(item => item.id === doc.id)).map(doc => ({ ...doc, detail: 'Archivo del equipo' }));
+    return [...extra, ...own];
+  }, [options, request]);
+  const selectedNames = files.filter(file => documentIds.includes(file.id)).map(file => file.name);
+  const previewHtml = useMemo(() => preview ? clientEmail({ subject, message, senderName, attachments: selectedNames }).html : '', [preview, subject, message, senderName, selectedNames]);
+  async function close() {
+    if (busy) return;
+    if (dirty && !await confirm({ title: 'Descartar el correo', message: 'Perderás lo que escribiste en este correo.', confirmLabel: 'Descartar', tone: 'danger' })) return;
+    onClose();
+  }
+  const toggle = (list: string[], value: string) => list.includes(value) ? list.filter(item => item !== value) : [...list, value];
+  async function send() {
+    const next: Errors = {};
+    if (!clientId) next.client = 'Elige el cliente.';
+    if (!to.length) next.to = 'Elige al menos un destinatario.';
+    if (!subject.trim()) next.subject = 'Escribe el asunto.';
+    if (!message.trim()) next.message = 'Escribe el mensaje.';
+    setErrors(next);
+    if (Object.keys(next).length) { formRef.current?.querySelector<HTMLElement>(next.client ? '.relation-picker input' : next.to ? '.email-recipients input' : '[aria-invalid="true"]')?.focus(); return; }
+    setBusy(true);
+    try {
+      await apiFetch('/api/emails', { method: 'POST', json: { requestId, kind, clientId, to, subject, message, documentIds }, labels: { to: 'Para', subject: 'Asunto', message: 'Mensaje', documentIds: 'Adjuntos' } });
+      toast({ kind: 'success', title: kind === 'BIENVENIDA' ? 'Bienvenida enviada' : 'Correo enviado', message: `Para ${to.join(', ')}` });
+      onSent?.(kind);
+      onClose();
+    } catch (error) {
+      // The same requestId can retry: the server only records a draft once it passed validation, and a failed
+      // attempt is kept apart so the retry sends.
+      toast({ kind: 'error', title: 'No se envió el correo', message: error instanceof Error ? error.message : undefined });
+    } finally { setBusy(false); }
+  }
+  const invalid = (key: 'subject' | 'message') => errors[key] ? { 'aria-invalid': true as const, 'aria-describedby': `${ids[key]}-error` } : {};
+  return <Modal open={request !== null} onClose={() => void close()} busy={busy} size="lg" className="email-composer" title={titles[kind]}
+    description={options ? `${options.client.name} · las respuestas te llegarán a ti` : request?.clientName}
+    footer={<>
+      <button type="button" className="text-button" onClick={() => setPreview(value => !value)} disabled={!options} aria-pressed={preview}><Eye aria-hidden="true"/>{preview ? 'Editar' : 'Vista previa'}</button>
+      <span className="modal-footer-spacer"/>
+      <button type="button" className="text-button" disabled={busy} onClick={() => void close()}>Cancelar</button>
+      <button type="submit" form="email-composer-form" className="button" disabled={busy || loading || !options || !options.configured}><Send2 aria-hidden="true"/>{busy ? 'Enviando…' : 'Enviar'}</button>
+    </>}>
+    <form id="email-composer-form" ref={formRef} className="resource-form" onSubmit={event => { event.preventDefault(); void send(); }} onChange={() => setDirty(true)}>
+      {!request?.clientId ? <div className={`form-field is-wide${errors.client ? ' is-invalid' : ''}`}>
+        <span className="form-label">Cliente</span>
+        <RelationPicker relation="clientes" value={clientId ?? ''} initialLabel="" label="Cliente" required onChange={id => { setClientId(id || null); setOptions(null); setLoadFor(id || null); }}/>
+        {errors.client ? <small className="field-error">{errors.client}</small> : null}
+      </div> : null}
+      {options && !options.configured ? <p className="notice is-wide" role="alert">El envío de correos no está configurado en el servidor.</p> : null}
+      {loading ? <p className="lead-small is-wide" role="status">Preparando el correo…</p> : null}
+      {options && preview ? <div className="email-preview is-wide"><iframe title="Vista previa del correo" sandbox="" srcDoc={previewHtml}/></div> : null}
+      {options && !preview ? <>
+        <fieldset className={`form-field is-wide email-recipients${errors.to ? ' is-invalid' : ''}`} aria-describedby={errors.to ? `${ids.to}-error` : undefined}>
+          <legend className="form-label">Para</legend>
+          {options.recipients.length ? options.recipients.map(recipient => <label key={recipient.email} className="email-check">
+            <input type="checkbox" checked={to.includes(recipient.email)} onChange={() => { setTo(current => toggle(current, recipient.email)); setDirty(true); }}/>
+            <span><strong>{recipient.name}</strong> <small>{recipient.label} · {recipient.email}</small></span>
+          </label>) : <p className="form-hint">Este cliente no tiene correo ni contactos con correo. <Link href={`/crm/clientes/${options.client.id}#contactos`}>Agrégalos en su expediente</Link>.</p>}
+          {errors.to ? <small id={`${ids.to}-error`} className="field-error">{errors.to}</small> : null}
+          <small className="form-hint">Solo el cliente y sus contactos registrados. Para escribir a alguien más, agrégalo como contacto.</small>
+        </fieldset>
+        <div className={`form-field is-wide${errors.subject ? ' is-invalid' : ''}`}><label><span className="form-label">Asunto</span>
+          <input value={subject} maxLength={200} onChange={event => setSubject(event.target.value)} {...invalid('subject')}/></label>
+          {errors.subject ? <small id={`${ids.subject}-error`} className="field-error">{errors.subject}</small> : null}</div>
+        <div className={`form-field is-wide${errors.message ? ' is-invalid' : ''}`}><label><span className="form-label">Mensaje</span>
+          <textarea value={message} rows={8} maxLength={10000} onChange={event => setMessage(event.target.value)} {...invalid('message')}/></label>
+          {errors.message ? <small id={`${ids.message}-error`} className="field-error">{errors.message}</small> : null}
+          <small className="form-hint">Tu nombre y «AJ Consultoría de Seguros» se agregan como firma.</small></div>
+        <fieldset className="form-field is-wide email-files">
+          <legend className="form-label">Adjuntos <span className="optional">{documentIds.length}/{MAX_ATTACHMENTS}</span></legend>
+          {files.length ? <div className="email-file-list">{files.map(file => <label key={file.id} className="email-check">
+            <input type="checkbox" checked={documentIds.includes(file.id)} disabled={!documentIds.includes(file.id) && documentIds.length >= MAX_ATTACHMENTS} onChange={() => { setDocumentIds(current => toggle(current, file.id)); setDirty(true); }}/>
+            <DocumentText aria-hidden="true"/><span><strong>{file.name}</strong> <small>{file.detail}</small></span>
+          </label>)}</div> : <p className="form-hint">Este expediente aún no tiene archivos. Súbelos en sus documentos y vuelve aquí.</p>}
+          {kind === 'BIENVENIDA' && files.length ? <small className="form-hint">Elige la póliza y los recibos que quieres que tenga a la mano.</small> : null}
+        </fieldset>
+        {kind === 'BIENVENIDA' && options.welcomeSentAt ? <p className="form-hint is-wide">Ya se le envió una bienvenida el {new Date(options.welcomeSentAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Mexico_City' })}.</p> : null}
+      </> : null}
+    </form>
+  </Modal>;
+}

@@ -11,12 +11,19 @@ const themes: { value: Theme; label: string; Icon: typeof Sun1 }[] = [
   { value: 'system', label: 'Según el dispositivo', Icon: Monitor },
   { value: 'gradient', label: 'Gradiente', Icon: Colorfilter },
 ];
-const notificationOptions: { key: keyof Pick<NotificationSettings, 'team' | 'toasts' | 'payments' | 'renewals' | 'followUps'>; label: string; hint: string }[] = [
+type SwitchKey = keyof Pick<NotificationSettings, 'team' | 'toasts' | 'payments' | 'renewals' | 'followUps' | 'emailProspects' | 'emailClaims' | 'emailAgenda'>;
+const notificationOptions: { key: SwitchKey; label: string; hint: string }[] = [
   { key: 'team', label: 'Actividad del equipo', hint: 'Lo que tus compañeros registran, editan o suben.' },
   { key: 'toasts', label: 'Avisos emergentes', hint: 'Un aviso en pantalla cuando llega una novedad del equipo.' },
   { key: 'payments', label: 'Recibos vencidos', hint: 'Recordatorio de recibos pendientes con fecha pasada.' },
   { key: 'renewals', label: 'Renovaciones de la semana', hint: 'Pólizas por renovar en los próximos 7 días.' },
   { key: 'followUps', label: 'Seguimientos de entrega', hint: 'Seguimientos de 7, 30 y 90 días a tu cargo.' },
+];
+// Sent by Sistema AJ to the address you sign in with (src/modules/email).
+const emailOptions: { key: SwitchKey; label: string; hint: string }[] = [
+  { key: 'emailProspects', label: 'Prospectos nuevos', hint: 'Un correo cuando entra un prospecto a tu cargo o sin responsable que no registraste tú.' },
+  { key: 'emailClaims', label: 'Siniestros nuevos', hint: 'Un correo cuando se registra un siniestro de una póliza a tu cargo o sin responsable.' },
+  { key: 'emailAgenda', label: 'Recordatorios de agenda', hint: 'Tus reuniones: un día antes, a las 8:00 del mismo día y 10 minutos antes.' },
 ];
 const viewLabels: Record<string, Record<string, string>> = {
   clientes: { dossiers: 'Clientes como expedientes', list: 'Clientes como lista' },
@@ -55,6 +62,8 @@ export function SettingsDialog({ open, section, onClose }: { open: boolean; sect
     </Section>
     <Section id="notificaciones" title="Notificaciones">
       {notificationOptions.map(option => <SwitchRow key={option.key} label={option.label} hint={option.hint} checked={preferences.notifications[option.key]} onChange={next => update({ notifications: { [option.key]: next } })}/>)}
+      <h4 className="settings-subtitle">Por correo</h4>
+      {emailOptions.map(option => <SwitchRow key={option.key} label={option.label} hint={option.hint} checked={preferences.notifications[option.key]} onChange={next => update({ notifications: { [option.key]: next } })}/>)}
     </Section>
     <Section id="asistentes" title="Asistentes de IA">
       <p className="settings-note">Los asistentes todavía no están activos. El modelo que elijas se usará cuando se conecten.</p>

@@ -29,5 +29,5 @@ export async function DocumentsPage({ clientId = null, folderId = null }: { clie
   return <DocumentLibrary key={`${clientId || 'team'}:${openFolder ?? ''}`} clientId={clientId} initialFolderId={openFolder} clientName={client?.name}
     initial={documents.map(d => ({ ...d, createdAt: d.createdAt.toISOString(), updatedAt: d.updatedAt.toISOString() }))} initialTotal={total}
     initialFolders={folders.map(f => ({ ...f, updatedAt: f.updatedAt.toISOString() }))}
-    options={options} canUpload={canUpload} canDelete={user.role === 'SUPERADMIN'} configured={storage.configured} configurationMessage={canUpload ? storage.message : undefined}/>;
+    userName={user.name} options={options} canUpload={canUpload} canDelete={user.role === 'SUPERADMIN'} configured={storage.configured} configurationMessage={canUpload ? storage.message : undefined}/>;
 }

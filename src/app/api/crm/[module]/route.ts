@@ -1,10 +1,11 @@
-import { NextResponse } from 'next/server';
+import { after, NextResponse } from 'next/server';
 import { authenticate, apiError } from '@/lib/api';
 import { list as listDocuments } from '@/modules/documentos/service';
 import { isResourceSlug, resources } from '@/modules/resources/config';
 import { createResource, listResource } from '@/modules/resources/server';
 import { redact } from '@/modules/resources/rules';
 import { recordEvent } from '@/modules/events';
+import { notifyNewClaim, notifyNewProspect } from '@/modules/email/server';
 import type { Row } from '@/modules/resources/config';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -31,6 +32,9 @@ export async function POST(request: Request, context: Context) {
   try {
     const data = await createResource(slug, await request.json());
     await recordEvent(auth.actor, 'created', slug, data.id, resources[slug].title(JSON.parse(JSON.stringify(data)) as Row));
+    // Teammates hear about new prospects and claims by email (today typed by a person, later taken by the assistants).
+    if (slug === 'prospectos') after(() => notifyNewProspect(data.id, auth.actor));
+    if (slug === 'siniestros') after(() => notifyNewClaim(data.id, auth.actor));
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) { return apiError(error); }
 }

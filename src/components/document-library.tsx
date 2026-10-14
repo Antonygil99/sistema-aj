@@ -1,9 +1,11 @@
 'use client';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type DragEvent, type KeyboardEvent, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Add, Archive, ArrowRight3, ArrowRotateLeft, Category, DocumentDownload, DocumentText, DocumentUpload, Edit2, Folder2, FolderOpen, More, RowVertical, Trash } from '@/components/icons';
+import { Add, Archive, ArrowRight3, ArrowRotateLeft, Category, DocumentDownload, DocumentText, DocumentUpload, Edit2, Folder2, FolderOpen, More, RowVertical, Send2, Trash } from '@/components/icons';
+import type { ComposerRequest } from './email-composer';
 import { folderColorOf, folderColors, folderPath, reachableFolders, type FolderColor } from '@/modules/documentos/folder-view';
 import { ApiError, apiFetch } from './ui/client-api';
 import { useConfirm } from './ui/confirm';
@@ -22,11 +24,13 @@ type ArchivedFolder = FolderRow & { archivedAt: string };
 // `focus` gets the focus back when it closes with Escape; `toggle` is the ⋯ button that opened it, if any; `keyboard`
 // marks a menu opened from the keyboard, whose first item takes the focus (with the mouse the menu itself does).
 type Menu = { x: number; y: number; above: number | null; alignEnd: boolean; folder: FolderRow | null; focus: HTMLElement | null; toggle: HTMLElement | null; keyboard: boolean };
+// Sending files by email: the composer downloads the first time it opens.
+const EmailComposer = dynamic(() => import('./email-composer').then(module => module.EmailComposer), { ssr: false });
 const accept = '.pdf,.jpg,.jpeg,.png,.webp,.mp3,.ogg,.wav,.mp4';
 const PAGE = 20;
 const kindLabel = (mime: string) => mime === 'application/pdf' ? 'PDF' : mime.startsWith('image/') ? 'Imagen' : mime.startsWith('audio/') ? 'Audio' : mime.startsWith('video/') ? 'Video' : 'Archivo';
 const archivedDate = (value: string) => new Date(value).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'America/Mexico_City' });
-export function DocumentLibrary({ initial, initialTotal, initialFolders, options, canUpload, canDelete, configured, configurationMessage, clientId = null, clientName, initialFolderId = null }: { initialFolderId?: string | null; initial: DocumentRow[]; initialTotal: number; initialFolders: FolderRow[]; options: DocumentOption[]; canUpload: boolean; canDelete: boolean; configured: boolean; configurationMessage?: string; clientId?: string | null; clientName?: string }) {
+export function DocumentLibrary({ initial, initialTotal, initialFolders, options, canUpload, canDelete, configured, configurationMessage, clientId = null, clientName, initialFolderId = null, userName = '' }: { userName?: string; initialFolderId?: string | null; initial: DocumentRow[]; initialTotal: number; initialFolders: FolderRow[]; options: DocumentOption[]; canUpload: boolean; canDelete: boolean; configured: boolean; configurationMessage?: string; clientId?: string | null; clientName?: string }) {
   const router = useRouter();
   const toast = useToast();
   const confirm = useConfirm();
@@ -52,6 +56,9 @@ export function DocumentLibrary({ initial, initialTotal, initialFolders, options
   const [menu, setMenu] = useState<Menu | null>(null);
   const [archivedOpen, setArchivedOpen] = useState(false);
   const [archived, setArchived] = useState<ArchivedFolder[] | null>(null);
+  const [composer, setComposerState] = useState<ComposerRequest | null>(null);
+  const [composerUsed, setComposerUsed] = useState(false);
+  const sendByEmail = (documents: { id: string; name: string }[] = []) => { setComposerUsed(true); setComposerState({ kind: 'DOCUMENTOS', clientId, clientName, documents }); };
   const fileRef = useRef<HTMLInputElement>(null);
   const areaRef = useRef<HTMLElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -223,6 +230,7 @@ export function DocumentLibrary({ initial, initialTotal, initialFolders, options
   }
   const fileActions = (row: DocumentRow) => <div className="file-actions">
     {configured ? <a className="icon-button" href={`/api/documents/${row.id}/download`} referrerPolicy="no-referrer" aria-label={`Descargar ${row.name}`}><DocumentDownload aria-hidden="true"/></a> : null}
+    {canUpload && configured ? <button type="button" className="icon-button" aria-label={`Enviar ${row.name} por correo`} onClick={() => sendByEmail([{ id: row.id, name: row.name }])}><Send2 aria-hidden="true"/></button> : null}
     {canUpload ? <button type="button" className="icon-button" aria-label={`Mover ${row.name}`} disabled={busy} onClick={() => { setMoving(row); setDestination(row.folderId ?? ''); }}><FolderOpen aria-hidden="true"/></button> : null}
     {canUpload ? <button type="button" className="icon-button" aria-label={`Archivar ${row.name}`} disabled={busy} onClick={() => void archive(row)}><Archive aria-hidden="true"/></button> : null}
     {canDelete ? <button type="button" className="icon-button is-danger" aria-label={`Eliminar ${row.name}`} disabled={busy} onClick={() => void destroy(row)}><Trash aria-hidden="true"/></button> : null}
@@ -236,7 +244,7 @@ export function DocumentLibrary({ initial, initialTotal, initialFolders, options
     <div className="drive-toolbar">
       <div><div className="eyebrow">BIBLIOTECA PRIVADA</div><h2>{clientName ? `Archivos de ${clientName}` : 'Archivos del equipo'}</h2></div>
       <div className="file-actions">
-        {canUpload ? <><button type="button" className="button button-soft" disabled={busy} onClick={() => openFolderEditor('new')}><Add aria-hidden="true"/>Nueva carpeta</button><button type="button" className="button" disabled={!configured} onClick={() => fileRef.current?.click()}><DocumentUpload aria-hidden="true"/>Subir archivos</button></> : null}
+        {canUpload ? <><button type="button" className="button button-soft" disabled={busy} onClick={() => openFolderEditor('new')}><Add aria-hidden="true"/>Nueva carpeta</button><button type="button" className="button" disabled={!configured} onClick={() => fileRef.current?.click()}><DocumentUpload aria-hidden="true"/>Subir archivos</button>{clientId && configured ? <button type="button" className="button button-soft" onClick={() => sendByEmail()}><Send2 aria-hidden="true"/>Enviar por correo</button> : null}</> : null}
         <div className="segmented" role="group" aria-label="Vista"><button type="button" aria-label="Tarjetas" aria-pressed={view === 'grid'} onClick={() => setView('grid')}><Category aria-hidden="true"/></button><button type="button" aria-label="Lista" aria-pressed={view === 'list'} onClick={() => setView('list')}><RowVertical aria-hidden="true"/></button></div>
       </div>
     </div>
@@ -307,6 +315,7 @@ export function DocumentLibrary({ initial, initialTotal, initialFolders, options
           <button type="button" className="button button-soft" onClick={() => void archiveFolder(folder, false)}><ArrowRotateLeft aria-hidden="true"/>Restaurar</button>
         </li>)}</ul>}
     </Modal>
+    {composerUsed ? <EmailComposer request={composer} senderName={userName} onClose={() => setComposerState(null)}/> : null}
     <Modal open={moving !== null} onClose={() => setMoving(null)} busy={busy} size="sm" title="Mover archivo" description={moving?.name}
       footer={<><span className="modal-footer-spacer"/><button type="button" className="text-button" disabled={busy} onClick={() => setMoving(null)}>Cancelar</button><button type="submit" form="move-form" className="button" disabled={busy}>Mover aquí</button></>}>
       <form id="move-form" className="resource-form" onSubmit={event => { event.preventDefault(); if (moving) void move(moving, destination || null); }}><div className="form-field is-wide"><label><span className="form-label">Carpeta de destino</span><select data-autofocus value={destination} onChange={event => setDestination(event.target.value)}><option value="">{clientName || 'Mi unidad'} (raíz)</option>{reachableFolders(folders).map(folder => <option value={folder.id} key={folder.id}>{folderPath(folder, folders)}</option>)}</select></label><small className="form-hint">Mover no cambia el expediente al que pertenece el archivo.</small></div></form>

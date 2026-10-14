@@ -83,6 +83,13 @@ Las rutas CRM y de agentes admiten sesiones de Google autorizadas o Authorizatio
 | DELETE /api/folders/{id} | Elimina una carpeta vacía (ADMIN); si tiene contenido, 409 FOLDER_NOT_EMPTY |
 | POST /api/dossiers | Abre un expediente: cliente, carpetas base y, opcionalmente, su primera póliza con recibos (ADMIN) |
 | POST /api/dossiers/{id}/policies | Añade una póliza con su calendario de recibos a un expediente (ADMIN) |
+| GET/POST /api/dossiers/{id}/contacts | Contactos adicionales del cliente (lectura con sesión; alta ADMIN) |
+| PATCH/DELETE /api/dossiers/{id}/contacts/{contactId} | Edita o quita un contacto (ADMIN) |
+| GET /api/emails?clientId= | Historial de correos enviados a un cliente |
+| GET /api/emails/options?clientId= | Destinatarios permitidos, archivos que se pueden adjuntar y última bienvenida (ADMIN) |
+| POST /api/emails | Envía documentos o la bienvenida a un cliente y/o sus contactos (ADMIN); `requestId` evita duplicados. Ver docs/correo-resend.md |
+| POST /api/emails/webhook | Eventos de entrega de Resend firmados con Svix (`RESEND_WEBHOOK_SECRET`) |
+| GET /api/cron/email | Tarea diaria: programa recordatorios de agenda dentro de la ventana de 30 días (`CRON_SECRET` o token interno) |
 
 Módulos: prospectos, clientes, polizas, cotizaciones, pagos, renovaciones, siniestros, documentos, actividades. Fechas: ISO 8601 con zona horaria. Importes: texto decimal positivo como "1250.00"; moneda: código de tres letras, MXN por defecto. El schema.ts de cada módulo define los campos aceptados. Las relaciones deben referenciar IDs existentes. Campos desconocidos se rechazan. POST /api/crm/documentos responde 405: los documentos solo se registran mediante la carga verificada de /api/documents.
 
@@ -130,7 +137,7 @@ AJ_SUPERADMIN_EMAIL define la identidad principal. AJ_ADMIN_EMAILS enumera, sepa
 
 Las rutas CRM y de agentes aceptan sesiones autorizadas además del token interno opcional. Los cambios con cookies exigen Origin igual a BETTER_AUTH_URL. Todas las pantallas del CRM validan sesión del lado servidor. El registro de usuarios y la creación de sesiones rechazan cuentas no autorizadas o no verificadas por Google. Revocar un acceso invalida las sesiones existentes. No se admiten enlaces entre proveedores ni cambios de correo.
 
-Resend y los correos de bienvenida se integrarán en una etapa posterior, con remitente verificado; no se enviaron correos. WhatsApp y la ejecución de IA siguen pendientes. Las métricas de tiempos de respuesta y de casos convertidos en contenido se medirán cuando existan WhatsApp y el registro de contenido.
+El correo sale por Resend desde `avisos@segurosaleyjoel.com` (dominio verificado): documentos y bienvenida a clientes siempre con clic de una persona, avisos al equipo de prospectos y siniestros nuevos, y recordatorios de agenda programados. Detalles, variables (`RESEND_API_KEY`, `RESEND_FROM_ADDRESS`, `RESEND_WEBHOOK_SECRET`, `AJ_PRIVACY_URL`) y límites en docs/correo-resend.md. WhatsApp y la ejecución de IA siguen pendientes. Las métricas de tiempos de respuesta y de casos convertidos en contenido se medirán cuando existan WhatsApp y el registro de contenido.
 
 ## Agenda y Google Calendar
 

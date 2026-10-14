@@ -98,6 +98,8 @@ model Client {
   folders   DocumentFolder[]
   activities Activity[]
   referrals Prospect[] @relation("Referrals")
+  contacts  ClientContact[]
+  emails    EmailMessage[]
   convertedFrom Prospect? @relation("Conversions")
   archivedAt DateTime?
   createdAt DateTime @default(now())
@@ -392,6 +394,7 @@ model CalendarMeeting {
   meetUrl String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  emails EmailMessage[]
   @@index([userId, startAt])
   @@index([activityId])
 }
@@ -455,4 +458,56 @@ model UserPreference {
   email     String   @id
   data      Json     @default("{}")
   updatedAt DateTime @updatedAt
+}
+// Extra people to write to about a client (HR of a company, a relative). Only contact data, never health details.
+model ClientContact {
+  id        String @id @default(cuid())
+  clientId  String
+  client    Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  name      String
+  email     String?
+  phone     String?
+  role      String @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([clientId])
+}
+enum EmailStatus {
+  SENDING
+  SCHEDULED
+  SENT
+  DELIVERED
+  BOUNCED
+  COMPLAINED
+  FAILED
+  CANCELLED
+}
+// Every email the CRM sends or schedules through Resend: the per-client history and, for agenda reminders, the
+// handle (resendId) to move or cancel them. dedupeKey makes retries and double clicks send once.
+model EmailMessage {
+  id           String @id @default(cuid())
+  kind         String
+  dedupeKey    String @unique
+  resendId     String? @unique
+  status       EmailStatus @default(SENDING)
+  to           String[]
+  subject      String
+  replyTo      String?
+  attachments  Json @default("[]")
+  clientId     String?
+  client       Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  meetingId    String?
+  meeting      CalendarMeeting? @relation(fields: [meetingId], references: [id], onDelete: SetNull)
+  recordModule String?
+  recordId     String?
+  sentByName   String
+  sentByEmail  String?
+  scheduledAt  DateTime?
+  sentAt       DateTime?
+  error        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  @@index([clientId, createdAt])
+  @@index([meetingId])
+  @@index([kind, createdAt])
 }

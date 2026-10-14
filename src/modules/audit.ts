@@ -1,6 +1,6 @@
 import { z } from 'zod';
 export const auditActions = {
-  created: 'Creación', updated: 'Actualización', archived: 'Archivado', restored: 'Restauración', deleted: 'Eliminación', uploaded: 'Carga de archivo', moved: 'Movimiento', renamed: 'Cambio de nombre', downloaded: 'Descarga de archivo', viewed: 'Consulta', signed_in: 'Inicio de sesión', signed_out: 'Cierre de sesión', access_changed: 'Cambio de acceso',
+  created: 'Creación', updated: 'Actualización', archived: 'Archivado', restored: 'Restauración', deleted: 'Eliminación', uploaded: 'Carga de archivo', moved: 'Movimiento', renamed: 'Cambio de nombre', downloaded: 'Descarga de archivo', viewed: 'Consulta', signed_in: 'Inicio de sesión', signed_out: 'Cierre de sesión', access_changed: 'Cambio de acceso', emailed: 'Envío de correo',
 } as const;
 export const auditModules: Record<string, string> = { prospectos: 'Prospectos', clientes: 'Clientes', polizas: 'Pólizas', cotizaciones: 'Cotizaciones', pagos: 'Pagos', renovaciones: 'Renovaciones', siniestros: 'Siniestros', actividades: 'Actividades', documentos: 'Documentos', carpetas: 'Carpetas', expedientes: 'Expedientes', productos: 'Productos', entregas: 'Entregas', usuarios: 'Usuarios y accesos', sesiones: 'Sesiones', preferencias: 'Preferencias' };
 auditModules.agenda = 'Agenda y Google Calendar';

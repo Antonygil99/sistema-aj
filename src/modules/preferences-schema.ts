@@ -7,6 +7,6 @@ export const preferencesPatch: z.ZodType<PreferencesPatch> = z.object({
   resetViews: z.literal(true).optional(),
   tours: z.object({ enabled: z.boolean().optional(), seen: z.array(z.string().regex(TOUR_ID)).max(MAX_SEEN).optional() }).strict().optional(),
   theme: z.enum(themeOptions).optional(),
-  notifications: z.object({ team: z.boolean(), toasts: z.boolean(), payments: z.boolean(), renewals: z.boolean(), followUps: z.boolean(), clearedAt: z.iso.datetime({ offset: true }).nullable(), clearedReminders: z.string().regex(REMINDER_KEY).nullable() }).partial().strict().optional(),
+  notifications: z.object({ team: z.boolean(), toasts: z.boolean(), payments: z.boolean(), renewals: z.boolean(), followUps: z.boolean(), emailProspects: z.boolean(), emailClaims: z.boolean(), emailAgenda: z.boolean(), clearedAt: z.iso.datetime({ offset: true }).nullable(), clearedReminders: z.string().regex(REMINDER_KEY).nullable() }).partial().strict().optional(),
   assistantModel: z.enum(modelIds).optional(),
 }).strict();

@@ -18,7 +18,9 @@ export type ViewKey = keyof typeof viewOptions;
 export type ViewValue<K extends ViewKey> = (typeof viewOptions)[K][number];
 export type Theme = (typeof themeOptions)[number];
 export type AssistantModel = (typeof assistantModels)[number]['id'];
-export type NotificationSettings = { team: boolean; toasts: boolean; payments: boolean; renewals: boolean; followUps: boolean; clearedAt: string | null; clearedReminders: string | null };
+// emailProspects / emailClaims / emailAgenda: automatic emails (src/modules/email) for new records and meetings.
+export type NotificationSettings = { team: boolean; toasts: boolean; payments: boolean; renewals: boolean; followUps: boolean; emailProspects: boolean; emailClaims: boolean; emailAgenda: boolean; clearedAt: string | null; clearedReminders: string | null };
+export const notificationSwitches = ['team', 'toasts', 'payments', 'renewals', 'followUps', 'emailProspects', 'emailClaims', 'emailAgenda'] as const;
 export type Preferences = { views: { [K in ViewKey]?: ViewValue<K> }; tours: { enabled: boolean; seen: string[] }; theme: Theme; notifications: NotificationSettings; assistantModel: AssistantModel };
 export type PreferencesPatch = {
   views?: Preferences['views'];
@@ -28,7 +30,7 @@ export type PreferencesPatch = {
   notifications?: Partial<NotificationSettings>;
   assistantModel?: AssistantModel;
 };
-const defaultNotifications: NotificationSettings = { team: true, toasts: true, payments: true, renewals: true, followUps: true, clearedAt: null, clearedReminders: null };
+const defaultNotifications: NotificationSettings = { team: true, toasts: true, payments: true, renewals: true, followUps: true, emailProspects: true, emailClaims: true, emailAgenda: true, clearedAt: null, clearedReminders: null };
 export const defaultPreferences: Preferences = { views: {}, tours: { enabled: false, seen: [] }, theme: 'light', notifications: defaultNotifications, assistantModel: 'claude-opus-5-5' };
 export const MAX_SEEN = 100;
 export const TOUR_ID = /^[a-z0-9:-]{1,60}$/;
@@ -51,7 +53,7 @@ export function readPreferences(stored: unknown): Preferences {
   const seen = Array.isArray(tours.seen) ? tours.seen.filter((item): item is string => typeof item === 'string' && TOUR_ID.test(item)) : [];
   const rawNotifications = record(value.notifications);
   const notifications = { ...defaultNotifications };
-  for (const key of ['team', 'toasts', 'payments', 'renewals', 'followUps'] as const) if (typeof rawNotifications[key] === 'boolean') notifications[key] = rawNotifications[key] as boolean;
+  for (const key of notificationSwitches) if (typeof rawNotifications[key] === 'boolean') notifications[key] = rawNotifications[key] as boolean;
   if (isTimestamp(rawNotifications.clearedAt)) notifications.clearedAt = rawNotifications.clearedAt;
   if (typeof rawNotifications.clearedReminders === 'string' && REMINDER_KEY.test(rawNotifications.clearedReminders)) notifications.clearedReminders = rawNotifications.clearedReminders;
   return {
