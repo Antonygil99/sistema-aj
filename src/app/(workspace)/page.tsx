@@ -16,5 +16,5 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     const profile = profiles.find(item => normalizeEmail(item.email) === grant.email);
     return { email: grant.email, name: profile?.name?.split(' ')[0] || grant.email.split('@')[0], image: profile?.image ?? null };
   });
-  return <DashboardOverview m={m} owner={owner} me={{ email: me, name: user.name, image: user.image }} teammates={teammates}/>;
+  return <DashboardOverview m={m} owner={owner} me={{ email: me, name: user.name, image: user.image }} teammates={teammates} showAssistants={user.role === 'SUPERADMIN'}/>;
 }

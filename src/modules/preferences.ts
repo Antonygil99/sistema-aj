@@ -7,12 +7,11 @@ export const viewOptions = {
   prospectos: ['board', 'list'],
 } as const;
 export const themeOptions = ['light', 'dark', 'system', 'gradient'] as const;
-// Claude models the assistants can use (src/agents/server.ts reads the user's choice).
+// Claude models the assistants can use (src/agents/server.ts reads the user's choice): light and inexpensive ones
+// only. A stored choice that is no longer listed falls back to the default on read.
 export const assistantModels = [
-  { id: 'claude-opus-5-5', label: 'Claude Opus 5.5', summary: 'Recomendado: el más completo para el trabajo diario del equipo.' },
-  { id: 'claude-sonnet-5-5', label: 'Claude Sonnet 5.5', summary: 'Equilibrado: rápido y capaz para tareas frecuentes.' },
-  { id: 'claude-haiku-5-5', label: 'Claude Haiku 5.5', summary: 'El más rápido y económico, para respuestas breves.' },
-  { id: 'claude-fable-5-1', label: 'Claude Fable 5.1', summary: 'El más capaz, para casos complejos; más lento y de mayor costo.' },
+  { id: 'claude-haiku-5-5', label: 'Claude Haiku 5.5', summary: 'Recomendado: el más rápido y económico. Suficiente para consultas, avisos y borradores.' },
+  { id: 'claude-sonnet-5-5', label: 'Claude Sonnet 5.5', summary: 'Más capaz para análisis y redacción largos; cada respuesta cuesta unas 20 veces más.' },
 ] as const;
 export type ViewKey = keyof typeof viewOptions;
 export type ViewValue<K extends ViewKey> = (typeof viewOptions)[K][number];
@@ -32,7 +31,7 @@ export type PreferencesPatch = {
   assistantModel?: AssistantModel;
 };
 const defaultNotifications: NotificationSettings = { team: true, toasts: true, payments: true, renewals: true, followUps: true, emailProspects: true, emailClaims: true, emailAgenda: true, emailDigest: true, clearedAt: null, clearedReminders: null };
-export const defaultPreferences: Preferences = { views: {}, tours: { enabled: false, seen: [] }, theme: 'light', notifications: defaultNotifications, assistantModel: 'claude-opus-5-5' };
+export const defaultPreferences: Preferences = { views: {}, tours: { enabled: false, seen: [] }, theme: 'light', notifications: defaultNotifications, assistantModel: 'claude-haiku-5-5' };
 export const MAX_SEEN = 100;
 export const TOUR_ID = /^[a-z0-9:-]{1,60}$/;
 export const REMINDER_KEY = /^[0-9:-]{1,60}$/;

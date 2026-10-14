@@ -16,7 +16,8 @@ const chatInput = z.object({
 }).strict();
 // One assistant turn streamed as newline-delimited JSON events (steps, text, proposals, done or error).
 export async function POST(request: Request) {
-  const auth = await authenticate(request); if (auth.denied) return auth.denied;
+  // Superadmin only (the internal token is never superadmin).
+  const auth = await authenticate(request, 'SUPERADMIN'); if (auth.denied) return auth.denied;
   let input: z.infer<typeof chatInput>;
   try { input = chatInput.parse(await request.json()); } catch (error) { return apiError(error); }
   if (!aiConfigured()) return NextResponse.json({ error: 'AI_NOT_CONFIGURED' }, { status: 503 });

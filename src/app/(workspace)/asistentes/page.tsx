@@ -6,9 +6,9 @@ import { getPreferences } from '@/modules/preferences-server';
 import { recordPageView } from '@/modules/page-events';
 import { AssistantsWorkspace } from '@/components/assistants-workspace';
 export const dynamic = 'force-dynamic';
-// The eight Ruta AJ assistants. They read the CRM with the user's access and only propose changes.
+// The eight Ruta AJ assistants, for the superadmin only. They read the CRM and only propose changes.
 export default async function Asistentes({ searchParams }: { searchParams: Promise<{ agente?: string }> }) {
-  const user = await requireUser();
+  const user = await requireUser('SUPERADMIN');
   const requested = (await searchParams).agente;
   const preferences = await getPreferences(normalizeEmail(user.email));
   await recordPageView(user, 'asistentes', 'asistentes', 'Asistentes');

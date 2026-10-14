@@ -30,7 +30,7 @@ export function AccountPanelsProvider({ role, children }: { role: Role; children
   }), [darkActive, update]);
   return <Context.Provider value={value}>{children}
     {used.help ? <HelpCenter open={panel?.kind === 'help'} onClose={() => setPanel(null)} role={role} current={tourForPath(pathname)} onStart={id => { setPanel(null); start(id); }}/> : null}
-    {used.settings ? <SettingsDialog open={panel?.kind === 'settings'} section={panel?.kind === 'settings' ? panel.section : 'apariencia'} onClose={() => setPanel(null)}/> : null}
+    {used.settings ? <SettingsDialog open={panel?.kind === 'settings'} section={panel?.kind === 'settings' ? panel.section : 'apariencia'} onClose={() => setPanel(null)} role={role}/> : null}
   </Context.Provider>;
 }
 export function useAccountPanels() {

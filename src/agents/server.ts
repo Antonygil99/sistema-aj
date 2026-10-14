@@ -26,20 +26,21 @@ export async function runAssistantTurn({ agentId, history, message, think, actor
   const agent = agentById(agentId)!;
   const email = actor.email;
   const preferences = email ? await getPreferences(email) : null;
-  const model = preferences?.assistantModel ?? 'claude-opus-5-5';
+  const model = preferences?.assistantModel ?? 'claude-haiku-5-5';
   const now = new Date();
   // People with read-only access get only the read tools, so nothing is ever proposed to them.
   const names = agent.tools.filter(name => hasRole(role, 'ADMIN') || !isWriteTool(name));
   const ctx = { actor, userId, email, now };
   const client = new Anthropic({ maxRetries: 2 });
-  // Server-side fallback on a policy decline (not available for Claude Haiku 5.5).
-  const fallback = model === 'claude-haiku-5-5' ? {} : { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const };
+  // Server-side fallback on a policy decline: Claude Sonnet 5.5 on the Claude API; Claude Haiku 5.5 has none.
+  const fallback = model === 'claude-sonnet-5-5' ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const } : {};
   const base = {
     model, max_tokens: 16000,
     system: [{ type: 'text' as const, text: systemPrompt(agent.id as AgentId), cache_control: { type: 'ephemeral' as const } }],
     tools: toolDefinitions(names),
     thinking: { type: 'adaptive' as const },
-    output_config: { effort: think ? 'high' as const : 'low' as const },
+    // Kept low on purpose (cost): "Pensar a fondo" raises it to medium.
+    output_config: { effort: think ? 'medium' as const : 'low' as const },
     ...fallback,
   };
   const context = `Contexto de esta conversación (del sistema, no del usuario): hoy es ${new Intl.DateTimeFormat('es-MX', { timeZone: 'America/Mexico_City', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(now)}. Hablas con ${actor.name}${email ? ` (${email})` : ''}, rol ${roleLabels[role]}.${hasRole(role, 'ADMIN') ? '' : ' Tiene acceso de consulta: no puede confirmar acciones, así que no las propongas.'}`;

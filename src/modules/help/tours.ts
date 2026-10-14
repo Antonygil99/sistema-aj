@@ -107,10 +107,10 @@ export const tours: Tour[] = [
     { targets: ['.notice-actions', '.notices .empty-state'], title: 'Resuelve cada aviso', body: 'Envía el correo sugerido (lo revisas antes), registra que ya le avisaste por llamada o WhatsApp, o descártalo. Siempre puedes deshacer.' },
     { targets: ['.notices-tabs'], title: 'Plantillas de correo', body: 'Ajusta el texto de la bienvenida, documentos, renovación, pago y siniestro con datos como {cliente} o {vence}. Quien envía aún puede editarlo.' },
   ] },
-  { id: 'modulo:asistentes', kind: 'module', title: 'Asistentes', summary: 'Ocho asistentes expertos que consultan el CRM y proponen acciones que tú confirmas.', route: '/asistentes', steps: [
+  { id: 'modulo:asistentes', kind: 'module', title: 'Asistentes', summary: 'Ocho asistentes expertos que consultan el CRM y proponen acciones que tú confirmas.', route: '/asistentes', minRole: 'SUPERADMIN', steps: [
     { title: 'Asistentes de la Ruta AJ', body: 'Cada asistente es experto en una parte del proceso: primer contacto, cotización, entrega, renovaciones y pagos, siniestros, contenidos, análisis y aprendizaje interno.' },
     { targets: ['.assistant-list'], title: 'Elige al experto', body: 'Cada uno conserva su conversación mientras estés en la pantalla. «Nueva conversación» empieza de cero.' },
-    { targets: ['.tpi-composer'], title: 'Pregunta o pide algo', body: 'Consultan la cartera con tus permisos y te muestran los pasos que siguen. «Pensar a fondo» responde con más detalle; apágalo para respuestas rápidas.' },
+    { targets: ['.tpi-composer'], title: 'Pregunta o pide algo', body: 'Consultan la cartera con tus permisos y te muestran los pasos que siguen. «Pensar a fondo» responde con más detalle a un costo un poco mayor; apágalo para respuestas rápidas.' },
     { targets: ['.assistant-chat'], title: 'Tú confirmas', body: 'Lo que cambie algo (una actividad, un prospecto, un aviso) aparece como propuesta con Confirmar o Descartar. Los correos se abren en el redactor para que los revises y envíes.' },
   ] },
   { id: 'modulo:agenda', kind: 'module', title: 'Mi agenda', summary: 'Reuniones y recordatorios en tu Google Calendar.', route: '/agenda', steps: [

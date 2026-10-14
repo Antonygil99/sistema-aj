@@ -14,7 +14,9 @@ test('las preferencias guardadas conservan solo valores válidos', () => {
   assert.equal(read.notifications.team, false);
   assert.equal(read.notifications.toasts, true);
   assert.equal(read.notifications.clearedAt, null);
-  assert.equal(read.assistantModel, 'claude-opus-5-5');
+  assert.equal(read.assistantModel, 'claude-haiku-5-5');
+  // Models that are no longer offered fall back to the default instead of being used.
+  assert.equal(readPreferences({ assistantModel: 'claude-opus-5-5' }).assistantModel, 'claude-haiku-5-5');
 });
 
 test('un cambio conserva el resto de las preferencias', () => {
@@ -34,6 +36,7 @@ test('el API rechaza vistas, temas, modelos o campos desconocidos', () => {
   assert.equal(preferencesPatch.safeParse({ theme: 'neon' }).success, false);
   assert.equal(preferencesPatch.safeParse({ theme: 'gradient' }).success, true);
   assert.equal(preferencesPatch.safeParse({ assistantModel: 'gpt-5' }).success, false);
+  assert.equal(preferencesPatch.safeParse({ assistantModel: 'claude-fable-5-1' }).success, false);
   assert.equal(preferencesPatch.safeParse({ notifications: { sound: true } }).success, false);
   assert.equal(preferencesPatch.safeParse({ tours: { seen: ['<script>'] } }).success, false);
   assert.equal(preferencesPatch.safeParse({ theme: 'system', assistantModel: 'claude-sonnet-5-5', notifications: { clearedAt: '2026-10-13T18:00:00.000Z', clearedReminders: '2026-10-13:2-0-1' } }).success, true);

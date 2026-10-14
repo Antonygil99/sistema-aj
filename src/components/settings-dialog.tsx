@@ -42,7 +42,7 @@ function Section({ id, title, children }: { id: SettingsSection; title: string; 
   return <section className="settings-section" id={`ajustes-${id}`} aria-labelledby={`ajustes-${id}-titulo`}><h3 id={`ajustes-${id}-titulo`}>{title}</h3>{children}</section>;
 }
 // Preferences live in the user's account (UserPreference), so they follow them across devices.
-export function SettingsDialog({ open, section, onClose }: { open: boolean; section: SettingsSection; onClose: () => void }) {
+export function SettingsDialog({ open, section, onClose, role = 'USER' }: { open: boolean; section: SettingsSection; onClose: () => void; role?: 'USER' | 'ADMIN' | 'SUPERADMIN' }) {
   const { preferences, update } = usePreferences();
   const themeName = useId(), modelName = useId();
   useEffect(() => {
@@ -66,15 +66,15 @@ export function SettingsDialog({ open, section, onClose }: { open: boolean; sect
       <h4 className="settings-subtitle">Por correo</h4>
       {emailOptions.map(option => <SwitchRow key={option.key} label={option.label} hint={option.hint} checked={preferences.notifications[option.key]} onChange={next => update({ notifications: { [option.key]: next } })}/>)}
     </Section>
-    <Section id="asistentes" title="Asistentes de IA">
-      <p className="settings-note">El modelo con el que responden tus asistentes (Asistentes, en el menú). Opus es el recomendado; Haiku es el más rápido y económico.</p>
+    {role === 'SUPERADMIN' ? <Section id="asistentes" title="Asistentes de IA">
+      <p className="settings-note">El modelo con el que responden los asistentes (Asistentes, en el menú). Haiku es el recomendado por rápido y económico.</p>
       <fieldset className="model-list"><legend className="sr-only">Modelo de los asistentes</legend>
         {assistantModels.map(model => <label key={model.id} className="model-option">
           <input type="radio" name={modelName} value={model.id} checked={preferences.assistantModel === model.id} onChange={() => update({ assistantModel: model.id })}/>
           <span><strong>{model.label}</strong><small>{model.summary}</small></span>
         </label>)}
       </fieldset>
-    </Section>
+    </Section> : null}
     <Section id="ayuda" title="Ayuda">
       <SwitchRow label="Recorridos automáticos" hint="La primera vez que abras cada módulo te mostraremos un recorrido corto." checked={preferences.tours.enabled} onChange={next => update({ tours: { enabled: next } })}/>
     </Section>
