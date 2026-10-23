@@ -16,6 +16,8 @@ Acceso: `/whatsapp` (sesión Google y acceso del equipo requeridos). USER consul
 
 Para la discrepancia de México entre identificadores entrantes `521` + 10 dígitos y destinatarios de prueba `52` + 10 dígitos, el envío conserva primero el identificador de Meta. Solo después de un rechazo explícito 131030 se permite un único intento al equivalente E.164 sin el 1 móvil legado. No cambia el contacto, no fusiona conversaciones, no afecta otros países ni formatos, y no se ejecuta después de una aceptación, timeout o error ambiguo. Ambos intentos pertenecen al mismo requestId y al mismo mensaje. Si también se rechaza el equivalente, se muestra el error; no hay más alternativas automáticas.
 
+La UI muestra el formato E.164 mexicano sin el 1 legado; la búsqueda por teléfono contempla ambos formatos sin modificar identidades. Esto no resuelve un error 131005: en ese caso debe verificarse el permiso de mensajería y el acceso del token a la cuenta/número. Una consulta de número exitosa no prueba el permiso de envío. Probar primero desde Paso 1 de Meta con el token generado para esa misma app y cuenta permite separar el bloqueo del proveedor de los cambios del CRM.
+
 - WHATSAPP_VERIFY_TOKEN y WHATSAPP_APP_SECRET: verificación y firma entrante.
 - WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID y WHATSAPP_API_VERSION: envío manual. No guardar tokens en Git ni capturas. Los tokens temporales caducan: sustituir por credenciales de sistema con permisos mínimos para producción.
 - Vincular la app a la cuenta mediante `POST /{WABA_ID}/subscribed_apps` y comprobar con GET; mantener el campo `messages` suscrito. La publicación de la app no equivale a aprobación como proveedor ni a elegibilidad para coexistencia.

@@ -2,12 +2,16 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseWhatsApp, canReply, deliveryState } from '../src/modules/whatsapp/parse';
 import { metaFailure, failureKey, storedFailure, messageFailure } from '../src/modules/whatsapp/errors';
-import { mexicoAllowlistAlternative } from '../src/modules/whatsapp/recipient';
+import { mexicoAllowlistAlternative, displayWhatsAppContact, whatsAppPhoneSearch } from '../src/modules/whatsapp/recipient';
 const envelope = (value: unknown, field = 'messages') => ({ entry: [{ changes: [{ field, value }] }] });
 const metadata = { phone_number_id: '1435361196333698' };
 const timestamp = '1792718480';
 test('Mexican test recipient equivalent is bounded to the legacy 13-digit mobile format', () => {
   assert.equal(mexicoAllowlistAlternative('5219991234567'), '529991234567');
+  assert.equal(displayWhatsAppContact('5219991234567'), '+529991234567');
+  assert.equal(displayWhatsAppContact('15551234567'), '+15551234567');
+  assert.deepEqual(whatsAppPhoneSearch('+52 999 123 4567'), ['529991234567', '5219991234567']);
+  assert.deepEqual(whatsAppPhoneSearch('Contacto 52'), []);
   for (const other of ['529991234567', '521234', '5210123456789', '15551234567', '5491123456789', '52199912345678']) assert.equal(mexicoAllowlistAlternative(other), null);
 });
 test('WhatsApp: isolate business numbers, text and media; never execute embedded content', () => {
