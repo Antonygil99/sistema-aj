@@ -1,10 +1,11 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Messages2, Refresh2, Send2 } from '@/components/icons';
-import { apiFetch, ApiError } from './ui/client-api';
+import { apiFetch, ApiError, messageFor } from './ui/client-api';
 import { canReply } from '@/modules/whatsapp/parse';
+import { messageFailure } from '@/modules/whatsapp/errors';
 
-type Message = { id: string; direction: string; kind: string; body: string; status: string; sentAt: string; senderName: string | null };
+type Message = { id: string; direction: string; kind: string; body: string; status: string; sentAt: string; senderName: string | null; failureCode?: string | null };
 type Conversation = { id: string; displayName: string; contactId: string; phoneNumberId: string; lastInboundAt: string | null; lastMessageAt: string; closed: boolean; messages?: Message[] };
 type Inbox = { rows: Conversation[]; total: number; open: number; sendingConfigured: boolean };
 type Thread = { conversation: Conversation; rows: Message[]; hasMore: boolean; canSend: boolean };
@@ -78,8 +79,17 @@ export function WhatsAppInbox({ canWrite }: { canWrite: boolean }) {
     try {
       await apiFetch(`/api/whatsapp/conversations/${id}/reply`, { method: 'POST', json: { body: text, requestId: request.current.id } });
       if (selection.current === id) { setBody(''); request.current = null; setNotice('Meta aceptó el mensaje. La entrega se actualizará cuando llegue su confirmación.'); }
-    } catch (e) { setError((e as Error).message); if (e instanceof ApiError && e.code === 'WA_SEND_REJECTED') request.current = null; }
+    } catch (e) { setError((e as Error).message); if (e instanceof ApiError && !['NETWORK', 'SERVICE_UNAVAILABLE', 'WA_DELIVERY_UNCERTAIN', 'WA_IN_PROGRESS'].includes(e.code)) request.current = null; }
     finally { await loadThread(id); await loadInbox(); pending.current = false; setBusy(false); }
+  }
+  async function checkConnection() {
+    if (pending.current) return;
+    pending.current = true; setBusy(true); setError(''); setNotice('');
+    try {
+      const result = await apiFetch<{ ok: boolean; code: string; metaCode: number | null }>('/api/whatsapp/connection');
+      if (result.ok) setNotice('El token permite consultar el número configurado. Esto no confirma todavía el permiso de envío: prueba una respuesta y revisa su resultado.');
+      else setError(`${messageFor(result.code)}${result.metaCode ? ` Código de Meta: ${result.metaCode}.` : ''}`);
+    } catch (e) { setError((e as Error).message); } finally { pending.current = false; setBusy(false); }
   }
   async function toggleClosed() {
     if (!thread || pending.current) return;
@@ -99,7 +109,7 @@ export function WhatsAppInbox({ canWrite }: { canWrite: boolean }) {
   const ready = canWrite && inbox?.sendingConfigured && thread?.canSend && windowOpen && !uncertain;
   return <section className="wa-workspace" aria-label="Bandeja de WhatsApp">
     <div className="wa-summary"><div><span>Conversaciones</span><strong>{inbox?.total ?? '—'}</strong></div><div><span>Por atender</span><strong>{inbox?.open ?? '—'}</strong></div><div><span>Envío manual</span><strong>{inbox ? inbox.sendingConfigured ? 'Configurado' : 'Pendiente' : '—'}</strong></div><div><span>Atención</span><strong>Humana</strong></div></div>
-    <div className="wa-toolbar"><p>Actualización cada 15 segundos · acceso privado del equipo</p><button type="button" className="button button-soft" disabled={busy} onClick={() => void refresh()}><Refresh2 aria-hidden="true"/>{busy ? 'Actualizando…' : 'Actualizar recibidos'}</button></div>
+    <div className="wa-toolbar"><p>Actualización cada 15 segundos · acceso privado del equipo</p><div className="wa-toolbar-actions">{canWrite ? <button type="button" className="button button-soft" disabled={busy} onClick={() => void checkConnection()}>Comprobar conexión</button> : null}<button type="button" className="button button-soft" disabled={busy} onClick={() => void refresh()}><Refresh2 aria-hidden="true"/>{busy ? 'Actualizando…' : 'Actualizar recibidos'}</button></div></div>
     {error ? <p className="wa-alert" role="alert">{error}</p> : null}{notice ? <p className="wa-notice" role="status">{notice}</p> : null}
     <div className={`wa-columns${selected ? ' wa-selected' : ''}`}>
       <section className="wa-list" aria-label="Conversaciones"><label className="wa-search">Buscar contacto<input value={query} onChange={event => { setQuery(event.target.value); setSkip(0); }} placeholder="Nombre o número" type="search" maxLength={100}/></label>
@@ -114,6 +124,7 @@ export function WhatsAppInbox({ canWrite }: { canWrite: boolean }) {
           <div className="wa-messages" ref={scrollArea}>{thread.hasMore ? <button type="button" className="text-button wa-older" disabled={busy} onClick={() => void older()}>Ver mensajes anteriores</button> : null}
             {thread.rows.map(message => <article key={message.id} className={`wa-message ${message.direction === 'OUT' ? 'is-outgoing' : 'is-incoming'}`}><small>{message.direction === 'OUT' ? message.senderName || 'Equipo AJ' : thread.conversation.displayName}</small>
               {message.kind !== 'text' ? <p className="wa-media-label">{media[message.kind] || 'Mensaje recibido'} · Vista del archivo pendiente de integrar</p> : null}{message.body ? <p>{message.body}</p> : null}
+              {message.direction === 'OUT' && message.status === 'failed' ? <p className="wa-send-error">{messageFor(messageFailure(message.failureCode ?? null))}{/^META_\d+$/.test(message.failureCode ?? '') ? ` Código de Meta: ${message.failureCode!.slice(5)}.` : ''}</p> : null}
               <footer><time dateTime={message.sentAt}>{date(message.sentAt)}</time><span>{labels[message.status] ?? message.status}</span></footer></article>)}
           </div>
           <form className="wa-composer" onSubmit={event => { event.preventDefault(); void send(); }}>

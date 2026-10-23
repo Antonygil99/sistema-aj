@@ -6,6 +6,14 @@ export class ApiError extends Error {
 }
 export const errorMessages: Record<string, string> = {
   WA_NOT_FOUND: 'La conversación ya no está disponible.',
+  WA_TOKEN_INVALID: 'Meta indica que el token es inválido, caducó o fue revocado. Sustituye WHATSAPP_ACCESS_TOKEN en Vercel y vuelve a desplegar.',
+  WA_PERMISSION_MISSING: 'Meta indica que falta un permiso para operar con esta cuenta. Revisa los permisos de WhatsApp y el acceso del token al número.',
+  WA_RECIPIENT_NOT_ALLOWED: 'El destinatario no está en la lista permitida del número de prueba. Agrégalo y verifícalo en Meta → Paso 1: Pruébalo; revisa también su formato internacional.',
+  WA_NUMBER_NOT_REGISTERED: 'Meta indica que el número de envío no está registrado en la API. Revisa el Phone Number ID y la cuenta seleccionada antes de registrar o migrar un número.',
+  WA_ACCOUNT_RESTRICTED: 'Meta restringió esta cuenta. Revisa su estado en WhatsApp Manager.',
+  WA_ACCOUNT_PAYMENT: 'Meta indica un problema de elegibilidad de pago de la cuenta. Revisa la facturación en WhatsApp Manager.',
+  WA_ACCOUNT_ACCESS: 'No se pudo confirmar el acceso al número empresarial configurado. Revisa el Phone Number ID y su cuenta en Meta.',
+  WA_CONNECTION_UNAVAILABLE: 'Meta no respondió a la comprobación. No se envió ningún mensaje; puedes comprobar de nuevo.',
   WA_SEND_NOT_CONFIGURED: 'Falta configurar el envío para este número empresarial.',
   WA_WINDOW_CLOSED: 'Pasaron 24 horas desde el último mensaje del contacto. Necesitas una plantilla aprobada.',
   WA_REQUEST_CONFLICT: 'Esta solicitud ya corresponde a otro mensaje. Actualiza la conversación.',

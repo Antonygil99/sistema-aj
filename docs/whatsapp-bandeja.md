@@ -37,4 +37,6 @@ El webhook de ecos de la app del teléfono y el historial de coexistencia se ign
 
 ## Verificación
 
+«Comprobar conexión» usa una consulta autenticada y de solo lectura a Meta para verificar si el token puede consultar el número configurado. No envía mensajes y no certifica por sí sola permisos de mensajería. Los rechazos guardan únicamente `META_<código>` o `HTTP_<estado>`; no se guardan mensajes de error originales de Meta, tokens ni trazas. Los fallos anteriores que solo guardaron un estado HTTP no permiten reconstruir el motivo. La UI distingue códigos de token, permisos, destinatario de prueba, ventana, registro y cuenta, y conserva la protección contra reenvíos ambiguos.
+
 `npm test` incluye pruebas de lectura de payloads, exclusión de muestras y ecos, estados fuera de orden, ventana de 24 horas y envío con persistencia/proveedor simulados (destinatario, idempotencia, rechazo y timeout). `npm run whatsapp:smoke` contrasta las lecturas API con SQL, comprueba autenticación, validación, desafío y rechazo de firmas falsas. No envía mensajes ni modifica datos de negocio. La revisión visual usa el componente real con contactos ficticios; nunca publicar sus muestras en la cartera.

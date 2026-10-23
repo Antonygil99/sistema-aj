@@ -37,6 +37,7 @@ test('WhatsApp sends: recipient isolation, idempotency, service window and ambig
       const sent = JSON.parse(String(init?.body)); assert.equal(sent.to, conversation.contactId); assert.equal(sent.type, 'text');
       if (mode === 'timeout') throw new Error('fixture timeout');
       if (mode === 'rejected') return Response.json({ error: {} }, { status: 401 });
+      if (mode === 'expired') return Response.json({ error: { code: 190, message: 'private token information' } }, { status: 400 });
       return Response.json({ messages: [{ id: `wamid.fixture-${calls}` }] });
     };
     assert.equal(whatsappSending(), true);
@@ -54,12 +55,16 @@ test('WhatsApp sends: recipient isolation, idempotency, service window and ambig
     conversation.lastInboundAt = new Date(); mode = 'rejected';
     await assert.rejects(replyWhatsApp(conversation.id, 'Rejected', 'request-three', actor), { code: 'WA_SEND_REJECTED' });
     assert.equal(rows.at(-1)?.status, 'failed');
+    mode = 'expired';
+    await assert.rejects(replyWhatsApp(conversation.id, 'Expired', 'request-expired', actor), { code: 'WA_TOKEN_INVALID' });
+    assert.equal(rows.at(-1)?.failureCode, 'META_190');
+    await assert.rejects(replyWhatsApp(conversation.id, 'Expired', 'request-expired', actor), { code: 'WA_TOKEN_INVALID' });
     mode = 'timeout';
     await assert.rejects(replyWhatsApp(conversation.id, 'Uncertain', 'request-four', actor), { code: 'WA_DELIVERY_UNCERTAIN' });
     assert.equal(rows.at(-1)?.status, 'UNKNOWN');
     await assert.rejects(replyWhatsApp(conversation.id, 'Uncertain', 'request-four', actor), { code: 'WA_DELIVERY_UNCERTAIN' });
     await assert.rejects(replyWhatsApp(conversation.id, 'Another send', 'request-five', actor), { code: 'WA_DELIVERY_UNCERTAIN' });
-    assert.equal(calls, 3, 'ambiguous requests and their conversation are not resent');
+    assert.equal(calls, 4, 'ambiguous requests and their conversation are not resent');
   } finally {
     globalThis.fetch = originalFetch; globalDb.ajDb = previousDb;
     keys.forEach((key, index) => { if (originalEnv[index] === undefined) delete process.env[key]; else process.env[key] = originalEnv[index]; });

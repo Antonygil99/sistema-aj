@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseWhatsApp, canReply, deliveryState } from '../src/modules/whatsapp/parse';
+import { metaFailure, failureKey, storedFailure, messageFailure } from '../src/modules/whatsapp/errors';
 const envelope = (value: unknown, field = 'messages') => ({ entry: [{ changes: [{ field, value }] }] });
 const metadata = { phone_number_id: '1435361196333698' };
 const timestamp = '1792718480';
@@ -37,4 +38,15 @@ test('WhatsApp: enforce 24-hour service window, missing or future inbound times'
   assert.equal(canReply('2026-10-22T02:00:00Z', now), false);
   assert.equal(canReply('2026-10-23T02:00:01Z', now), false);
   assert.equal(canReply(null, now), false); assert.equal(canReply('invalid', now), false);
+});
+test('WhatsApp: only numeric provider errors survive; raw credentials, traces and messages never leave the parser', () => {
+  const parsed = metaFailure({ error: { code: 190, message: 'private token and phone', fbtrace_id: 'private trace' } }, 400);
+  assert.deepEqual(parsed, { code: 190, httpStatus: 400 });
+  assert.equal(failureKey(parsed.code), 'WA_TOKEN_INVALID');
+  assert.equal(messageFailure(storedFailure(131030, 400)), 'WA_RECIPIENT_NOT_ALLOWED');
+  assert.equal(failureKey(133010), 'WA_NUMBER_NOT_REGISTERED');
+  assert.equal(failureKey(10), 'WA_PERMISSION_MISSING');
+  assert.equal(failureKey(131047), 'WA_WINDOW_CLOSED');
+  assert.equal(storedFailure(metaFailure({ error: { code: '<script>private</script>' } }, 400).code, 400), 'HTTP_400');
+  assert.equal(messageFailure('400'), 'WA_SEND_REJECTED');
 });

@@ -3,6 +3,7 @@ import { getDb } from '@/lib/db';
 import type { Actor } from '@/lib/api';
 import { recordEvent } from '@/modules/events';
 import { canReply } from './parse';
+import { metaFailure, failureKey, storedFailure, messageFailure } from './errors';
 export class WhatsAppError extends Error { constructor(public code: string, public status: number) { super(code); } }
 export function whatsappSending() {
   return Boolean(process.env.WHATSAPP_ACCESS_TOKEN?.trim() && /^\d+$/.test(process.env.WHATSAPP_PHONE_NUMBER_ID ?? '') && /^v\d+\.0$/.test(process.env.WHATSAPP_API_VERSION ?? ''));
@@ -17,7 +18,7 @@ export async function replyWhatsApp(conversationId: string, body: string, reques
     if (previous.conversationId !== conversationId || previous.body !== body || previous.senderId !== actor.id) throw new WhatsAppError('WA_REQUEST_CONFLICT', 409);
     if (previous.status === 'UNKNOWN') throw new WhatsAppError('WA_DELIVERY_UNCERTAIN', 409);
     if (previous.status === 'SENDING') throw new WhatsAppError('WA_IN_PROGRESS', 409);
-    if (previous.status === 'failed') throw new WhatsAppError('WA_SEND_REJECTED', 502);
+    if (previous.status === 'failed') throw new WhatsAppError(messageFailure(previous.failureCode), 502);
     return previous; // Never resend after a timeout, refresh or double click.
   }
   if (!canReply(conversation.lastInboundAt)) throw new WhatsAppError('WA_WINDOW_CLOSED', 409);
@@ -44,8 +45,9 @@ export async function replyWhatsApp(conversationId: string, body: string, reques
   if (!response.ok) {
     // An upstream server failure can be ambiguous; do not retry it automatically.
     const status = response.status >= 500 ? 'UNKNOWN' : 'failed';
-    await db.whatsAppMessage.update({ where: { id: message.id }, data: { status, failureCode: String(response.status) } });
-    throw new WhatsAppError(status === 'UNKNOWN' ? 'WA_DELIVERY_UNCERTAIN' : 'WA_SEND_REJECTED', 502);
+    const failure = metaFailure(await response.json().catch(() => null), response.status);
+    await db.whatsAppMessage.update({ where: { id: message.id }, data: { status, failureCode: storedFailure(failure.code, response.status) } });
+    throw new WhatsAppError(status === 'UNKNOWN' ? 'WA_DELIVERY_UNCERTAIN' : failureKey(failure.code), 502);
   }
   let metaId: string | undefined;
   try { const data = await response.json(); metaId = data.messages?.[0]?.id; } catch { /* Preserve ambiguous state. */ }

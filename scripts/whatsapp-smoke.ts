@@ -7,7 +7,7 @@ import pg from 'pg';
 const token = randomBytes(32).toString('hex'), secret = randomBytes(32).toString('hex');
 const port = 33000 + Math.floor(Math.random() * 10000), base = `http://127.0.0.1:${port}`;
 const server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-H', '127.0.0.1', '-p', String(port)], {
-  env: { ...process.env, AJ_API_TOKEN: token, WHATSAPP_APP_SECRET: secret, WHATSAPP_VERIFY_TOKEN: token }, stdio: 'ignore',
+  env: { ...process.env, AJ_API_TOKEN: token, WHATSAPP_APP_SECRET: secret, WHATSAPP_VERIFY_TOKEN: token, WHATSAPP_ACCESS_TOKEN: '' }, stdio: 'ignore',
 });
 const db = new pg.Client({ connectionString: process.env.DATABASE_URL || process.env.DATA_URL, connectionTimeoutMillis: 15000, query_timeout: 15000 });
 const request = (path: string, init: RequestInit = {}, auth = true) => fetch(base + path, { ...init, headers: { ...(auth ? { Authorization: `Bearer ${token}` } : {}), ...init.headers }, signal: AbortSignal.timeout(30000), redirect: 'manual' });
@@ -17,6 +17,8 @@ try {
   for (let i = 0; i < 50; i++) { try { if ((await request('/api/health')).ok) { ready = true; break; } } catch {} await new Promise(resolve => setTimeout(resolve, 250)); }
   assert.equal(ready, true, 'local server starts'); stage = 'database'; await db.connect(); await db.query('BEGIN READ ONLY'); stage = 'inbox';
   const anon = await request('/api/whatsapp/conversations', {}, false); assert.ok([401,503].includes(anon.status));
+  assert.ok([401,503].includes((await request('/api/whatsapp/connection', {}, false)).status));
+  const connection = await request('/api/whatsapp/connection'); assert.equal(connection.status, 200); assert.equal((await connection.json()).code, 'WA_SEND_NOT_CONFIGURED');
   const response = await request('/api/whatsapp/conversations'); assert.equal(response.status, 200);
   const inbox = await response.json(); const count = (await db.query('SELECT count(*)::int AS n FROM "WhatsAppConversation"')).rows[0].n;
   assert.equal(inbox.total, count); assert.ok(inbox.rows.length <= 30);
