@@ -12,7 +12,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "prisma generate && next typegen && tsc --noEmit",
-    "test": "tsx --test tests/*.test.ts && node --test tests/*.test.mjs",
+    "test": "tsx --test tests/*.test.ts && node --test tests/*.test.mjs && node --conditions=react-server --import tsx --test tests/server/*.test.ts",
     "db:generate": "prisma generate",
     "db:validate": "prisma validate",
     "db:migrate": "prisma migrate dev",
@@ -24,6 +24,8 @@
     "check": "npm run db:validate && npm run lint && npm run typecheck && npm test && npm run build",
     "db:verify-deploy": "node scripts/migrate-deploy.mjs",
     "crm:smoke": "tsx scripts/crm-smoke.ts",
+    "whatsapp:sync": "node --conditions=react-server --import tsx scripts/whatsapp-sync.ts",
+    "whatsapp:smoke": "tsx scripts/whatsapp-smoke.ts",
     "theme": "node scripts/theme-tokens.mjs",
     "icons": "node scripts/build-icons.mjs"
   },

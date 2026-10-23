@@ -5,6 +5,13 @@ export class ApiError extends Error {
   constructor(public readonly code: string, public readonly status: number, message: string, public readonly issues: Issue[] = []) { super(message); }
 }
 export const errorMessages: Record<string, string> = {
+  WA_NOT_FOUND: 'La conversación ya no está disponible.',
+  WA_SEND_NOT_CONFIGURED: 'Falta configurar el envío para este número empresarial.',
+  WA_WINDOW_CLOSED: 'Pasaron 24 horas desde el último mensaje del contacto. Necesitas una plantilla aprobada.',
+  WA_REQUEST_CONFLICT: 'Esta solicitud ya corresponde a otro mensaje. Actualiza la conversación.',
+  WA_IN_PROGRESS: 'Este mensaje ya se está enviando. Espera su confirmación.',
+  WA_DELIVERY_UNCERTAIN: 'No podemos confirmar el envío. No lo reenvíes: revisa la entrega en Meta antes de continuar.',
+  WA_SEND_REJECTED: 'Meta rechazó el envío. Revisa la vigencia del token, permisos y destinatario antes de reintentar.',
   SESSION_REQUIRED: 'Entra con tu cuenta de Google para gestionar tu calendario.',
   CALENDAR_NOT_CONNECTED: 'Conecta Google Calendar para continuar.',
   CALENDAR_RECONNECT: 'Vuelve a conectar Google Calendar para renovar el permiso.',

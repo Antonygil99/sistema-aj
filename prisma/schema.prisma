@@ -322,6 +322,49 @@ model WebhookEvent {
   createdAt   DateTime @default(now())
   @@index([processedAt, createdAt])
 }
+// Each business number keeps its own contacts and history. Credentials never live here.
+model WhatsAppConversation {
+  id              String @id @default(cuid())
+  phoneNumberId   String
+  contactId       String
+  displayName     String
+  lastMessageAt   DateTime
+  lastInboundAt   DateTime?
+  closed          Boolean @default(false)
+  createdAt       DateTime @default(now())
+  messages        WhatsAppMessage[]
+  @@unique([phoneNumberId, contactId])
+  @@index([lastMessageAt, id])
+}
+model WhatsAppMessage {
+  id              String @id @default(cuid())
+  conversationId  String
+  conversation    WhatsAppConversation @relation(fields: [conversationId], references: [id], onDelete: Restrict)
+  metaId          String? @unique
+  requestId       String? @unique
+  direction       String
+  kind            String
+  body            String
+  status          String
+  sentAt          DateTime
+  deliveredAt     DateTime?
+  readAt          DateTime?
+  senderId        String?
+  senderName      String?
+  failureCode     String?
+  createdAt       DateTime @default(now())
+  @@index([conversationId, sentAt, id])
+}
+// Delivery may arrive before the send response; retain it independently of the message row.
+model WhatsAppReceipt {
+  metaId        String @id
+  phoneNumberId String
+  status        String
+  deliveredAt   DateTime?
+  readAt        DateTime?
+  failureCode   String?
+  updatedAt     DateTime @updatedAt
+}
 model AgentRun {
   id         String @id @default(cuid())
   agent      String

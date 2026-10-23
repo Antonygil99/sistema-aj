@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getDb } from '@/lib/db';
 import { apiError } from '@/lib/api';
 import { verifySignature } from '@/integrations/whatsapp/signature';
+import { processWhatsAppEvent } from '@/modules/whatsapp/server';
 export const runtime = 'nodejs';
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -23,7 +24,8 @@ export async function POST(request: Request) {
   try {
     const payload = z.object({ object: z.literal('whatsapp_business_account'), entry: z.array(z.record(z.string(), z.json())).min(1) }).catchall(z.json()).parse(JSON.parse(raw));
     const payloadHash = createHash('sha256').update(raw).digest('hex');
-    await getDb().webhookEvent.upsert({ where: { payloadHash }, create: { payloadHash, payload }, update: {} });
+    const event = await getDb().webhookEvent.upsert({ where: { payloadHash }, create: { payloadHash, payload }, update: {} });
+    await processWhatsAppEvent(event.id);
     return Response.json({ received: true });
   } catch (error) { return apiError(error); }
 }

@@ -204,6 +204,14 @@ Antes de editar, revisar el estado de Git y los cambios de Claude u otro colabor
 
 Iconografía del CRM: Iconsax, variante Linear. Los iconos se importan desde @/components/icons, un archivo generado con npm run icons que solo incluye los iconos usados como SVG en línea (iconsax-reactjs queda como dependencia de desarrollo). Mantener esta familia al añadir controles y módulos y regenerar el archivo al importar un icono nuevo. El icono oficial de Google del login permanece sin cambios.
 
+## WhatsApp: bandeja privada y atención humana (22 de octubre de 2026)
+
+Nueva ruta `/whatsapp`, enlazada en escritorio y móvil. Los webhooks firmados se proyectan transaccionalmente a WhatsAppConversation, WhatsAppMessage y WhatsAppReceipt. La migración es aditiva, sin borrar los eventos originales; los eventos previos ya se normalizaron y las muestras del panel de Meta no crean conversaciones reales. Hay búsqueda, paginación, historial, estado resuelto/reabierto y actualización cada 15 segundos. USER consulta; ADMIN/SUPERADMIN responden manualmente dentro de 24 horas del último mensaje entrante. Se verifica el número empresarial en servidor y se evita reenviar solicitudes duplicadas o inciertas. Los estados de entrega dependen de callbacks, no de aceptar la solicitud.
+
+Meta: app Sistema AJ publicada según confirmación del usuario; webhook verificado y un mensaje real guardado; la cuenta WABA ya muestra la app suscrita. El usuario confirmó guardar las tres variables de envío en Vercel. No afirmar que una respuesta real desde la nueva bandeja fue entregada hasta que el usuario haga la primera prueba. Atención humana por decisión explícita del usuario: todavía no se añade proveedor de IA ni respuestas automáticas a esta bandeja. Coexistencia con los números de brokers y permisos por broker siguen pendientes. Ver `docs/whatsapp-bandeja.md` para límites, configuración, pruebas y recuperación. No copiar tokens a Git, chats o capturas.
+
+Páginas públicas de Meta: `/privacidad`, `/terminos`, `/eliminacion-de-datos`. Responsable y domicilio facilitados por el usuario; cualquier cambio posterior debe actualizarse en las páginas y revisarse en Meta si afecta su verificación.
+
 ## KPIs por módulo y notas de voz del cliente
 
 Los once módulos tienen cuatro KPIs reales, con definición visible, ámbito y actualización tras cambios. En Pólizas y Renovaciones se añadió radar a 60 días; en Pagos, radar de recibos por confirmar en el mes. La falta de calendarios conciliados se muestra como pendiente de datos, sin afirmar que la cobranza está al día. Los audios confirman el modelo de una póliza con varios recibos y priorizan avisos de renovación 30/20/10 días y pagos 20/10/0. Calendario y envío automático siguen pendientes. Ver docs/kpis-y-proceso.md para las fórmulas, el proceso y los límites. Audios y transcripciones completas permanecen fuera del repositorio público.
