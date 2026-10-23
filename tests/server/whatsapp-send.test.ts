@@ -34,7 +34,9 @@ test('WhatsApp sends: recipient isolation, idempotency, service window and ambig
     process.env.WHATSAPP_ACCESS_TOKEN = 'fixture-not-a-real-token'; process.env.WHATSAPP_PHONE_NUMBER_ID = '123456789'; process.env.WHATSAPP_API_VERSION = 'v26.0';
     globalThis.fetch = async (url, init) => {
       calls++; assert.equal(String(url), 'https://graph.facebook.com/v26.0/123456789/messages');
-      const sent = JSON.parse(String(init?.body)); assert.equal(sent.to, conversation.contactId); assert.equal(sent.type, 'text');
+      const sent = JSON.parse(String(init?.body)); assert.ok(sent.to === conversation.contactId || (mode.startsWith('mexico') && sent.to === '529991234567')); assert.equal(sent.type, 'text');
+      if (mode.startsWith('mexico') && sent.to === '5219991234567') return Response.json({ error: { code: 131030 } }, { status: 400 });
+      if (mode === 'mexico-timeout') throw new Error('fixture equivalent timeout');
       if (mode === 'timeout') throw new Error('fixture timeout');
       if (mode === 'rejected') return Response.json({ error: {} }, { status: 401 });
       if (mode === 'expired') return Response.json({ error: { code: 190, message: 'private token information' } }, { status: 400 });
@@ -59,12 +61,25 @@ test('WhatsApp sends: recipient isolation, idempotency, service window and ambig
     await assert.rejects(replyWhatsApp(conversation.id, 'Expired', 'request-expired', actor), { code: 'WA_TOKEN_INVALID' });
     assert.equal(rows.at(-1)?.failureCode, 'META_190');
     await assert.rejects(replyWhatsApp(conversation.id, 'Expired', 'request-expired', actor), { code: 'WA_TOKEN_INVALID' });
+    conversation.contactId = '5219991234567'; mode = 'mexico';
+    const beforeMexico = calls;
+    const mexico = await replyWhatsApp(conversation.id, 'Mexico equivalent', 'request-mexico', actor);
+    assert.equal(mexico.status, 'ACCEPTED'); assert.equal(calls - beforeMexico, 2);
+    assert.equal(conversation.contactId, '5219991234567', 'original identity is not rewritten');
+    await replyWhatsApp(conversation.id, 'Mexico equivalent', 'request-mexico', actor);
+    assert.equal(calls - beforeMexico, 2, 'same request does not send the alternative again');
     mode = 'timeout';
     await assert.rejects(replyWhatsApp(conversation.id, 'Uncertain', 'request-four', actor), { code: 'WA_DELIVERY_UNCERTAIN' });
     assert.equal(rows.at(-1)?.status, 'UNKNOWN');
     await assert.rejects(replyWhatsApp(conversation.id, 'Uncertain', 'request-four', actor), { code: 'WA_DELIVERY_UNCERTAIN' });
     await assert.rejects(replyWhatsApp(conversation.id, 'Another send', 'request-five', actor), { code: 'WA_DELIVERY_UNCERTAIN' });
-    assert.equal(calls, 4, 'ambiguous requests and their conversation are not resent');
+    assert.equal(calls, 6, 'ambiguous requests and their conversation are not resent');
+    // Reset the in-memory fixture only, to exercise the independent alternative-timeout scenario.
+    rows.at(-1)!.status = 'failed'; mode = 'mexico-timeout';
+    await assert.rejects(replyWhatsApp(conversation.id, 'Alternative uncertain', 'request-six', actor), { code: 'WA_DELIVERY_UNCERTAIN' });
+    assert.equal(rows.at(-1)?.status, 'UNKNOWN');
+    await assert.rejects(replyWhatsApp(conversation.id, 'Alternative uncertain', 'request-six', actor), { code: 'WA_DELIVERY_UNCERTAIN' });
+    assert.equal(calls, 8, 'uncertain alternative is not tried again');
   } finally {
     globalThis.fetch = originalFetch; globalDb.ajDb = previousDb;
     keys.forEach((key, index) => { if (originalEnv[index] === undefined) delete process.env[key]; else process.env[key] = originalEnv[index]; });
