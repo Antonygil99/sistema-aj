@@ -5,6 +5,8 @@ export class ApiError extends Error {
   constructor(public readonly code: string, public readonly status: number, message: string, public readonly issues: Issue[] = []) { super(message); }
 }
 export const errorMessages: Record<string, string> = {
+  INTAKE_REVIEW_PENDING: 'Hay respuestas recibidas pendientes de revisión. Ábrelas en la ficha antes de preparar otro borrador.',
+  INTAKE_BODY_TOO_LARGE: 'La captura supera el tamaño permitido. Usa solo los datos administrativos solicitados.',
   FINANCE_SCHEDULE_EXISTS: 'Esta póliza ya tiene recibos, incluso archivados. Revisa el calendario existente; no se duplicará.',
   FINANCE_SCHEDULE_INVALID: 'Revisa que los recibos sumen la prima y tengan fechas ordenadas dentro de la vigencia.',
   FINANCE_UDI_REVIEW: 'Los contratos en UDI requieren revisión separada. No se convertirán automáticamente a pesos.',

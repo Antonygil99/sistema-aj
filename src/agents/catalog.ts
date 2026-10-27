@@ -5,12 +5,12 @@
 export const toolNames = [
   'buscar_clientes', 'ver_expediente', 'buscar_polizas', 'buscar_recibos', 'buscar_prospectos', 'buscar_siniestros',
   'avisos_pendientes', 'resumen_metricas', 'tablero_entregas', 'actividades_pendientes', 'catalogo_productos', 'agenda',
-  'guia_sistema', 'mensajes_whatsapp',
+  'guia_sistema', 'mensajes_whatsapp', 'estado_ficha_cliente', 'preparar_ficha_cliente',
   'crear_actividad', 'registrar_prospecto', 'mover_prospecto', 'resolver_aviso', 'preparar_correo',
 ] as const;
 export type ToolName = (typeof toolNames)[number];
 // Tools that change something: the assistant proposes, the user confirms in the chat.
-export const writeTools: readonly ToolName[] = ['crear_actividad', 'registrar_prospecto', 'mover_prospecto', 'resolver_aviso', 'preparar_correo'];
+export const writeTools: readonly ToolName[] = ['preparar_ficha_cliente', 'crear_actividad', 'registrar_prospecto', 'mover_prospecto', 'resolver_aviso', 'preparar_correo'];
 export const isWriteTool = (name: string) => (writeTools as readonly string[]).includes(name);
 export type AgentDefinition = { id: string; name: string; short: string; purpose: string; icon: string; tools: readonly ToolName[]; suggestions: readonly string[] };
 const reading = ['buscar_clientes', 'ver_expediente'] as const;
@@ -19,7 +19,7 @@ export const agents = [
     id: 'primer-contacto', name: 'Primer contacto por WhatsApp', icon: 'Messages2',
     short: 'Responde, pide lo mínimo o escala a Ale.',
     purpose: 'Prepara respuestas de primer contacto para WhatsApp siguiendo la regla de oro: resolver, pedir solo los datos mínimos o derivar a Ale. Registra prospectos a partir de una conversación.',
-    tools: [...reading, 'buscar_prospectos', 'catalogo_productos', 'mensajes_whatsapp', 'registrar_prospecto', 'crear_actividad'],
+    tools: [...reading, 'buscar_prospectos', 'catalogo_productos', 'mensajes_whatsapp', 'estado_ficha_cliente', 'preparar_ficha_cliente', 'registrar_prospecto', 'crear_actividad'],
     suggestions: ['Me escribió alguien preguntando por un seguro de gastos médicos para su familia, ¿qué le contesto?', 'Te pego una conversación de WhatsApp: registra al prospecto con sus datos.', '¿Qué mensajes de WhatsApp llegaron hoy?'],
   },
   {
@@ -47,7 +47,7 @@ export const agents = [
     id: 'siniestros-orientacion', name: 'Siniestros y orientación médica', icon: 'Health',
     short: 'Seguimiento de siniestros y cómo usar la póliza.',
     purpose: 'Da seguimiento a los siniestros abiertos y orienta sobre el proceso para usar la póliza, sin diagnosticar ni determinar cobertura; deriva a Ale lo que lo requiera.',
-    tools: [...reading, 'buscar_siniestros', 'buscar_polizas', 'crear_actividad', 'preparar_correo'],
+    tools: [...reading, 'buscar_siniestros', 'buscar_polizas', 'estado_ficha_cliente', 'preparar_ficha_cliente', 'crear_actividad', 'preparar_correo'],
     suggestions: ['¿Qué siniestros siguen abiertos y desde cuándo?', 'Un cliente tuvo un accidente, ¿qué le pido y qué pasos sigue?', 'Prepara el seguimiento semanal de un siniestro abierto.'],
   },
   {

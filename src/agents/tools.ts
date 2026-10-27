@@ -16,6 +16,8 @@ import { diagnosisProgress, diagnosisQuestions, stageLabels } from '@/modules/pr
 import { productLineLabels } from '@/modules/resources/config';
 import { tours } from '@/modules/help/tours';
 import { isWriteTool, type ToolName } from './catalog';
+import { intakeState, prepareIntakeDraft } from '@/modules/intake/server';
+import { agentProfileSchema } from '@/modules/intake/schema';
 import type { AgentTool, Proposal } from './loop';
 // Everything an assistant can see or propose. Read tools return compact JSON (with internal links) scoped to what
 // the CRM already shows the signed-in user; medical history values and claim descriptions are never included.
@@ -227,6 +229,19 @@ const tools = {
     },
   }),
 
+  estado_ficha_cliente: define({
+    description:'Estado y revisión de la ficha administrativa de un cliente. No devuelve respuestas, datos médicos, cuentas, enlaces externos ni códigos.',
+    input:z.object({cliente_id:z.string().min(1).max(100)}).strict(),
+    label:()=> 'Consultando estado de la ficha',
+    run:async(input,ctx)=>intakeState(input.cliente_id,ctx.actor),
+  }),
+  preparar_ficha_cliente: define({
+    description:'Propone un borrador con nombre y contacto confirmados en la conversación. Primero consultar estado_ficha_cliente para expectedRevision. La persona confirma; no envía, no aprueba y no acepta privacidad por el cliente.',
+    input:agentProfileSchema,
+    label:()=> 'Preparando ficha administrativa',
+    propose:async(input,ctx)=>{await intakeState(input.cliente_id,ctx.actor);return {title:'Preparar ficha del cliente',details:[['Nombre',input.nombre],['Correo',input.correo??'Conservar'],['Teléfono',input.telefono??'Conservar'],['Resultado','Borrador pendiente de confirmación y autorización del cliente']]};},
+    execute:async(input,ctx)=>({message:'Borrador preparado. Abre la ficha para revisar y completar con el cliente.',...await prepareIntakeDraft(input,ctx.actor)}),
+  }),
   crear_actividad: define({
     description: 'Propone crear una actividad o tarea (por ejemplo derivar a Ale o agendar una llamada). La persona la confirma antes de crearla.',
     input: z.object({ titulo: z.string().trim().min(1).max(250), descripcion: z.string().trim().max(2000).optional(), fecha: z.iso.date().optional().describe('AAAA-MM-DD'), responsable: z.email().optional().describe('Correo de quien la atenderá; sin valor, quien confirma.'), cliente_id: z.string().max(100).optional(), poliza_id: z.string().max(100).optional(), prospecto_id: z.string().max(100).optional(), siniestro_id: z.string().max(100).optional() }),

@@ -99,6 +99,7 @@ model Client {
   activities Activity[]
   referrals Prospect[] @relation("Referrals")
   contacts  ClientContact[]
+  intake ClientIntake?
   emails    EmailMessage[]
   notices   ClientNotice[]
   convertedFrom Prospect? @relation("Conversions")
@@ -106,6 +107,43 @@ model Client {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([name])
+}
+
+// One reusable administrative intake per client. Clinical and banking forms stay separate.
+model ClientIntake {
+  id String @id @default(cuid())
+  clientId String @unique
+  client Client @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  createdById String
+  tokenHash String? @unique
+  pinHash String?
+  expiresAt DateTime?
+  accessHash String? @unique
+  accessExpiresAt DateTime?
+  failedAttempts Int @default(0)
+  lockedUntil DateTime?
+  revision Int @default(0)
+  status String @default("DRAFT")
+  answers Json?
+  approvedAnswers Json?
+  approvedAt DateTime?
+  revisions ClientIntakeRevision[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model ClientIntakeRevision {
+  id String @id @default(cuid())
+  intakeId String
+  intake ClientIntake @relation(fields: [intakeId], references: [id], onDelete: Restrict)
+  revision Int
+  answers Json
+  source String
+  actorId String?
+  privacyVersion String
+  submittedAt DateTime @default(now())
+  reviewedAt DateTime?
+  reviewedById String?
+  @@unique([intakeId, revision])
 }
 model Policy {
   id          String @id @default(cuid())

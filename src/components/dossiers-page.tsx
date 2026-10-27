@@ -8,6 +8,7 @@ import { formatDate, formatMoney } from '@/modules/resources/config';
 import { EmptyState } from './ui/empty-state';
 import { LinkPending } from './ui/link-pending';
 import { ClientViewSwitch } from './client-view-switch';
+import { pendingIntakes } from '@/modules/intake/server';
 const PAGE = 24;
 export async function DossiersPage({ query = '', page = 0 }: { query?: string; page?: number }) {
   const user = await requireUser();
@@ -16,13 +17,15 @@ export async function DossiersPage({ query = '', page = 0 }: { query?: string; p
   const q = query.trim().slice(0, 100);
   const skip = Math.max(0, Math.min(10000, page)) * PAGE;
   const where = { archivedAt: null, ...(q ? { OR: [{ name: { contains: q, mode: 'insensitive' as const } }, { email: { contains: q, mode: 'insensitive' as const } }, { phone: { contains: q } }] } : {}) };
-  const [clients, total] = await Promise.all([
+  const [clients, total, pendingForms] = await Promise.all([
     db.client.findMany({ where, skip, take: PAGE, orderBy: { name: 'asc' }, include: { policies: { where: { archivedAt: null }, include: { payments: { where: { archivedAt: null, status: { not: 'PAID' } }, orderBy: { dueDate: 'asc' }, take: 1 } } } } }),
     db.client.count({ where }),
+    canEdit ? pendingIntakes(user) : Promise.resolve([]),
   ]);
   const newButton = canEdit ? <Link className="button" href="/crm/clientes/nuevo"><Add aria-hidden="true"/>Nuevo expediente</Link> : null;
   return <>
     <div className="resource-toolbar"><ClientViewSwitch current="dossiers"/><span className="resource-count">{total} expediente{total === 1 ? '' : 's'}</span>{newButton}</div>
+    {pendingForms.length?<section className="document-panel"><h2>Fichas recibidas por revisar</h2><p className="lead-small">Respuestas manuales o externas guardadas en el CRM. Revisa la ficha antes de incorporar cambios.</p><div className="wizard-actions">{pendingForms.map(form=><Link className="button button-soft" key={form.client.id} href={`/crm/clientes/${form.client.id}#ficha-cliente`}>{form.client.name} · versión {form.revision}</Link>)}</div></section>:null}
     <form className="resource-filters"><label className="search-field"><SearchNormal1 aria-hidden="true"/><span className="sr-only">Buscar expediente</span><input name="q" type="search" defaultValue={q} placeholder="Nombre, correo o teléfono" maxLength={100}/></label><button className="button button-soft">Buscar</button></form>
     {clients.length ? <div className="dossier-grid">{clients.map((client, index) => {
       const next = client.policies.flatMap(policy => policy.payments.map(payment => ({ ...payment, currency: policy.currency }))).sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())[0];

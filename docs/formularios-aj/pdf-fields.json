@@ -1,0 +1,8108 @@
+{
+  "catalogVersion": "2026-10-27.1",
+  "containsFieldValues": false,
+  "mappingStatus": "technical_inventory_only",
+  "templates": [
+    {
+      "id": "bex-aviso-gmm",
+      "sha256": "86e36e883962638d897765988eec896213b385198efcea6a81a390e5bb4430fb",
+      "pageCount": 4,
+      "fieldCount": 190,
+      "widgetCount": 191,
+      "widgets": [
+        {
+          "page": 1,
+          "field": "Folio",
+          "type": "/Tx",
+          "rect": [
+            444.238,
+            708.188,
+            593.366,
+            722.468
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Nombre Contratante",
+          "type": "/Tx",
+          "rect": [
+            103.876,
+            602.937,
+            591.271,
+            617.217
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC01_1",
+          "type": "/Tx",
+          "rect": [
+            18.84,
+            577.8,
+            37.0591,
+            592.08
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC01_2",
+          "type": "/Tx",
+          "rect": [
+            37.8218,
+            577.8,
+            56.041,
+            592.08
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC01_3",
+          "type": "/Tx",
+          "rect": [
+            56.8036,
+            577.8,
+            75.0228,
+            592.08
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC01_4",
+          "type": "/Tx",
+          "rect": [
+            76.1127,
+            577.8,
+            94.3318,
+            592.08
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC01_5",
+          "type": "/Tx",
+          "rect": [
+            94.44,
+            577.8,
+            112.659,
+            592.08
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC01_6",
+          "type": "/Tx",
+          "rect": [
+            113.422,
+            577.8,
+            131.641,
+            592.08
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC01_7",
+          "type": "/Tx",
+          "rect": [
+            132.731,
+            577.8,
+            150.95,
+            592.08
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC01_8",
+          "type": "/Tx",
+          "rect": [
+            151.713,
+            577.8,
+            169.932,
+            592.08
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC01_9",
+          "type": "/Tx",
+          "rect": [
+            170.367,
+            577.8,
+            188.586,
+            592.08
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC01_10",
+          "type": "/Tx",
+          "rect": [
+            189.349,
+            577.8,
+            207.568,
+            592.08
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC01_11",
+          "type": "/Tx",
+          "rect": [
+            208.003,
+            577.8,
+            226.223,
+            592.08
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC01_12",
+          "type": "/Tx",
+          "rect": [
+            226.985,
+            577.8,
+            245.204,
+            592.08
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC01_13",
+          "type": "/Tx",
+          "rect": [
+            246.603,
+            577.8,
+            264.823,
+            592.08
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "No de Póliza",
+          "type": "/Tx",
+          "rect": [
+            306.48,
+            577.8,
+            592.8,
+            592.08
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Subgrupo",
+          "type": "/Tx",
+          "rect": [
+            18.84,
+            554.28,
+            305.16,
+            567.0
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Terminación de vigencia DDMMAAAA",
+          "type": "/Tx",
+          "rect": [
+            306.48,
+            554.28,
+            592.8,
+            567.0
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "ApellidoPaterno_01",
+          "type": "/Tx",
+          "rect": [
+            76.7671,
+            518.422,
+            177.524,
+            531.142
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "ApellidoMaterno_01",
+          "type": "/Tx",
+          "rect": [
+            237.785,
+            518.422,
+            338.542,
+            531.142
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Nombre_01",
+          "type": "/Tx",
+          "rect": [
+            378.84,
+            518.422,
+            592.505,
+            531.142
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC02_1",
+          "type": "/Tx",
+          "rect": [
+            19.045,
+            492.115,
+            37.2641,
+            506.395
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC02_2",
+          "type": "/Tx",
+          "rect": [
+            38.0268,
+            492.115,
+            56.2459,
+            506.395
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC02_3",
+          "type": "/Tx",
+          "rect": [
+            57.0086,
+            492.115,
+            75.2278,
+            506.395
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC02_4",
+          "type": "/Tx",
+          "rect": [
+            76.3177,
+            492.115,
+            94.5368,
+            506.395
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC02_5",
+          "type": "/Tx",
+          "rect": [
+            94.645,
+            492.115,
+            112.864,
+            506.395
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC02_6",
+          "type": "/Tx",
+          "rect": [
+            113.627,
+            492.115,
+            131.846,
+            506.395
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC02_7",
+          "type": "/Tx",
+          "rect": [
+            132.936,
+            492.115,
+            151.155,
+            506.395
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC02_8",
+          "type": "/Tx",
+          "rect": [
+            151.918,
+            492.115,
+            170.137,
+            506.395
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC02_9",
+          "type": "/Tx",
+          "rect": [
+            170.572,
+            492.115,
+            188.791,
+            506.395
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC02_10",
+          "type": "/Tx",
+          "rect": [
+            189.554,
+            492.115,
+            207.773,
+            506.395
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC02_11",
+          "type": "/Tx",
+          "rect": [
+            208.208,
+            492.115,
+            226.428,
+            506.395
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC02_12",
+          "type": "/Tx",
+          "rect": [
+            227.19,
+            492.115,
+            245.409,
+            506.395
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "RFC02_13",
+          "type": "/Tx",
+          "rect": [
+            246.808,
+            492.115,
+            265.028,
+            506.395
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "No de Certificado",
+          "type": "/Tx",
+          "rect": [
+            306.48,
+            492.12,
+            387.0,
+            506.52
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Edad",
+          "type": "/Tx",
+          "rect": [
+            388.32,
+            492.12,
+            434.04,
+            506.52
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Sexo",
+          "type": "/Btn",
+          "rect": [
+            447.36,
+            496.32,
+            454.44,
+            502.8
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/M",
+            "/Off"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Sexo",
+          "type": "/Btn",
+          "rect": [
+            468.96,
+            496.32,
+            475.92,
+            502.8
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/F",
+            "/Off"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Fecha de nacimiento DDMMAAAA",
+          "type": "/Tx",
+          "rect": [
+            480.72,
+            492.12,
+            593.04,
+            506.52
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Parentesco con el ContratanteTitular",
+          "type": "/Tx",
+          "rect": [
+            18.84,
+            468.6,
+            305.16,
+            481.32
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Asegurado desde DDMMAAAA",
+          "type": "/Tx",
+          "rect": [
+            306.48,
+            468.6,
+            592.8,
+            481.32
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Ocupacion",
+          "type": "/Tx",
+          "rect": [
+            18.1854,
+            445.44,
+            593.16,
+            458.16
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Antecedentes GinecoObtétricos",
+          "type": "/Btn",
+          "rect": [
+            177.24,
+            412.2,
+            184.2,
+            418.56
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Pago directo",
+          "type": "/Btn",
+          "rect": [
+            282.6,
+            412.2,
+            289.56,
+            418.56
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Programación de cirugía o tratamiento",
+          "type": "/Btn",
+          "rect": [
+            447.72,
+            412.2,
+            454.8,
+            418.56
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Segunda opinión",
+          "type": "/Btn",
+          "rect": [
+            557.88,
+            412.2,
+            564.96,
+            418.56
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Accidente",
+          "type": "/Btn",
+          "rect": [
+            97.92,
+            395.76,
+            104.88,
+            402.12
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Embarazo",
+          "type": "/Btn",
+          "rect": [
+            184.56,
+            395.76,
+            191.52,
+            402.12
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Enfermedad",
+          "type": "/Btn",
+          "rect": [
+            277.32,
+            395.76,
+            284.4,
+            402.12
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Reclamación",
+          "type": "/Btn",
+          "rect": [
+            371.16,
+            395.76,
+            378.12,
+            402.12
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Inicial",
+          "type": "/Btn",
+          "rect": [
+            446.52,
+            395.76,
+            453.48,
+            402.12
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Complementaria",
+          "type": "/Btn",
+          "rect": [
+            550.2,
+            395.76,
+            557.16,
+            402.12
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Sí",
+          "type": "/Btn",
+          "rect": [
+            178.56,
+            345.36,
+            185.52,
+            351.84
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "No",
+          "type": "/Btn",
+          "rect": [
+            204.12,
+            345.36,
+            211.08,
+            351.84
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "En qué compañía",
+          "type": "/Tx",
+          "rect": [
+            302.88,
+            351.6,
+            592.92,
+            365.52
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Núm Siniestro",
+          "type": "/Tx",
+          "rect": [
+            285.84,
+            337.08,
+            401.4,
+            350.64
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Fecha de Reclamación DDMMAAAA",
+          "type": "/Tx",
+          "rect": [
+            524.64,
+            337.08,
+            592.92,
+            350.64
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Sí_2",
+          "type": "/Btn",
+          "rect": [
+            178.8,
+            326.4,
+            185.88,
+            332.88
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "No_2",
+          "type": "/Btn",
+          "rect": [
+            204.36,
+            326.4,
+            211.44,
+            332.88
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "En qué compañía_2",
+          "type": "/Tx",
+          "rect": [
+            302.88,
+            322.68,
+            592.92,
+            336.12
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Fecha en que ocurrió el accidente o la aparición de síntomas de la enfermedad DDMMAAAA",
+          "type": "/Tx",
+          "rect": [
+            18.84,
+            288.72,
+            304.92,
+            302.16
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Fecha de la primer consulta médica DDMMAAAA",
+          "type": "/Tx",
+          "rect": [
+            306.6,
+            288.72,
+            592.56,
+            311.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Indica el diagnóstico o padecimiento",
+          "type": "/Tx",
+          "rect": [
+            19.32,
+            264.6,
+            304.92,
+            278.16
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Motivo de la atención médica",
+          "type": "/Tx",
+          "rect": [
+            306.24,
+            264.6,
+            591.84,
+            278.16
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "En caso",
+          "type": "/Tx",
+          "rect": [
+            18.8727,
+            221.82,
+            592.145,
+            251.744
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "undefined",
+          "type": "/Btn",
+          "rect": [
+            66.6,
+            200.64,
+            73.56,
+            207.0
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "undefined_2",
+          "type": "/Btn",
+          "rect": [
+            119.64,
+            200.64,
+            126.6,
+            207.0
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Con qué compañía",
+          "type": "/Tx",
+          "rect": [
+            210.72,
+            196.92,
+            400.44,
+            210.72
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "No de Póliza_2",
+          "type": "/Tx",
+          "rect": [
+            401.76,
+            196.92,
+            591.84,
+            210.72
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Tipo de cobertura",
+          "type": "/Tx",
+          "rect": [
+            19.32,
+            172.8,
+            209.4,
+            186.24
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Suma asegurada",
+          "type": "/Tx",
+          "rect": [
+            210.72,
+            172.8,
+            400.44,
+            186.24
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Compañía del tercero",
+          "type": "/Tx",
+          "rect": [
+            401.76,
+            172.8,
+            591.84,
+            186.24
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Sí_3",
+          "type": "/Btn",
+          "rect": [
+            66.6,
+            152.04,
+            73.56,
+            158.52
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "No_3",
+          "type": "/Btn",
+          "rect": [
+            119.64,
+            152.04,
+            126.6,
+            158.52
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Días de hospitalización",
+          "type": "/Tx",
+          "rect": [
+            210.72,
+            148.32,
+            400.44,
+            162.24
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Hospital",
+          "type": "/Tx",
+          "rect": [
+            401.76,
+            148.32,
+            591.84,
+            162.24
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "No de facturaRow1",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            715.2,
+            209.28,
+            729.48
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "ConceptoRow1",
+          "type": "/Tx",
+          "rect": [
+            210.6,
+            715.2,
+            400.44,
+            729.48
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "MontoRow1",
+          "type": "/Tx",
+          "rect": [
+            401.76,
+            715.2,
+            592.08,
+            729.48
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "No de facturaRow2",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            699.96,
+            209.28,
+            714.24
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "ConceptoRow2",
+          "type": "/Tx",
+          "rect": [
+            210.6,
+            699.96,
+            400.44,
+            714.24
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "MontoRow2",
+          "type": "/Tx",
+          "rect": [
+            401.76,
+            699.96,
+            592.08,
+            714.24
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "No de facturaRow3",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            684.6,
+            209.28,
+            699.0
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "ConceptoRow3",
+          "type": "/Tx",
+          "rect": [
+            210.6,
+            684.6,
+            400.44,
+            699.0
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "MontoRow3",
+          "type": "/Tx",
+          "rect": [
+            401.76,
+            684.6,
+            592.08,
+            699.0
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "No de facturaRow4",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            669.36,
+            209.28,
+            683.64
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "ConceptoRow4",
+          "type": "/Tx",
+          "rect": [
+            210.6,
+            669.36,
+            400.44,
+            683.64
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "MontoRow4",
+          "type": "/Tx",
+          "rect": [
+            401.76,
+            669.36,
+            592.08,
+            683.64
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "No de facturaRow5",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            654.12,
+            209.28,
+            668.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "ConceptoRow5",
+          "type": "/Tx",
+          "rect": [
+            210.6,
+            654.12,
+            400.44,
+            668.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "MontoRow5",
+          "type": "/Tx",
+          "rect": [
+            401.76,
+            654.12,
+            592.08,
+            668.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "No de facturaRow6",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            638.88,
+            209.28,
+            653.16
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "ConceptoRow6",
+          "type": "/Tx",
+          "rect": [
+            210.6,
+            638.88,
+            400.44,
+            653.16
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "MontoRow6",
+          "type": "/Tx",
+          "rect": [
+            401.76,
+            638.88,
+            592.08,
+            653.16
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "No de facturaRow7",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            623.52,
+            209.28,
+            637.92
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "ConceptoRow7",
+          "type": "/Tx",
+          "rect": [
+            210.6,
+            623.52,
+            400.44,
+            637.92
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "MontoRow7",
+          "type": "/Tx",
+          "rect": [
+            401.76,
+            623.52,
+            592.08,
+            637.92
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "No de facturaRow8",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            608.28,
+            209.28,
+            622.56
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "ConceptoRow8",
+          "type": "/Tx",
+          "rect": [
+            210.6,
+            608.28,
+            400.44,
+            622.56
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "MontoRow8",
+          "type": "/Tx",
+          "rect": [
+            401.76,
+            608.28,
+            592.08,
+            622.56
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "No de facturaRow9",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            593.04,
+            209.28,
+            607.32
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "ConceptoRow9",
+          "type": "/Tx",
+          "rect": [
+            210.6,
+            593.04,
+            400.44,
+            607.32
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "MontoRow9",
+          "type": "/Tx",
+          "rect": [
+            401.76,
+            593.04,
+            592.08,
+            607.32
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "No de facturaRow10",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            577.8,
+            209.28,
+            592.08
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "ConceptoRow10",
+          "type": "/Tx",
+          "rect": [
+            210.6,
+            577.8,
+            400.44,
+            592.08
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "MontoRow10",
+          "type": "/Tx",
+          "rect": [
+            401.76,
+            577.8,
+            592.08,
+            592.08
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "No de facturaRow11",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            562.44,
+            209.28,
+            576.84
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "ConceptoRow11",
+          "type": "/Tx",
+          "rect": [
+            210.6,
+            562.44,
+            400.44,
+            576.84
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "MontoRow11",
+          "type": "/Tx",
+          "rect": [
+            401.76,
+            562.44,
+            592.08,
+            576.84
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "No de facturaRow12",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            547.2,
+            209.28,
+            561.48
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "ConceptoRow12",
+          "type": "/Tx",
+          "rect": [
+            210.6,
+            547.2,
+            400.44,
+            561.48
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "MontoRow12",
+          "type": "/Tx",
+          "rect": [
+            401.76,
+            547.2,
+            592.08,
+            561.48
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "No de facturaRow13",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            531.96,
+            209.28,
+            546.24
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "ConceptoRow13",
+          "type": "/Tx",
+          "rect": [
+            210.6,
+            531.96,
+            400.44,
+            546.24
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "MontoRow13",
+          "type": "/Tx",
+          "rect": [
+            401.76,
+            531.96,
+            592.08,
+            546.24
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "No de facturaRow14",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            516.72,
+            209.28,
+            531.0
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "ConceptoRow14",
+          "type": "/Tx",
+          "rect": [
+            210.6,
+            516.72,
+            400.44,
+            531.0
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "MontoRow14",
+          "type": "/Tx",
+          "rect": [
+            401.76,
+            516.72,
+            592.08,
+            531.0
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "No de facturaRow15",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            501.36,
+            209.28,
+            515.76
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "ConceptoRow15",
+          "type": "/Tx",
+          "rect": [
+            210.6,
+            501.36,
+            400.44,
+            515.76
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "MontoRow15",
+          "type": "/Tx",
+          "rect": [
+            401.76,
+            501.36,
+            592.08,
+            515.76
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "No de facturaRow16",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            486.12,
+            209.28,
+            500.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "ConceptoRow16",
+          "type": "/Tx",
+          "rect": [
+            210.6,
+            486.12,
+            400.44,
+            500.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "MontoRow16",
+          "type": "/Tx",
+          "rect": [
+            401.76,
+            486.12,
+            592.08,
+            500.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "No de facturaRow17",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            470.88,
+            209.28,
+            485.16
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "ConceptoRow17",
+          "type": "/Tx",
+          "rect": [
+            210.6,
+            470.88,
+            400.44,
+            485.16
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "MontoRow17",
+          "type": "/Tx",
+          "rect": [
+            401.76,
+            470.88,
+            592.08,
+            485.16
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Lugar y fecha DDMMAAAA",
+          "type": "/Tx",
+          "rect": [
+            18.72,
+            163.08,
+            593.4,
+            177.96
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 3,
+          "field": "Lugar y fecha DDMMAAAA_2",
+          "type": "/Tx",
+          "rect": [
+            18.72,
+            381.6,
+            593.4,
+            396.48
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 3,
+          "field": "NombreYFirma01",
+          "type": "/Tx",
+          "rect": [
+            238.988,
+            262.0,
+            373.386,
+            275.624
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 3,
+          "field": "NombreYFirma02",
+          "type": "/Tx",
+          "rect": [
+            95.1585,
+            137.013,
+            229.557,
+            150.637
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 3,
+          "field": "NombreYFirma03",
+          "type": "/Tx",
+          "rect": [
+            382.189,
+            137.013,
+            516.588,
+            150.637
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "Fecha de hospitalización DDMMAAAA",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            720.84,
+            209.28,
+            734.28
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "Desde DDMMAAAA",
+          "type": "/Tx",
+          "rect": [
+            210.6,
+            720.84,
+            400.56,
+            734.28
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "Hasta DDMMAAAA",
+          "type": "/Tx",
+          "rect": [
+            401.88,
+            720.84,
+            592.08,
+            734.28
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "Que estudios",
+          "type": "/Tx",
+          "rect": [
+            18.5287,
+            696.524,
+            590.983,
+            709.964
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "Nombre del médico tratante",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            672.72,
+            400.56,
+            686.16
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "Especialidad",
+          "type": "/Tx",
+          "rect": [
+            401.88,
+            672.72,
+            592.08,
+            686.16
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "Dirección",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            648.6,
+            400.56,
+            662.04
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "Teléfono  Email",
+          "type": "/Tx",
+          "rect": [
+            401.88,
+            648.6,
+            592.08,
+            662.04
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "Hospital_2",
+          "type": "/Btn",
+          "rect": [
+            211.32,
+            637.92,
+            218.28,
+            644.28
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 4,
+          "field": "Consultorio",
+          "type": "/Btn",
+          "rect": [
+            301.8,
+            637.92,
+            308.76,
+            644.28
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 4,
+          "field": "Domicilio del Asegurado",
+          "type": "/Btn",
+          "rect": [
+            424.2,
+            637.92,
+            431.28,
+            644.28
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 4,
+          "field": "Otros",
+          "type": "/Btn",
+          "rect": [
+            499.68,
+            637.92,
+            506.64,
+            644.28
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 4,
+          "field": "NombreRow1",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            581.88,
+            246.0,
+            596.28
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "EspecialidadRow1",
+          "type": "/Tx",
+          "rect": [
+            247.32,
+            581.88,
+            318.6,
+            596.28
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "CausaRow1",
+          "type": "/Tx",
+          "rect": [
+            319.92,
+            581.88,
+            446.52,
+            596.28
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "Fecha DDMMAAAARow1",
+          "type": "/Tx",
+          "rect": [
+            447.84,
+            581.88,
+            517.2,
+            596.28
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "TeléfonoRow1",
+          "type": "/Tx",
+          "rect": [
+            518.52,
+            581.88,
+            592.8,
+            596.28
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "NombreRow2",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            566.64,
+            246.0,
+            580.92
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "EspecialidadRow2",
+          "type": "/Tx",
+          "rect": [
+            247.32,
+            566.64,
+            318.6,
+            580.92
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "CausaRow2",
+          "type": "/Tx",
+          "rect": [
+            319.92,
+            566.64,
+            446.52,
+            580.92
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "Fecha DDMMAAAARow2",
+          "type": "/Tx",
+          "rect": [
+            447.84,
+            566.64,
+            517.2,
+            580.92
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "TeléfonoRow2",
+          "type": "/Tx",
+          "rect": [
+            518.52,
+            566.64,
+            592.8,
+            580.92
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "NombreRow3",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            551.4,
+            246.0,
+            565.68
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "EspecialidadRow3",
+          "type": "/Tx",
+          "rect": [
+            247.32,
+            551.4,
+            318.6,
+            565.68
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "CausaRow3",
+          "type": "/Tx",
+          "rect": [
+            319.92,
+            551.4,
+            446.52,
+            565.68
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "Fecha DDMMAAAARow3",
+          "type": "/Tx",
+          "rect": [
+            447.84,
+            551.4,
+            517.2,
+            565.68
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "TeléfonoRow3",
+          "type": "/Tx",
+          "rect": [
+            518.52,
+            551.4,
+            592.8,
+            565.68
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "NombreRow4",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            536.16,
+            246.0,
+            550.44
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "EspecialidadRow4",
+          "type": "/Tx",
+          "rect": [
+            247.32,
+            536.16,
+            318.6,
+            550.44
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "CausaRow4",
+          "type": "/Tx",
+          "rect": [
+            319.92,
+            536.16,
+            446.52,
+            550.44
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "Fecha DDMMAAAARow4",
+          "type": "/Tx",
+          "rect": [
+            447.84,
+            536.16,
+            517.2,
+            550.44
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "TeléfonoRow4",
+          "type": "/Tx",
+          "rect": [
+            518.52,
+            536.16,
+            592.8,
+            550.44
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "NombreRow5",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            520.8,
+            246.0,
+            535.2
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "EspecialidadRow5",
+          "type": "/Tx",
+          "rect": [
+            247.32,
+            520.8,
+            318.6,
+            535.2
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "CausaRow5",
+          "type": "/Tx",
+          "rect": [
+            319.92,
+            520.8,
+            446.52,
+            535.2
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "Fecha DDMMAAAARow5",
+          "type": "/Tx",
+          "rect": [
+            447.84,
+            520.8,
+            517.2,
+            535.2
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "TeléfonoRow5",
+          "type": "/Tx",
+          "rect": [
+            518.52,
+            520.8,
+            592.8,
+            535.2
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "NombreRow6",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            505.56,
+            246.0,
+            519.84
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "EspecialidadRow6",
+          "type": "/Tx",
+          "rect": [
+            247.32,
+            505.56,
+            318.6,
+            519.84
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "CausaRow6",
+          "type": "/Tx",
+          "rect": [
+            319.92,
+            505.56,
+            446.52,
+            519.84
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "Fecha DDMMAAAARow6",
+          "type": "/Tx",
+          "rect": [
+            447.84,
+            505.56,
+            517.2,
+            519.84
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "TeléfonoRow6",
+          "type": "/Tx",
+          "rect": [
+            518.52,
+            505.56,
+            592.8,
+            519.84
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "NombreRow7",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            490.32,
+            246.0,
+            504.6
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "EspecialidadRow7",
+          "type": "/Tx",
+          "rect": [
+            247.32,
+            490.32,
+            318.6,
+            504.6
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "CausaRow7",
+          "type": "/Tx",
+          "rect": [
+            319.92,
+            490.32,
+            446.52,
+            504.6
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "Fecha DDMMAAAARow7",
+          "type": "/Tx",
+          "rect": [
+            447.84,
+            490.32,
+            517.2,
+            504.6
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "TeléfonoRow7",
+          "type": "/Tx",
+          "rect": [
+            518.52,
+            490.32,
+            592.8,
+            504.6
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "NombreRow8",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            475.08,
+            246.0,
+            489.36
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "EspecialidadRow8",
+          "type": "/Tx",
+          "rect": [
+            247.32,
+            475.08,
+            318.6,
+            489.36
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "CausaRow8",
+          "type": "/Tx",
+          "rect": [
+            319.92,
+            475.08,
+            446.52,
+            489.36
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "Fecha DDMMAAAARow8",
+          "type": "/Tx",
+          "rect": [
+            447.84,
+            475.08,
+            517.2,
+            489.36
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "TeléfonoRow8",
+          "type": "/Tx",
+          "rect": [
+            518.52,
+            475.08,
+            592.8,
+            489.36
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "NombreYFirma04",
+          "type": "/Tx",
+          "rect": [
+            348.587,
+            270.165,
+            545.793,
+            282.533
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 4,
+          "field": "Copia de actuación del Ministerio Público o actuación recibida de la institución en caso de accidente",
+          "type": "/Btn",
+          "rect": [
+            22.68,
+            170.4,
+            29.76,
+            176.76
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 4,
+          "field": "Interpretación de estudios radiológicos o de gabinete",
+          "type": "/Btn",
+          "rect": [
+            22.68,
+            155.88,
+            29.76,
+            162.24
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 4,
+          "field": "Copia de identificación oficial del Asegurado afectado INE pasaporte o en caso de menores de edad acta de nacimiento",
+          "type": "/Btn",
+          "rect": [
+            22.68,
+            141.36,
+            29.76,
+            147.84
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 4,
+          "field": "Recibos de gastos que cuenten con los requisitos fiscales",
+          "type": "/Btn",
+          "rect": [
+            22.68,
+            126.96,
+            29.76,
+            133.32
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 4,
+          "field": "Copia de identificación oficial del Contratante  INE pasaporte vigente",
+          "type": "/Btn",
+          "rect": [
+            22.68,
+            112.44,
+            29.76,
+            118.8
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 4,
+          "field": "Por cada médico tratante se deberán llenar los informes médicos correspondientes y su participación en el evento",
+          "type": "/Btn",
+          "rect": [
+            22.68,
+            97.92,
+            29.76,
+            104.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bex-informe-gmm",
+      "sha256": "09170b910bc326d37d85af39aca8a40e8542e993ddc6e8baa1c36cf91e0e980b",
+      "pageCount": 3,
+      "fieldCount": 113,
+      "widgetCount": 113,
+      "widgets": [
+        {
+          "page": 1,
+          "field": "Folio",
+          "type": "/Tx",
+          "rect": [
+            542.377,
+            704.797,
+            593.185,
+            719.672
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Programación de cirugía o tramiento médico",
+          "type": "/Btn",
+          "rect": [
+            181.56,
+            669.84,
+            188.52,
+            676.2
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Reembolso",
+          "type": "/Btn",
+          "rect": [
+            355.32,
+            669.84,
+            362.28,
+            676.2
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Nombre",
+          "type": "/Tx",
+          "rect": [
+            19.382,
+            580.101,
+            192.036,
+            591.208
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "ApellidoPaterno",
+          "type": "/Tx",
+          "rect": [
+            195.782,
+            580.101,
+            385.127,
+            591.208
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "ApellidoMaterno",
+          "type": "/Tx",
+          "rect": [
+            386.582,
+            580.101,
+            592.618,
+            591.208
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Edad",
+          "type": "/Tx",
+          "rect": [
+            40.44,
+            555.12,
+            161.64,
+            578.16
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "undefined",
+          "type": "/Btn",
+          "rect": [
+            175.8,
+            558.48,
+            182.88,
+            564.84
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "undefined_2",
+          "type": "/Btn",
+          "rect": [
+            206.76,
+            558.48,
+            213.72,
+            564.84
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Ocupación",
+          "type": "/Tx",
+          "rect": [
+            347.4,
+            555.12,
+            448.8,
+            578.16
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "No de Póliza",
+          "type": "/Tx",
+          "rect": [
+            497.76,
+            555.12,
+            592.68,
+            578.16
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "undefined_3",
+          "type": "/Btn",
+          "rect": [
+            62.4,
+            524.28,
+            69.48,
+            530.64
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "undefined_4",
+          "type": "/Btn",
+          "rect": [
+            262.92,
+            524.28,
+            269.88,
+            530.64
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "undefined_5",
+          "type": "/Btn",
+          "rect": [
+            446.16,
+            524.28,
+            453.12,
+            530.64
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "undefined_6",
+          "type": "/Btn",
+          "rect": [
+            32.52,
+            497.4,
+            39.48,
+            503.76
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "undefined_7",
+          "type": "/Btn",
+          "rect": [
+            68.64,
+            497.4,
+            75.72,
+            503.76
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Cuál",
+          "type": "/Tx",
+          "rect": [
+            237.6,
+            494.04,
+            592.68,
+            516.96
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Antecedentes personales patológicos con fecha de inicio 1",
+          "type": "/Tx",
+          "rect": [
+            22.56,
+            469.2,
+            302.76,
+            482.422
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Antecedentes GinecoObstetricos 1",
+          "type": "/Tx",
+          "rect": [
+            309.6,
+            469.2,
+            589.8,
+            482.749
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Antecedentes personales patológicos con fecha de inicio 2",
+          "type": "/Tx",
+          "rect": [
+            22.56,
+            452.88,
+            302.76,
+            467.738
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Antecedentes GinecoObstetricos 2",
+          "type": "/Tx",
+          "rect": [
+            309.6,
+            452.88,
+            589.8,
+            468.065
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Antecedentes personales patológicos con fecha de inicio 3",
+          "type": "/Tx",
+          "rect": [
+            22.56,
+            436.68,
+            302.76,
+            451.211
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Antecedentes GinecoObstetricos 3",
+          "type": "/Tx",
+          "rect": [
+            309.6,
+            436.68,
+            589.8,
+            451.211
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Antecedentes personales patológicos con fecha de inicio 4",
+          "type": "/Tx",
+          "rect": [
+            22.56,
+            420.36,
+            302.76,
+            434.564
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Antecedentes GinecoObstetricos 4",
+          "type": "/Tx",
+          "rect": [
+            309.6,
+            420.36,
+            589.8,
+            435.218
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Antecedentes personales no patológicos 1",
+          "type": "/Tx",
+          "rect": [
+            22.56,
+            392.4,
+            302.76,
+            405.294
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Antecedentes perinatales 1",
+          "type": "/Tx",
+          "rect": [
+            309.6,
+            392.4,
+            589.8,
+            405.622
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Antecedentes personales no patológicos 2",
+          "type": "/Tx",
+          "rect": [
+            22.56,
+            376.08,
+            302.76,
+            390.938
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Antecedentes perinatales 2",
+          "type": "/Tx",
+          "rect": [
+            309.6,
+            376.08,
+            589.8,
+            390.611
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Antecedentes personales no patológicos 3",
+          "type": "/Tx",
+          "rect": [
+            22.56,
+            359.76,
+            302.76,
+            374.945
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Antecedentes perinatales 3",
+          "type": "/Tx",
+          "rect": [
+            309.6,
+            359.76,
+            589.8,
+            374.291
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Antecedentes personales no patológicos 4",
+          "type": "/Tx",
+          "rect": [
+            22.56,
+            343.56,
+            302.76,
+            358.418
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Antecedentes perinatales_4",
+          "type": "/Tx",
+          "rect": [
+            309.6,
+            343.56,
+            589.8,
+            358.418
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Antecedentes perinatales 4",
+          "type": "/Tx",
+          "rect": [
+            19.5726,
+            316.771,
+            592.354,
+            328.357
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Principales signos y síntomas",
+          "type": "/Tx",
+          "rect": [
+            124.56,
+            291.72,
+            448.68,
+            314.76
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Fecha de inicio DDMMAAAA",
+          "type": "/Tx",
+          "rect": [
+            450.36,
+            291.72,
+            593.04,
+            305.16
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Código CIE10",
+          "type": "/Tx",
+          "rect": [
+            72.12,
+            267.36,
+            161.64,
+            290.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Descripción del diagnóstico",
+          "type": "/Tx",
+          "rect": [
+            262.68,
+            267.36,
+            448.68,
+            290.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Fecha de diagnóstico DDMMAAAA",
+          "type": "/Tx",
+          "rect": [
+            450.36,
+            267.36,
+            593.04,
+            280.92
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "1  30 Días",
+          "type": "/Btn",
+          "rect": [
+            62.52,
+            246.0,
+            69.48,
+            252.48
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "1  3 meses",
+          "type": "/Btn",
+          "rect": [
+            129.0,
+            246.0,
+            135.96,
+            252.48
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "3  6 meses",
+          "type": "/Btn",
+          "rect": [
+            193.44,
+            246.0,
+            200.4,
+            252.48
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "1  2 años",
+          "type": "/Btn",
+          "rect": [
+            251.64,
+            246.0,
+            258.6,
+            252.48
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "2 años",
+          "type": "/Btn",
+          "rect": [
+            304.32,
+            246.0,
+            311.28,
+            252.48
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Congénito",
+          "type": "/Btn",
+          "rect": [
+            62.52,
+            221.52,
+            69.48,
+            228.0
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Agudo",
+          "type": "/Btn",
+          "rect": [
+            112.44,
+            221.52,
+            119.4,
+            228.0
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Crónico",
+          "type": "/Btn",
+          "rect": [
+            163.8,
+            221.52,
+            170.88,
+            228.0
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Adquirido",
+          "type": "/Btn",
+          "rect": [
+            223.68,
+            221.52,
+            230.64,
+            228.0
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Sí",
+          "type": "/Btn",
+          "rect": [
+            320.76,
+            221.52,
+            327.72,
+            228.0
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "No",
+          "type": "/Btn",
+          "rect": [
+            358.32,
+            221.52,
+            365.28,
+            228.0
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Cuál_2",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            194.4,
+            593.4,
+            206.667
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Resultado de la exploración física y de los estudios anexar interpretaciones que confirmen diagnóstico",
+          "type": "/Tx",
+          "rect": [
+            38.4,
+            173.28,
+            69.36,
+            181.92
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Peso",
+          "type": "/Tx",
+          "rect": [
+            112.08,
+            173.28,
+            138.6,
+            181.92
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "TA",
+          "type": "/Tx",
+          "rect": [
+            170.16,
+            173.28,
+            196.8,
+            181.92
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "FC",
+          "type": "/Tx",
+          "rect": [
+            243.48,
+            173.28,
+            278.88,
+            181.92
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "FR",
+          "type": "/Tx",
+          "rect": [
+            305.04,
+            173.28,
+            340.44,
+            181.92
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "T",
+          "type": "/Tx",
+          "rect": [
+            359.52,
+            173.28,
+            394.92,
+            181.92
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Código CPT4",
+          "type": "/Tx",
+          "rect": [
+            67.32,
+            129.24,
+            305.16,
+            152.28
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Fecha de inicio DDMMAAAA_2",
+          "type": "/Tx",
+          "rect": [
+            414.48,
+            129.24,
+            592.68,
+            152.28
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Descripción del tratamiento yo intervención quirúrgica",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            104.88,
+            593.4,
+            113.52
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Médicos que participaron",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            80.52,
+            593.4,
+            89.16
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "DuracionTratamiento",
+          "type": "/Tx",
+          "rect": [
+            19.3798,
+            706.86,
+            585.42,
+            719.395
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Sí_2",
+          "type": "/Btn",
+          "rect": [
+            32.76,
+            684.96,
+            39.72,
+            691.32
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 2,
+          "field": "No_2",
+          "type": "/Btn",
+          "rect": [
+            68.52,
+            684.96,
+            75.48,
+            691.32
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 2,
+          "field": "Descripción de las complicaciones 1",
+          "type": "/Tx",
+          "rect": [
+            22.92,
+            653.88,
+            588.96,
+            669.36
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Descripción de las complicaciones 2",
+          "type": "/Tx",
+          "rect": [
+            22.92,
+            637.68,
+            588.96,
+            653.52
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Descripción de las complicaciones 3",
+          "type": "/Tx",
+          "rect": [
+            22.92,
+            621.36,
+            588.96,
+            637.2
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Interconsultas",
+          "type": "/Tx",
+          "rect": [
+            22.9798,
+            560.389,
+            589.02,
+            590.956
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Observaciones 1",
+          "type": "/Tx",
+          "rect": [
+            22.92,
+            525.84,
+            588.96,
+            541.68
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Observaciones 2",
+          "type": "/Tx",
+          "rect": [
+            22.92,
+            509.52,
+            588.96,
+            525.36
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Observaciones 3",
+          "type": "/Tx",
+          "rect": [
+            22.92,
+            493.2,
+            588.96,
+            509.04
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "NombreHospital",
+          "type": "/Tx",
+          "rect": [
+            19.3798,
+            429.153,
+            303.638,
+            441.066
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "FechaIngreso",
+          "type": "/Tx",
+          "rect": [
+            19.5434,
+            387.917,
+            208.566,
+            399.829
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Urgencia",
+          "type": "/Btn",
+          "rect": [
+            154.44,
+            414.84,
+            161.64,
+            421.32
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 2,
+          "field": "Hospitalaria",
+          "type": "/Btn",
+          "rect": [
+            234.6,
+            414.84,
+            241.68,
+            421.32
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 2,
+          "field": "Corta estancia  ambulatoria",
+          "type": "/Btn",
+          "rect": [
+            383.88,
+            414.84,
+            390.96,
+            421.32
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 2,
+          "field": "FechaIntervencion",
+          "type": "/Tx",
+          "rect": [
+            403.598,
+            387.589,
+            592.62,
+            399.502
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "NombreDOC",
+          "type": "/Tx",
+          "rect": [
+            19.382,
+            347.411,
+            192.036,
+            358.517
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "ApellidoPaternoDOC",
+          "type": "/Tx",
+          "rect": [
+            195.782,
+            347.411,
+            385.127,
+            358.517
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "ApellidoMaternoDOC",
+          "type": "/Tx",
+          "rect": [
+            386.582,
+            347.411,
+            592.618,
+            358.517
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Especialidad",
+          "type": "/Tx",
+          "rect": [
+            66.84,
+            322.2,
+            209.28,
+            345.24
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Teléfono",
+          "type": "/Tx",
+          "rect": [
+            243.96,
+            322.2,
+            400.8,
+            345.24
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Teléfono celular  radio",
+          "type": "/Tx",
+          "rect": [
+            484.92,
+            322.2,
+            592.68,
+            345.24
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Cédula Profesional",
+          "type": "/Tx",
+          "rect": [
+            87.96,
+            297.0,
+            209.28,
+            320.88
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "RFC01",
+          "type": "/Tx",
+          "rect": [
+            210.96,
+            297.0,
+            235.004,
+            311.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Sí_3",
+          "type": "/Btn",
+          "rect": [
+            33.0,
+            200.4,
+            40.08,
+            206.88
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 2,
+          "field": "No_3",
+          "type": "/Btn",
+          "rect": [
+            67.08,
+            200.4,
+            74.16,
+            206.88
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 2,
+          "field": "Ciudad y estado",
+          "type": "/Tx",
+          "rect": [
+            307.707,
+            429.153,
+            591.965,
+            441.066
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "FechaEngreso",
+          "type": "/Tx",
+          "rect": [
+            211.652,
+            387.917,
+            400.674,
+            399.829
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "RFC02",
+          "type": "/Tx",
+          "rect": [
+            237.142,
+            297.0,
+            261.186,
+            311.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "RFC03",
+          "type": "/Tx",
+          "rect": [
+            263.324,
+            297.0,
+            287.367,
+            311.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "RFC04",
+          "type": "/Tx",
+          "rect": [
+            290.16,
+            297.0,
+            314.204,
+            311.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "RFC05",
+          "type": "/Tx",
+          "rect": [
+            316.669,
+            297.0,
+            340.713,
+            311.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "RFC06",
+          "type": "/Tx",
+          "rect": [
+            343.178,
+            297.0,
+            367.222,
+            311.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "RFC07",
+          "type": "/Tx",
+          "rect": [
+            369.36,
+            297.0,
+            393.404,
+            311.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "RFC08",
+          "type": "/Tx",
+          "rect": [
+            395.869,
+            297.0,
+            419.913,
+            311.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "RFC09",
+          "type": "/Tx",
+          "rect": [
+            422.705,
+            297.0,
+            446.749,
+            311.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "RFC10",
+          "type": "/Tx",
+          "rect": [
+            448.56,
+            297.0,
+            472.604,
+            311.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "RFC11",
+          "type": "/Tx",
+          "rect": [
+            475.396,
+            297.0,
+            499.44,
+            311.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "RFC12",
+          "type": "/Tx",
+          "rect": [
+            501.905,
+            297.0,
+            525.949,
+            311.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "RFC13",
+          "type": "/Tx",
+          "rect": [
+            528.414,
+            297.0,
+            552.458,
+            311.4
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Cédula",
+          "type": "/Tx",
+          "rect": [
+            20.1163,
+            273.371,
+            592.865,
+            285.284
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "No de proveedor",
+          "type": "/Tx",
+          "rect": [
+            19.4291,
+            248.4,
+            305.16,
+            259.658
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Email",
+          "type": "/Tx",
+          "rect": [
+            307.767,
+            248.4,
+            592.68,
+            259.985
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Si la respuesta fue afirmativa indique el número de convenio",
+          "type": "/Tx",
+          "rect": [
+            210.818,
+            197.52,
+            592.68,
+            209.225
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Cirujano",
+          "type": "/Tx",
+          "rect": [
+            28.3637,
+            148.92,
+            161.52,
+            159.404
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Ayudante",
+          "type": "/Tx",
+          "rect": [
+            171.949,
+            148.92,
+            305.04,
+            159.404
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Anestesiólogo",
+          "type": "/Tx",
+          "rect": [
+            315.425,
+            148.92,
+            448.56,
+            160.058
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Tratamiento médico",
+          "type": "/Tx",
+          "rect": [
+            459.055,
+            149.247,
+            592.44,
+            160.058
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Fecha exacta de la cirugía DDMMAAAA",
+          "type": "/Tx",
+          "rect": [
+            19.331,
+            124.56,
+            305.04,
+            136.8
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Hospital en que se realizará",
+          "type": "/Tx",
+          "rect": [
+            307.44,
+            124.233,
+            592.68,
+            136.473
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 3,
+          "field": "NOTA La información asentada en este documento es proporcionada conforme a la evaluación médica que he brindado al paciente y conforme al conocimiento y los",
+          "type": "/Tx",
+          "rect": [
+            18.72,
+            693.0,
+            593.04,
+            714.96
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 3,
+          "field": "NombreYFirma01",
+          "type": "/Tx",
+          "rect": [
+            164.231,
+            413.697,
+            448.74,
+            427.321
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        }
+      ]
+    },
+    {
+      "id": "bex-desglose-gmm",
+      "sha256": "8b3b3d494c733dc69f2b76c614830ff44469844f7e5640dfa36efd4a15439e03",
+      "pageCount": 1,
+      "fieldCount": 68,
+      "widgetCount": 68,
+      "widgets": [
+        {
+          "page": 1,
+          "field": "Folio",
+          "type": "/Tx",
+          "rect": [
+            543.654,
+            704.826,
+            593.165,
+            717.758
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Número de Póliza",
+          "type": "/Tx",
+          "rect": [
+            19.44,
+            657.48,
+            209.64,
+            671.04
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Certificado",
+          "type": "/Tx",
+          "rect": [
+            210.96,
+            657.48,
+            401.16,
+            671.04
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "undefined",
+          "type": "/Btn",
+          "rect": [
+            414.84,
+            660.96,
+            421.8,
+            667.32
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "undefined_2",
+          "type": "/Btn",
+          "rect": [
+            450.72,
+            660.96,
+            457.68,
+            667.32
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Vigencia",
+          "type": "/Tx",
+          "rect": [
+            19.44,
+            633.12,
+            93.0,
+            646.68
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Desde las 1200 hrs del día DDMMAAAA",
+          "type": "/Tx",
+          "rect": [
+            94.32,
+            633.12,
+            269.28,
+            646.68
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Hasta las 1200 hrs del día DDMMAAAA",
+          "type": "/Tx",
+          "rect": [
+            270.6,
+            633.12,
+            450.12,
+            646.68
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Núm Siniestro",
+          "type": "/Tx",
+          "rect": [
+            451.44,
+            633.12,
+            593.04,
+            646.68
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Nombre del Asegurado titular",
+          "type": "/Tx",
+          "rect": [
+            19.44,
+            608.28,
+            209.64,
+            622.32
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Nombre del Asegurado afectado",
+          "type": "/Tx",
+          "rect": [
+            210.96,
+            608.28,
+            401.16,
+            622.32
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Parentesco",
+          "type": "/Tx",
+          "rect": [
+            402.48,
+            608.28,
+            593.04,
+            622.32
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "NoRecibo1",
+          "type": "/Tx",
+          "rect": [
+            18.4842,
+            536.892,
+            103.008,
+            550.932
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "NombreMedico1",
+          "type": "/Tx",
+          "rect": [
+            105.338,
+            536.744,
+            256.625,
+            550.784
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Especialidad1",
+          "type": "/Tx",
+          "rect": [
+            258.829,
+            536.744,
+            411.098,
+            550.784
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "IVA1",
+          "type": "/Tx",
+          "rect": [
+            413.629,
+            536.744,
+            492.589,
+            550.784
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Total1",
+          "type": "/Tx",
+          "rect": [
+            494.792,
+            536.744,
+            592.407,
+            550.784
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "NoRecibo2",
+          "type": "/Tx",
+          "rect": [
+            18.4842,
+            521.837,
+            103.008,
+            535.877
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "NombreMedico2",
+          "type": "/Tx",
+          "rect": [
+            105.338,
+            521.035,
+            256.625,
+            535.075
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Especialidad2",
+          "type": "/Tx",
+          "rect": [
+            258.829,
+            521.362,
+            411.098,
+            535.402
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "IVA2",
+          "type": "/Tx",
+          "rect": [
+            413.629,
+            521.035,
+            492.589,
+            535.075
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Total2",
+          "type": "/Tx",
+          "rect": [
+            494.792,
+            521.362,
+            592.407,
+            535.402
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "NoRecibo3",
+          "type": "/Tx",
+          "rect": [
+            18.4842,
+            505.801,
+            103.008,
+            519.841
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "NombreMedico3",
+          "type": "/Tx",
+          "rect": [
+            105.338,
+            505.98,
+            256.625,
+            520.02
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Especialidad3",
+          "type": "/Tx",
+          "rect": [
+            258.829,
+            505.98,
+            411.098,
+            520.02
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "IVA3",
+          "type": "/Tx",
+          "rect": [
+            413.629,
+            505.98,
+            492.589,
+            520.02
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Total3",
+          "type": "/Tx",
+          "rect": [
+            494.792,
+            505.98,
+            592.407,
+            520.02
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "NoRecibo4",
+          "type": "/Tx",
+          "rect": [
+            18.4842,
+            490.092,
+            103.008,
+            504.132
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "NombreMedico4",
+          "type": "/Tx",
+          "rect": [
+            105.338,
+            490.271,
+            256.625,
+            504.311
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Especialidad4",
+          "type": "/Tx",
+          "rect": [
+            258.829,
+            490.598,
+            411.098,
+            504.638
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "IVA4",
+          "type": "/Tx",
+          "rect": [
+            413.629,
+            490.926,
+            492.589,
+            504.966
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Total4",
+          "type": "/Tx",
+          "rect": [
+            494.792,
+            490.598,
+            592.407,
+            504.638
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "NoRecibo5",
+          "type": "/Tx",
+          "rect": [
+            18.4842,
+            475.365,
+            103.008,
+            489.405
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "NombreMedico5",
+          "type": "/Tx",
+          "rect": [
+            105.338,
+            474.562,
+            256.625,
+            488.602
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Especialidad5",
+          "type": "/Tx",
+          "rect": [
+            258.829,
+            475.544,
+            411.098,
+            489.584
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "IVA5",
+          "type": "/Tx",
+          "rect": [
+            413.629,
+            475.544,
+            492.589,
+            489.584
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Total5",
+          "type": "/Tx",
+          "rect": [
+            494.792,
+            475.871,
+            592.407,
+            489.911
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "NoRecibo6",
+          "type": "/Tx",
+          "rect": [
+            18.4842,
+            460.31,
+            103.008,
+            474.35
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "NombreMedico6",
+          "type": "/Tx",
+          "rect": [
+            105.338,
+            459.507,
+            256.625,
+            473.547
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Especialidad6",
+          "type": "/Tx",
+          "rect": [
+            258.829,
+            460.162,
+            411.098,
+            474.202
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "IVA6",
+          "type": "/Tx",
+          "rect": [
+            413.629,
+            460.162,
+            492.589,
+            474.202
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Total6",
+          "type": "/Tx",
+          "rect": [
+            494.792,
+            460.489,
+            592.407,
+            474.529
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "NoRecibo7",
+          "type": "/Tx",
+          "rect": [
+            18.4842,
+            444.928,
+            103.008,
+            458.968
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "NombreMedico7",
+          "type": "/Tx",
+          "rect": [
+            105.338,
+            445.107,
+            256.625,
+            459.147
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Especialidad7",
+          "type": "/Tx",
+          "rect": [
+            258.829,
+            444.78,
+            411.098,
+            458.82
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "IVA7",
+          "type": "/Tx",
+          "rect": [
+            413.629,
+            445.108,
+            492.589,
+            459.148
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Total7",
+          "type": "/Tx",
+          "rect": [
+            494.792,
+            444.78,
+            592.407,
+            458.82
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "NoRecibo8",
+          "type": "/Tx",
+          "rect": [
+            18.4842,
+            429.546,
+            103.008,
+            443.586
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "NombreMedico8",
+          "type": "/Tx",
+          "rect": [
+            105.338,
+            429.398,
+            256.625,
+            443.438
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Especialidad8",
+          "type": "/Tx",
+          "rect": [
+            258.829,
+            429.398,
+            411.098,
+            443.438
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "IVA8",
+          "type": "/Tx",
+          "rect": [
+            413.629,
+            430.053,
+            492.589,
+            444.093
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Total8",
+          "type": "/Tx",
+          "rect": [
+            494.792,
+            430.053,
+            592.407,
+            444.093
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "NoRecibo9",
+          "type": "/Tx",
+          "rect": [
+            18.4842,
+            414.165,
+            103.008,
+            428.205
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "NombreMedico9",
+          "type": "/Tx",
+          "rect": [
+            105.338,
+            414.344,
+            256.625,
+            428.384
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Especialidad9",
+          "type": "/Tx",
+          "rect": [
+            258.829,
+            414.344,
+            411.098,
+            428.384
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "IVA9",
+          "type": "/Tx",
+          "rect": [
+            413.629,
+            414.344,
+            492.589,
+            428.384
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Total9",
+          "type": "/Tx",
+          "rect": [
+            494.792,
+            414.017,
+            592.407,
+            428.057
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "NombreMedico2_01",
+          "type": "/Tx",
+          "rect": [
+            18.9381,
+            365.907,
+            165.316,
+            379.948
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Especialidad2_01",
+          "type": "/Tx",
+          "rect": [
+            167.847,
+            365.907,
+            318.807,
+            379.948
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "FechaInf_01",
+          "type": "/Tx",
+          "rect": [
+            321.338,
+            365.907,
+            473.28,
+            379.948
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Observaciones_01",
+          "type": "/Tx",
+          "rect": [
+            476.094,
+            365.907,
+            592.363,
+            379.948
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "NombreMedico2_02",
+          "type": "/Tx",
+          "rect": [
+            18.9381,
+            350.526,
+            165.316,
+            364.566
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Especialidad2_02",
+          "type": "/Tx",
+          "rect": [
+            167.847,
+            350.526,
+            318.807,
+            364.566
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "FechaInf_02",
+          "type": "/Tx",
+          "rect": [
+            321.338,
+            350.526,
+            473.28,
+            364.566
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Observaciones_02",
+          "type": "/Tx",
+          "rect": [
+            476.094,
+            350.853,
+            592.363,
+            364.893
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Atendido por",
+          "type": "/Tx",
+          "rect": [
+            19.44,
+            164.04,
+            209.64,
+            177.48
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Sello y firma de la persona que recibe",
+          "type": "/Tx",
+          "rect": [
+            210.96,
+            164.04,
+            401.16,
+            177.48
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Lugar y fecha",
+          "type": "/Tx",
+          "rect": [
+            402.48,
+            164.04,
+            593.04,
+            177.48
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        }
+      ]
+    },
+    {
+      "id": "bex-pago-finiquito",
+      "sha256": "99bd0232339f9d8318a7ed787223c1a913630a99e21a5cff99a56149f51edff8",
+      "pageCount": 1,
+      "fieldCount": 34,
+      "widgetCount": 34,
+      "widgets": [
+        {
+          "page": 1,
+          "field": "Folio",
+          "type": "/Tx",
+          "rect": [
+            544.591,
+            715.504,
+            592.536,
+            729.063
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Inicial",
+          "type": "/Btn",
+          "rect": [
+            143.76,
+            690.96,
+            150.72,
+            697.32
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "Complemento",
+          "type": "/Btn",
+          "rect": [
+            219.72,
+            690.96,
+            226.68,
+            697.32
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "No",
+          "type": "/Tx",
+          "rect": [
+            306.84,
+            682.92,
+            593.04,
+            696.48
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Poliza",
+          "type": "/Tx",
+          "rect": [
+            18.9437,
+            658.977,
+            592.27,
+            672.537
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "En caso",
+          "type": "/Tx",
+          "rect": [
+            18.7906,
+            634.02,
+            592.117,
+            647.58
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Nombre del Asegurado",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            609.96,
+            593.4,
+            621.84
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Lugar y fecha del Siniestro",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            585.6,
+            593.4,
+            597.48
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Banco",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            514.08,
+            209.28,
+            527.52
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Plaza",
+          "type": "/Tx",
+          "rect": [
+            210.6,
+            514.08,
+            400.8,
+            527.52
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Sucursal",
+          "type": "/Tx",
+          "rect": [
+            402.12,
+            514.08,
+            592.68,
+            527.52
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "No de cuenta",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            489.72,
+            209.28,
+            503.16
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Tipo de cuenta",
+          "type": "/Tx",
+          "rect": [
+            210.6,
+            489.72,
+            592.68,
+            503.16
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "CLABE1",
+          "type": "/Tx",
+          "rect": [
+            18.8504,
+            455.608,
+            42.6767,
+            469.048
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Email",
+          "type": "/Tx",
+          "rect": [
+            17.9777,
+            430.299,
+            592.93,
+            443.739
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "CLABE2",
+          "type": "/Tx",
+          "rect": [
+            45.4686,
+            455.608,
+            69.2948,
+            469.048
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "CLABE3",
+          "type": "/Tx",
+          "rect": [
+            72.0867,
+            455.608,
+            95.913,
+            469.048
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "CLABE4",
+          "type": "/Tx",
+          "rect": [
+            98.7048,
+            455.608,
+            122.531,
+            469.048
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "CLABE5",
+          "type": "/Tx",
+          "rect": [
+            125.323,
+            455.608,
+            149.149,
+            469.048
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "CLABE6",
+          "type": "/Tx",
+          "rect": [
+            151.505,
+            455.608,
+            175.331,
+            469.048
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "CLABE7",
+          "type": "/Tx",
+          "rect": [
+            178.123,
+            455.608,
+            201.949,
+            469.048
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "CLABE8",
+          "type": "/Tx",
+          "rect": [
+            204.741,
+            455.608,
+            228.567,
+            469.048
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "CLABE9",
+          "type": "/Tx",
+          "rect": [
+            230.923,
+            455.608,
+            254.749,
+            469.048
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "CLABE10",
+          "type": "/Tx",
+          "rect": [
+            257.541,
+            455.608,
+            281.367,
+            469.048
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "CLABE11",
+          "type": "/Tx",
+          "rect": [
+            284.159,
+            455.608,
+            307.985,
+            469.048
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "CLABE12",
+          "type": "/Tx",
+          "rect": [
+            310.341,
+            455.608,
+            334.167,
+            469.048
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "CLABE13",
+          "type": "/Tx",
+          "rect": [
+            336.959,
+            455.608,
+            360.785,
+            469.048
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "CLABE14",
+          "type": "/Tx",
+          "rect": [
+            362.704,
+            455.608,
+            386.53,
+            469.048
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "CLABE15",
+          "type": "/Tx",
+          "rect": [
+            389.759,
+            455.608,
+            413.585,
+            469.048
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "CLABE16",
+          "type": "/Tx",
+          "rect": [
+            415.94,
+            455.608,
+            439.767,
+            469.048
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "CLABE17",
+          "type": "/Tx",
+          "rect": [
+            442.995,
+            455.608,
+            466.821,
+            469.048
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "CLABE18",
+          "type": "/Tx",
+          "rect": [
+            469.177,
+            455.608,
+            493.003,
+            469.048
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Fecha en que se firma este documento DDMMAAAA",
+          "type": "/Tx",
+          "rect": [
+            19.08,
+            190.68,
+            593.4,
+            209.542
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "NombreYFirma01",
+          "type": "/Tx",
+          "rect": [
+            162.893,
+            118.891,
+            448.225,
+            133.587
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        }
+      ]
+    },
+    {
+      "id": "metlife-informe-medico",
+      "sha256": "c9de0a47de46c1dc4dbba1e6c2677c5a045ebc31a4c196c96e518db2c28a0996",
+      "pageCount": 4,
+      "fieldCount": 0,
+      "widgetCount": 0,
+      "widgets": []
+    },
+    {
+      "id": "metlife-cambios-gmm",
+      "sha256": "0030dd03d728710d6b94a114524de8d6c1595864c2ef6130923de367e08f87c9",
+      "pageCount": 2,
+      "fieldCount": 47,
+      "widgetCount": 47,
+      "widgets": [
+        {
+          "page": 1,
+          "field": "Lugar y fecha",
+          "type": "/Tx",
+          "rect": [
+            23.04,
+            617.76,
+            208.44,
+            633.12
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Número de póliza",
+          "type": "/Tx",
+          "rect": [
+            213.12,
+            617.76,
+            392.04,
+            633.12
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Registro Federal de Contribuyentes",
+          "type": "/Tx",
+          "rect": [
+            397.32,
+            617.76,
+            538.92,
+            631.32
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "undefined",
+          "type": "/Tx",
+          "rect": [
+            544.56,
+            617.76,
+            587.52,
+            631.32
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Apellido paterno",
+          "type": "/Tx",
+          "rect": [
+            23.04,
+            589.44,
+            208.44,
+            604.8
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Apellido materno",
+          "type": "/Tx",
+          "rect": [
+            213.12,
+            589.44,
+            392.04,
+            604.8
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Nombres",
+          "type": "/Tx",
+          "rect": [
+            397.2,
+            589.44,
+            587.64,
+            604.8
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Teléfono",
+          "type": "/Tx",
+          "rect": [
+            23.04,
+            561.12,
+            208.44,
+            576.36
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "MAIL1",
+          "type": "/Tx",
+          "rect": [
+            213.163,
+            561.12,
+            323.143,
+            574.789
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "MAIL2",
+          "type": "/Tx",
+          "rect": [
+            334.937,
+            560.334,
+            423.704,
+            574.789
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "1",
+          "type": "/Btn",
+          "rect": [
+            337.308,
+            463.31,
+            346.145,
+            471.71
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "2",
+          "type": "/Btn",
+          "rect": [
+            337.308,
+            442.364,
+            346.145,
+            450.764
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "3",
+          "type": "/Btn",
+          "rect": [
+            337.308,
+            419.673,
+            346.145,
+            428.073
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "4",
+          "type": "/Btn",
+          "rect": [
+            337.308,
+            405.055,
+            346.145,
+            413.455
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "5",
+          "type": "/Btn",
+          "rect": [
+            337.308,
+            385.201,
+            346.145,
+            393.601
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "6",
+          "type": "/Btn",
+          "rect": [
+            337.308,
+            365.128,
+            346.145,
+            373.528
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "7",
+          "type": "/Btn",
+          "rect": [
+            337.308,
+            350.291,
+            346.145,
+            358.691
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "8",
+          "type": "/Btn",
+          "rect": [
+            337.308,
+            336.546,
+            346.145,
+            344.946
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "9",
+          "type": "/Btn",
+          "rect": [
+            337.308,
+            322.582,
+            346.145,
+            330.982
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "10",
+          "type": "/Btn",
+          "rect": [
+            337.308,
+            309.055,
+            346.145,
+            317.455
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "11",
+          "type": "/Btn",
+          "rect": [
+            337.308,
+            288.11,
+            346.145,
+            296.51
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "12",
+          "type": "/Btn",
+          "rect": [
+            337.308,
+            212.182,
+            346.145,
+            220.582
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "13",
+          "type": "/Btn",
+          "rect": [
+            337.308,
+            133.855,
+            346.145,
+            142.255
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "14",
+          "type": "/Btn",
+          "rect": [
+            337.526,
+            93.0548,
+            346.363,
+            101.455
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "15",
+          "type": "/Btn",
+          "rect": [
+            337.526,
+            79.7457,
+            346.363,
+            88.1457
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "16",
+          "type": "/Btn",
+          "rect": [
+            337.526,
+            67.7456,
+            346.363,
+            76.1457
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "17",
+          "type": "/Btn",
+          "rect": [
+            577.309,
+            469.419,
+            586.145,
+            477.819
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "18",
+          "type": "/Btn",
+          "rect": [
+            577.309,
+            449.564,
+            586.145,
+            457.964
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "19",
+          "type": "/Btn",
+          "rect": [
+            577.309,
+            429.71,
+            586.145,
+            438.11
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "20",
+          "type": "/Btn",
+          "rect": [
+            577.09,
+            409.855,
+            585.927,
+            418.255
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "21",
+          "type": "/Btn",
+          "rect": [
+            577.309,
+            390.219,
+            586.145,
+            398.619
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "22",
+          "type": "/Btn",
+          "rect": [
+            577.309,
+            350.291,
+            586.145,
+            358.691
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "23",
+          "type": "/Btn",
+          "rect": [
+            577.309,
+            310.8,
+            586.145,
+            319.2
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "24",
+          "type": "/Btn",
+          "rect": [
+            577.309,
+            270.873,
+            586.145,
+            279.273
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "25",
+          "type": "/Btn",
+          "rect": [
+            577.309,
+            231.382,
+            586.145,
+            239.782
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/Off",
+            "/Yes"
+          ]
+        },
+        {
+          "page": 2,
+          "field": "de",
+          "type": "/Tx",
+          "rect": [
+            188.4,
+            610.16,
+            261.36,
+            621.637
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "del",
+          "type": "/Tx",
+          "rect": [
+            286.32,
+            610.16,
+            386.88,
+            621.637
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Todas las  condiciones de",
+          "type": "/Tx",
+          "rect": [
+            406.8,
+            610.16,
+            464.051,
+            621.637
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "NAME A",
+          "type": "/Tx",
+          "rect": [
+            21.5042,
+            285.6,
+            197.778,
+            308.115
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Clave del agente",
+          "type": "/Tx",
+          "rect": [
+            202.2,
+            285.6,
+            262.2,
+            308.115
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Sucursal",
+          "type": "/Tx",
+          "rect": [
+            264.48,
+            285.6,
+            343.8,
+            308.115
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Clave y nombre de la promotoría o corredor",
+          "type": "/Tx",
+          "rect": [
+            346.08,
+            285.6,
+            466.44,
+            308.115
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "MAILpromotoría o corredor",
+          "type": "/Tx",
+          "rect": [
+            469.424,
+            285.6,
+            595.284,
+            308.115
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Firma del Asegurado",
+          "type": "/Tx",
+          "rect": [
+            19.92,
+            232.44,
+            209.76,
+            254.955
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Correo electrónico del Asegurado yo del Contratante",
+          "type": "/Tx",
+          "rect": [
+            212.04,
+            232.44,
+            414.84,
+            254.955
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Firma del Contratante",
+          "type": "/Tx",
+          "rect": [
+            417.12,
+            232.44,
+            592.549,
+            254.955
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "anexar",
+          "type": "/Tx",
+          "rect": [
+            21.2121,
+            653.728,
+            593.154,
+            747.219
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        }
+      ]
+    },
+    {
+      "id": "metlife-cambios-vida",
+      "sha256": "c564be512c06a97211429eb70056e711cccb4568697572e6bd7989037583df5b",
+      "pageCount": 2,
+      "fieldCount": 60,
+      "widgetCount": 60,
+      "widgets": [
+        {
+          "page": 1,
+          "field": "Número de póliza",
+          "type": "/Tx",
+          "rect": [
+            508.32,
+            703.331,
+            595.08,
+            717.949
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Nombres",
+          "type": "/Tx",
+          "rect": [
+            23.76,
+            609.785,
+            209.16,
+            625.058
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Apellido paterno",
+          "type": "/Tx",
+          "rect": [
+            213.84,
+            609.785,
+            392.76,
+            625.058
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Apellido materno",
+          "type": "/Tx",
+          "rect": [
+            397.92,
+            609.785,
+            589.015,
+            625.058
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Registro Federal de Contribuyentes",
+          "type": "/Tx",
+          "rect": [
+            23.64,
+            581.04,
+            165.24,
+            594.6
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "undefined",
+          "type": "/Tx",
+          "rect": [
+            170.88,
+            581.04,
+            213.84,
+            594.6
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "MAIL1",
+          "type": "/Tx",
+          "rect": [
+            219.762,
+            580.625,
+            360.217,
+            596.553
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "MAIL2",
+          "type": "/Tx",
+          "rect": [
+            376.2,
+            581.28,
+            478.036,
+            595.898
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "Teléfono",
+          "type": "/Tx",
+          "rect": [
+            484.2,
+            581.28,
+            588.0,
+            596.553
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 1,
+          "field": "1",
+          "type": "/Btn",
+          "rect": [
+            369.502,
+            488.502,
+            375.432,
+            494.378
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "2",
+          "type": "/Btn",
+          "rect": [
+            369.502,
+            473.982,
+            375.432,
+            479.858
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "3",
+          "type": "/Btn",
+          "rect": [
+            369.502,
+            459.779,
+            375.432,
+            465.655
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "4",
+          "type": "/Btn",
+          "rect": [
+            369.502,
+            445.782,
+            375.432,
+            451.658
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "5",
+          "type": "/Btn",
+          "rect": [
+            369.665,
+            431.459,
+            375.596,
+            437.335
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "6",
+          "type": "/Btn",
+          "rect": [
+            369.665,
+            417.299,
+            375.596,
+            423.175
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "7",
+          "type": "/Btn",
+          "rect": [
+            369.611,
+            403.302,
+            375.541,
+            409.178
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "8",
+          "type": "/Btn",
+          "rect": [
+            369.611,
+            372.866,
+            375.541,
+            378.742
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "9",
+          "type": "/Btn",
+          "rect": [
+            369.611,
+            356.993,
+            375.541,
+            362.869
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "10",
+          "type": "/Btn",
+          "rect": [
+            369.611,
+            342.43,
+            375.541,
+            348.305
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "11",
+          "type": "/Btn",
+          "rect": [
+            369.611,
+            328.03,
+            375.541,
+            333.905
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "12",
+          "type": "/Btn",
+          "rect": [
+            369.611,
+            314.611,
+            375.541,
+            320.487
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "13",
+          "type": "/Btn",
+          "rect": [
+            369.611,
+            301.03,
+            375.541,
+            306.906
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "14",
+          "type": "/Btn",
+          "rect": [
+            369.611,
+            286.793,
+            375.541,
+            292.669
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "15",
+          "type": "/Btn",
+          "rect": [
+            369.611,
+            271.248,
+            375.541,
+            277.124
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "16",
+          "type": "/Btn",
+          "rect": [
+            369.611,
+            212.666,
+            375.541,
+            218.542
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "17",
+          "type": "/Btn",
+          "rect": [
+            369.611,
+            153.102,
+            375.541,
+            158.978
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "18",
+          "type": "/Btn",
+          "rect": [
+            369.611,
+            113.83,
+            375.541,
+            119.706
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "19",
+          "type": "/Btn",
+          "rect": [
+            369.611,
+            99.757,
+            375.541,
+            105.633
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "20",
+          "type": "/Btn",
+          "rect": [
+            369.611,
+            86.0115,
+            375.541,
+            91.8875
+          ],
+          "hasValue": true,
+          "checked": true,
+          "appearanceState": "/On",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "21",
+          "type": "/Btn",
+          "rect": [
+            584.848,
+            488.284,
+            590.778,
+            494.16
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "22",
+          "type": "/Btn",
+          "rect": [
+            584.848,
+            473.448,
+            590.778,
+            479.324
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "23",
+          "type": "/Btn",
+          "rect": [
+            584.848,
+            460.357,
+            590.778,
+            466.233
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "24",
+          "type": "/Btn",
+          "rect": [
+            584.848,
+            445.793,
+            590.778,
+            451.669
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "25",
+          "type": "/Btn",
+          "rect": [
+            584.848,
+            425.339,
+            590.778,
+            431.215
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "26",
+          "type": "/Btn",
+          "rect": [
+            584.848,
+            403.411,
+            590.778,
+            409.287
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "27",
+          "type": "/Btn",
+          "rect": [
+            584.848,
+            389.175,
+            590.778,
+            395.051
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "28",
+          "type": "/Btn",
+          "rect": [
+            584.848,
+            374.448,
+            590.778,
+            380.324
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "29",
+          "type": "/Btn",
+          "rect": [
+            584.848,
+            361.03,
+            590.778,
+            366.905
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "30",
+          "type": "/Btn",
+          "rect": [
+            584.848,
+            346.302,
+            590.778,
+            352.178
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "31",
+          "type": "/Btn",
+          "rect": [
+            584.848,
+            331.902,
+            590.778,
+            337.778
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "32",
+          "type": "/Btn",
+          "rect": [
+            584.848,
+            318.648,
+            590.778,
+            324.524
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "33",
+          "type": "/Btn",
+          "rect": [
+            584.848,
+            288.375,
+            590.778,
+            294.251
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "34",
+          "type": "/Btn",
+          "rect": [
+            584.848,
+            261.211,
+            590.778,
+            267.087
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "35",
+          "type": "/Btn",
+          "rect": [
+            584.848,
+            228.484,
+            590.778,
+            234.36
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "36",
+          "type": "/Btn",
+          "rect": [
+            584.848,
+            214.411,
+            590.778,
+            220.287
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "37",
+          "type": "/Btn",
+          "rect": [
+            584.848,
+            183.648,
+            590.778,
+            189.524
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "38",
+          "type": "/Btn",
+          "rect": [
+            584.848,
+            154.848,
+            590.778,
+            160.724
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 1,
+          "field": "39",
+          "type": "/Btn",
+          "rect": [
+            584.848,
+            126.048,
+            590.778,
+            131.924
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": "/Off",
+          "buttonStates": [
+            "/On"
+          ]
+        },
+        {
+          "page": 2,
+          "field": "Detalle de la modificación a efectuar indicar dato nuevo Anexar formato correspondiente",
+          "type": "/Tx",
+          "rect": [
+            20.16,
+            680.891,
+            593.88,
+            747.152
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "de",
+          "type": "/Tx",
+          "rect": [
+            188.4,
+            638.16,
+            261.36,
+            647.28
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "de_2",
+          "type": "/Tx",
+          "rect": [
+            286.32,
+            638.16,
+            387.0,
+            647.28
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Todas las condiciones de",
+          "type": "/Tx",
+          "rect": [
+            406.8,
+            638.16,
+            462.36,
+            647.28
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "NAME",
+          "type": "/Tx",
+          "rect": [
+            21.917,
+            486.598,
+            198.26,
+            508.083
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "clv",
+          "type": "/Tx",
+          "rect": [
+            204.604,
+            486.598,
+            261.98,
+            508.083
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Sucursal",
+          "type": "/Tx",
+          "rect": [
+            266.373,
+            486.598,
+            342.442,
+            508.083
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "CLVP",
+          "type": "/Tx",
+          "rect": [
+            349.273,
+            486.598,
+            465.98,
+            508.083
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "MAILP",
+          "type": "/Tx",
+          "rect": [
+            470.373,
+            486.598,
+            587.079,
+            508.083
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Lugar y fecha",
+          "type": "/Tx",
+          "rect": [
+            19.92,
+            432.438,
+            209.76,
+            453.923
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Firma del Contratante yo Asegurado según corresponda a la solicitud",
+          "type": "/Tx",
+          "rect": [
+            212.04,
+            432.438,
+            414.84,
+            453.923
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        },
+        {
+          "page": 2,
+          "field": "Correo electrónico del Contratante yo Asegurado",
+          "type": "/Tx",
+          "rect": [
+            417.12,
+            432.438,
+            594.12,
+            453.923
+          ],
+          "hasValue": false,
+          "checked": false,
+          "appearanceState": null,
+          "buttonStates": []
+        }
+      ]
+    },
+    {
+      "id": "metlife-reclamacion-gmm",
+      "sha256": "5b59547baf13236b5e29909e505b5992ce6989837d2822c56d0a81c941fa67dd",
+      "pageCount": 6,
+      "fieldCount": 0,
+      "widgetCount": 0,
+      "widgets": []
+    }
+  ]
+}

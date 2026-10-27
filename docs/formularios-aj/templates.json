@@ -1,0 +1,182 @@
+{
+  "catalogVersion": "2026-10-27.1",
+  "brokerDefaults": {
+    "MEDICAL": "Ale",
+    "LIFE": "Ale",
+    "AUTO": "Joel"
+  },
+  "templates": [
+    {
+      "id": "bex-aviso-gmm",
+      "title": "Aviso de accidente o enfermedad",
+      "insurer": "BEX",
+      "lines": [
+        "MEDICAL"
+      ],
+      "sourceFilename": "01_aviso_accidente_enefermedad_GMM_SM009 (1).pdf",
+      "asset": "assets/templates/bex-aviso-gmm.pdf",
+      "printedCode": "SM009 (nombre de archivo; sin versión impresa identificada)",
+      "sha256": "86e36e883962638d897765988eec896213b385198efcea6a81a390e5bb4430fb",
+      "pageCount": 4,
+      "fieldCount": 190,
+      "widgetCount": 191,
+      "strategy": "acroform",
+      "mappingStatus": "not_production_ready",
+      "insurerAcceptanceStatus": "confirm_for_policy_and_channel",
+      "reviewDate": "2026-10-27",
+      "defaultSelections": []
+    },
+    {
+      "id": "bex-informe-gmm",
+      "title": "Informe médico",
+      "insurer": "BEX",
+      "lines": [
+        "MEDICAL"
+      ],
+      "sourceFilename": "02_informe_medico_GMM_SM008.pdf",
+      "asset": "assets/templates/bex-informe-gmm.pdf",
+      "printedCode": "SM008 (nombre de archivo; sin versión impresa identificada)",
+      "sha256": "09170b910bc326d37d85af39aca8a40e8542e993ddc6e8baa1c36cf91e0e980b",
+      "pageCount": 3,
+      "fieldCount": 113,
+      "widgetCount": 113,
+      "strategy": "acroform",
+      "mappingStatus": "not_production_ready",
+      "insurerAcceptanceStatus": "confirm_for_policy_and_channel",
+      "reviewDate": "2026-10-27",
+      "defaultSelections": []
+    },
+    {
+      "id": "bex-desglose-gmm",
+      "title": "Desglose de gastos",
+      "insurer": "BEX",
+      "lines": [
+        "MEDICAL"
+      ],
+      "sourceFilename": "03_desglose_de_gastos_GMM.pdf",
+      "asset": "assets/templates/bex-desglose-gmm.pdf",
+      "printedCode": null,
+      "sha256": "8b3b3d494c733dc69f2b76c614830ff44469844f7e5640dfa36efd4a15439e03",
+      "pageCount": 1,
+      "fieldCount": 68,
+      "widgetCount": 68,
+      "strategy": "acroform",
+      "mappingStatus": "not_production_ready",
+      "insurerAcceptanceStatus": "confirm_for_policy_and_channel",
+      "reviewDate": "2026-10-27",
+      "defaultSelections": []
+    },
+    {
+      "id": "bex-pago-finiquito",
+      "title": "Solicitud de pago - finiquito",
+      "insurer": "BEX",
+      "lines": [
+        "MEDICAL",
+        "LIFE",
+        "PERSONAL_ACCIDENT"
+      ],
+      "sourceFilename": "04_pago_finiquito.pdf",
+      "asset": "assets/templates/bex-pago-finiquito.pdf",
+      "printedCode": null,
+      "sha256": "99bd0232339f9d8318a7ed787223c1a913630a99e21a5cff99a56149f51edff8",
+      "pageCount": 1,
+      "fieldCount": 34,
+      "widgetCount": 34,
+      "strategy": "acroform",
+      "mappingStatus": "not_production_ready",
+      "insurerAcceptanceStatus": "confirm_for_policy_and_channel",
+      "reviewDate": "2026-10-27",
+      "defaultSelections": []
+    },
+    {
+      "id": "metlife-informe-medico",
+      "title": "Informe médico",
+      "insurer": "METLIFE",
+      "lines": [
+        "MEDICAL"
+      ],
+      "sourceFilename": "Informe-medico25.pdf",
+      "asset": "assets/templates/metlife-informe-medico.pdf",
+      "printedCode": "CC-1-020 VER. 7",
+      "sha256": "c9de0a47de46c1dc4dbba1e6c2677c5a045ebc31a4c196c96e518db2c28a0996",
+      "pageCount": 4,
+      "fieldCount": 0,
+      "widgetCount": 0,
+      "strategy": "overlay_mapping_required",
+      "mappingStatus": "not_production_ready",
+      "insurerAcceptanceStatus": "confirm_for_policy_and_channel",
+      "reviewDate": "2026-10-27",
+      "defaultSelections": []
+    },
+    {
+      "id": "metlife-cambios-gmm",
+      "title": "Solicitud de cambios GMM individual",
+      "insurer": "METLIFE",
+      "lines": [
+        "MEDICAL"
+      ],
+      "sourceFilename": "Solicitud de cambios GMM-IG-2-020 Version 11.pdf",
+      "asset": "assets/templates/metlife-cambios-gmm.pdf",
+      "printedCode": "IG-2-020 VER. 11",
+      "sha256": "0030dd03d728710d6b94a114524de8d6c1595864c2ef6130923de367e08f87c9",
+      "pageCount": 2,
+      "fieldCount": 47,
+      "widgetCount": 47,
+      "strategy": "acroform",
+      "mappingStatus": "not_production_ready",
+      "insurerAcceptanceStatus": "confirm_for_policy_and_channel",
+      "reviewDate": "2026-10-27",
+      "defaultSelections": []
+    },
+    {
+      "id": "metlife-cambios-vida",
+      "title": "Solicitud de cambios Vida individual",
+      "insurer": "METLIFE",
+      "lines": [
+        "LIFE"
+      ],
+      "sourceFilename": "Solicitud de cambios VIDA VV-1-087- VERSIÓN 11.pdf",
+      "asset": "assets/templates/metlife-cambios-vida.pdf",
+      "printedCode": "IV-1-011 VER. 13",
+      "sha256": "c564be512c06a97211429eb70056e711cccb4568697572e6bd7989037583df5b",
+      "pageCount": 2,
+      "fieldCount": 60,
+      "widgetCount": 60,
+      "strategy": "acroform",
+      "mappingStatus": "not_production_ready",
+      "insurerAcceptanceStatus": "confirm_for_policy_and_channel",
+      "reviewDate": "2026-10-27",
+      "defaultSelections": [
+        {
+          "field": "20",
+          "page": 1,
+          "value": "/On",
+          "meaning": "Cambio de conducto de cobro a agente",
+          "action": "No heredar; desmarcar en copia de trabajo, validar V/AS/AP y requerir elección explícita."
+        }
+      ],
+      "filenameCodeMismatch": true
+    },
+    {
+      "id": "metlife-reclamacion-gmm",
+      "title": "Solicitud de reclamación GMM",
+      "insurer": "METLIFE",
+      "lines": [
+        "MEDICAL"
+      ],
+      "sourceFilename": "Solicitud de reclamación gastos médicos mayores VG-2-068 VER.12.pdf",
+      "asset": "assets/templates/metlife-reclamacion-gmm.pdf",
+      "printedCode": "VG-2-068 VER. 12",
+      "sha256": "5b59547baf13236b5e29909e505b5992ce6989837d2822c56d0a81c941fa67dd",
+      "pageCount": 6,
+      "fieldCount": 0,
+      "widgetCount": 0,
+      "strategy": "overlay_mapping_required",
+      "mappingStatus": "not_production_ready",
+      "insurerAcceptanceStatus": "confirm_for_policy_and_channel",
+      "reviewDate": "2026-10-27",
+      "defaultSelections": [],
+      "sourceVerification": "El enlace de Reembolso de MetLife entrega VER.12; el de Evento Programado observado entrega VER.10. No intercambiar mapas."
+    }
+  ]
+}

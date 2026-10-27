@@ -1,0 +1,24 @@
+{
+  "usage": "Guardar solo el objeto input en un archivo y pasar --case. Ejemplos sintéticos sin datos de clientes; no prueban aceptación por aseguradora.",
+  "schema": {
+    "insurer": ["BEX", "METLIFE", "OTHER", "UNKNOWN"],
+    "line": ["MEDICAL", "LIFE", "AUTO", "PERSONAL_ACCIDENT", "UNKNOWN"],
+    "intent": ["reimbursement", "direct_payment", "scheduled_event", "second_opinion", "claim_payout", "policy_change", "unknown"],
+    "stage": ["initial", "followup", "unknown"],
+    "paymentMethod": ["transfer", "cheque", "unknown"],
+    "policyType": ["individual", "collective", "unknown"],
+    "bankChanged": "boolean or null",
+    "minorAffected": "boolean or null"
+  },
+  "examples": [
+    {"name": "Complemento BX+ sin cambio de banco", "input": {"insurer":"BEX","line":"MEDICAL","intent":"reimbursement","stage":"followup","paymentMethod":"transfer","bankChanged":false}, "expectedTemplates":["bex-aviso-gmm","bex-informe-gmm","bex-desglose-gmm","bex-pago-finiquito"], "expectedBanking":"not_requested_without_bank_change", "expectedBroker":"Ale"},
+    {"name": "Complemento BX+ con cambio de banco", "input": {"insurer":"BEX","line":"MEDICAL","intent":"reimbursement","stage":"followup","paymentMethod":"transfer","bankChanged":true}, "expectedBanking":"required_in_protected_form", "expectedBroker":"Ale"},
+    {"name": "Cirugía MetLife", "input": {"insurer":"METLIFE","line":"MEDICAL","intent":"scheduled_event","stage":"initial"}, "expectedTemplates":["metlife-reclamacion-gmm","metlife-informe-medico"], "expectedBanking":"not_applicable", "expectedBroker":"Ale"},
+    {"name": "Reembolso MetLife por cheque", "input": {"insurer":"METLIFE","line":"MEDICAL","intent":"reimbursement","stage":"initial","paymentMethod":"cheque"}, "expectedBanking":"not_applicable", "expectedBroker":"Ale"},
+    {"name": "Reembolso MetLife por transferencia", "input": {"insurer":"METLIFE","line":"MEDICAL","intent":"reimbursement","stage":"initial","paymentMethod":"transfer"}, "expectedBanking":"required_in_protected_form", "expectedBroker":"Ale"},
+    {"name": "Vida MetLife individual", "input": {"insurer":"METLIFE","line":"LIFE","intent":"policy_change","policyType":"individual"}, "expectedTemplates":["metlife-cambios-vida"], "expectedBroker":"Ale"},
+    {"name": "GMM MetLife colectiva no usar cambios individuales", "input": {"insurer":"METLIFE","line":"MEDICAL","intent":"policy_change","policyType":"collective"}, "expectedTemplates":[], "expectedStatus":"no_template_in_catalog"},
+    {"name": "Autos sin formatos aportados", "input": {"insurer":"BEX","line":"AUTO","intent":"reimbursement","stage":"initial"}, "expectedTemplates":[], "expectedBroker":"Joel", "expectedStatus":"no_template_in_catalog"},
+    {"name": "Aseguradora desconocida", "input": {"insurer":"UNKNOWN","line":"MEDICAL","intent":"reimbursement"}, "expectedTemplates":[], "expectedStatus":"needs_routing_data"}
+  ]
+}
