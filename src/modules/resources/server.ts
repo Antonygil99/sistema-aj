@@ -48,6 +48,7 @@ export async function findResource(slug: ResourceSlug, id: string) {
 }
 export async function createResource(slug: ResourceSlug, input: unknown) {
   const data = applyRules(slug, schemas[slug].parse(input) as Record<string, unknown>);
+  if (slug === 'pagos' && data.status === 'PAID') throw new ResourceError('FINANCE_USE_CONFIRMATION',422);
   // A policy from the catalog inherits the product's responsible (Ale for medical, Joel for autos) unless one was chosen.
   if (slug === 'polizas' && data.productId && !data.ownerEmail) {
     const product = await getDb().product.findUnique({ where: { id: String(data.productId) }, select: { ownerEmail: true } });
@@ -59,6 +60,18 @@ export async function createResource(slug: ResourceSlug, input: unknown) {
 export async function updateResource(slug: ResourceSlug, id: string, input: unknown) {
   const { expectedUpdatedAt, data } = parseUpdate(slug, input);
   return getDb().$transaction(async tx => {
+    if (slug === 'polizas') {
+      const existing = await tx.policy.findUnique({ where: { id }, include: { nextPolicy: { select: { id: true } } } });
+      if (existing && (existing.nextPolicy || existing.previousPolicyId)) {
+        const changed = ['number','insurer','currency'].some(key => data[key] !== existing[key as 'number'|'insurer'|'currency']) || Number(data.premium) !== Number(existing.premium) || new Date(data.startDate as Date).getTime() !== existing.startDate.getTime() || new Date(data.endDate as Date).getTime() !== existing.endDate.getTime();
+        if (changed) throw new ResourceError('FINANCE_POLICY_HISTORY',409);
+      }
+    }
+    if (slug === 'pagos') {
+      const existing = await tx.payment.findUnique({ where: { id }, select: { status: true } });
+      if (existing?.status === 'PAID') throw new ResourceError('FINANCE_PAID_LOCKED',409);
+      if (data.status === 'PAID') throw new ResourceError('FINANCE_USE_CONFIRMATION',422);
+    }
     // "Cliente" is only valid for a prospect that went through the conversion flow.
     if (slug === 'prospectos' && data.status === 'CLIENTE' && !(await tx.prospect.findUnique({ where: { id }, select: { convertedClientId: true } }))?.convertedClientId) throw new ResourceError('USE_CONVERSION', 422);
     const result = await delegate(tx, slug).updateMany({ where: { id, updatedAt: expectedUpdatedAt }, data });
@@ -71,7 +84,8 @@ export async function updateResource(slug: ResourceSlug, id: string, input: unkn
 }
 export async function archiveResource(slug: ResourceSlug, id: string, archived: boolean) {
   const db = getDb();
-  const result = await delegate(db, slug).updateMany({ where: { id, archivedAt: archived ? null : { not: null } }, data: { archivedAt: archived ? new Date() : null } });
+  if (slug === 'pagos' && (await db.payment.findUnique({ where: { id }, select: { status:true } }))?.status === 'PAID') throw new ResourceError('FINANCE_PAID_LOCKED',409);
+  const result = await delegate(db, slug).updateMany({ where: { id, archivedAt: archived ? null : { not: null }, ...(slug === 'pagos' ? { status: { not: 'PAID' } } : {}) }, data: { archivedAt: archived ? new Date() : null } });
   if (!result.count) {
     const exists = await delegate(db, slug).findUnique({ where: { id }, select: { id: true } });
     throw new ResourceError(exists ? 'ALREADY_IN_STATE' : 'RECORD_NOT_FOUND', exists ? 409 : 404);
@@ -80,10 +94,15 @@ export async function archiveResource(slug: ResourceSlug, id: string, archived: 
 }
 // Permanent removal for records without dependents; restricted relations make the database refuse otherwise.
 export async function deleteResource(slug: ResourceSlug, id: string) {
+  if (slug === 'pagos' && (await getDb().payment.findUnique({ where: { id }, select: { status:true } }))?.status === 'PAID') throw new ResourceError('FINANCE_PAID_LOCKED',409);
   // A deleted catalog product takes its stored image with it (after the row is gone).
   const image = slug === 'productos' ? (await getDb().product.findUnique({ where: { id }, select: { imageKey: true } }))?.imageKey : null;
   try {
     const record = await getDb().$transaction(async tx => {
+      if (slug === 'pagos') {
+        await tx.$queryRaw`SELECT id FROM "Payment" WHERE id = ${id} FOR UPDATE`;
+        if ((await tx.payment.findUnique({ where: { id }, select: { status:true } }))?.status === 'PAID') throw new ResourceError('FINANCE_PAID_LOCKED',409);
+      }
       const record = await delegate(tx, slug).findUnique({ where: { id }, ...withInclude(slug) });
       if (!record) throw new ResourceError('RECORD_NOT_FOUND', 404);
       if (slug === 'clientes') {

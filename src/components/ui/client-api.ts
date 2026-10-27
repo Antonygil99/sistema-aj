@@ -5,6 +5,17 @@ export class ApiError extends Error {
   constructor(public readonly code: string, public readonly status: number, message: string, public readonly issues: Issue[] = []) { super(message); }
 }
 export const errorMessages: Record<string, string> = {
+  FINANCE_SCHEDULE_EXISTS: 'Esta póliza ya tiene recibos, incluso archivados. Revisa el calendario existente; no se duplicará.',
+  FINANCE_SCHEDULE_INVALID: 'Revisa que los recibos sumen la prima y tengan fechas ordenadas dentro de la vigencia.',
+  FINANCE_UDI_REVIEW: 'Los contratos en UDI requieren revisión separada. No se convertirán automáticamente a pesos.',
+  FINANCE_FUTURE_PAYMENT: 'La fecha efectiva de pago no puede estar en el futuro.',
+  FINANCE_ALREADY_PAID: 'Este recibo ya fue confirmado como pagado. Actualiza su información.',
+  FINANCE_EVIDENCE_SCOPE: 'El comprobante debe ser un documento activo de esta póliza o del expediente de su cliente.',
+  FINANCE_RENEWAL_EXISTS: 'Esta vigencia ya tiene una renovación vinculada. Ábrela desde el expediente.',
+  FINANCE_RENEWAL_DATES: 'La nueva vigencia debe comenzar al terminar la anterior o después.',
+  FINANCE_USE_CONFIRMATION: 'Confirma el pago desde su expediente para registrar la referencia y el comprobante.',
+  FINANCE_PAID_LOCKED: 'Este recibo confirmado conserva su evidencia. Solicita revisión al administrador antes de corregirlo.',
+  FINANCE_POLICY_HISTORY: 'Las vigencias vinculadas conservan sus datos contractuales. No cambies su número, prima ni fechas desde el editor general.',
   WA_NOT_FOUND: 'La conversación ya no está disponible.',
   WA_TOKEN_INVALID: 'Meta indica que el token es inválido, caducó o fue revocado. Sustituye WHATSAPP_ACCESS_TOKEN en Vercel y vuelve a desplegar.',
   WA_PERMISSION_MISSING: 'Meta indica que falta un permiso para operar con esta cuenta. Revisa los permisos de WhatsApp y el acceso del token al número.',
@@ -113,6 +124,6 @@ export async function apiFetch<T = unknown>(url: string, init: RequestInit & { j
     throw new ApiError(code, response.status, code === 'INVALID_INPUT' ? issueMessage(body.issues, labels) : messageFor(code), body.issues ?? []);
   }
   // Refresh the visible module's KPIs after a successful business mutation, without resetting forms.
-  if (typeof window !== 'undefined' && rest.method && !['GET','HEAD'].includes(rest.method.toUpperCase()) && /^\/api\/(crm|dossiers|policies|documents|folders|products)(\/|$)/.test(url)) window.dispatchEvent(new CustomEvent('aj:metrics-changed'));
+  if (typeof window !== 'undefined' && rest.method && !['GET','HEAD'].includes(rest.method.toUpperCase()) && /^\/api\/(crm|dossiers|policies|payments|documents|folders|products)(\/|$)/.test(url)) window.dispatchEvent(new CustomEvent('aj:metrics-changed'));
   return body;
 }

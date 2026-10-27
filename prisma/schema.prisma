@@ -109,7 +109,7 @@ model Client {
 }
 model Policy {
   id          String @id @default(cuid())
-  number      String @unique
+  number      String
   clientId    String
   client      Client @relation(fields: [clientId], references: [id], onDelete: Restrict)
   insurer     String
@@ -142,6 +142,9 @@ model Policy {
   claims      Claim[]
   documents   Document[]
   activities  Activity[]
+  previousPolicyId String? @unique
+  previousPolicy Policy? @relation("PolicyRenewal", fields: [previousPolicyId], references: [id], onDelete: Restrict)
+  nextPolicy Policy? @relation("PolicyRenewal")
   archivedAt DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -149,6 +152,7 @@ model Policy {
   @@index([status, endDate])
   @@index([productId])
   @@index([ownerEmail])
+  @@unique([insurer, number, startDate])
 }
 model Quote {
   id         String @id @default(cuid())
@@ -177,6 +181,9 @@ model Payment {
   dueDate   DateTime
   paidAt    DateTime?
   status    PaymentStatus @default(PENDING)
+  reference String?
+  evidenceDocumentId String?
+  evidenceDocument Document? @relation("PaymentEvidence", fields: [evidenceDocumentId], references: [id], onDelete: Restrict)
   archivedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -211,6 +218,7 @@ model Claim {
   @@index([policyId, status])
 }
 model Document {
+  paymentEvidence Payment[] @relation("PaymentEvidence")
   id         String @id @default(cuid())
   name       String
   storageKey String @unique
