@@ -1,5 +1,6 @@
 'use client';
 import { useId } from 'react';
+import Link from 'next/link';
 import { ArrowRight2, PlayCircle, TickCircle } from '@/components/icons';
 import { canSeeTour, tours, type Tour } from '@/modules/help/tours';
 import { Modal } from './ui/modal';
@@ -25,6 +26,9 @@ export function HelpCenter({ open, onClose, role, current, onStart }: { open: bo
       <div><span className="eyebrow">ESTA PANTALLA</span><strong>{current.title}</strong><p>{current.summary}</p></div>
       <button type="button" className="button" onClick={() => onStart(current.id)}><PlayCircle aria-hidden="true"/>Iniciar recorrido</button>
     </section> : null}
+    <Link className="help-release-link" href="/novedades" onClick={onClose}>Novedades de Sistema AJ<ArrowRight2 aria-hidden="true"/></Link>
+    <p className="help-group-label">Funciones nuevas</p>
+    <ul className="help-list">{visible.filter(tour => tour.kind === 'feature').map(item)}</ul>
     <p className="help-group-label">Componentes</p>
     <ul className="help-list">{visible.filter(tour => tour.kind === 'component').map(item)}</ul>
     <p className="help-group-label">Módulos</p>

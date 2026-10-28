@@ -1,4 +1,5 @@
 'use client';
+import { TourButton } from './feature-discovery';
 import { useCallback, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -29,7 +30,7 @@ export function PolicyFinancePanel({policyId,canEdit}:{policyId:string;canEdit:b
   const policy=data?.policy;
   const invalid=policy?scheduleIssues({premium:Number(policy.premium),startDate:day(policy.startDate),endDate:day(policy.endDate)},rows,frequency):null;
   const sums=policy?{paid:policy.payments.filter(p=>p.status==='PAID').reduce((s,p)=>s+Number(p.amount),0),pending:policy.payments.filter(p=>p.status!=='PAID').reduce((s,p)=>s+Number(p.amount),0)}:null;
-  return <details className="finance-panel" open={open} onToggle={event=>void toggle(event.currentTarget.open)}><summary>Recibos, pagos y renovación</summary>
+  return <details className="finance-panel" open={open} onToggle={event=>void toggle(event.currentTarget.open)}><summary>Recibos, pagos y renovación</summary><TourButton id="funcion:finanzas">Cómo usar pagos y renovaciones</TourButton>
     {error&&!payment&&!renew?<p role="alert" className="notice">{error}</p>:null}{busy&&!data?<p role="status">Consultando calendario…</p>:null}
     {policy&&data?<><div className="finance-summary"><span>Prima de esta vigencia <strong>{Number(policy.premium).toFixed(2)} {policy.currency}</strong></span><span>Pagos confirmados <strong>{sums!.paid.toFixed(2)} {policy.currency}</strong></span><span>Recibos sin confirmar <strong>{policy.payments.length?sums!.pending.toFixed(2)+' '+policy.currency:'Sin calendario'}</strong></span></div>
       {policy.previousPolicy?<p>Vigencia anterior: <strong>{day(policy.previousPolicy.startDate)} a {day(policy.previousPolicy.endDate)}</strong> · póliza {policy.previousPolicy.number}</p>:null}

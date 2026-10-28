@@ -108,6 +108,10 @@ Invoke-RestMethod http://localhost:3000/api/crm/prospectos -Headers $headers
 
 Errores: 400 datos/JSON inválidos, 404 módulo desconocido, 409 identificador único duplicado, 422 relación inexistente, 503 servicio/configuración no disponible. No se exponen detalles de conexión ni payloads privados en errores.
 
+## Novedades y tutoriales
+
+`/novedades` muestra el historial de funciones del CRM y sus recorridos guiados. Al publicar una función, agregar su entrada editorial, permisos y recorrido en `src/modules/help/releases.ts` y `src/modules/help/tours.ts`. Ver [la guía de mantenimiento](docs/NOVEDADES-Y-RECORRIDOS.md). La ficha del cliente tiene una tarjeta contextual que se puede cerrar y un tutorial repetible desde el expediente o Ayuda.
+
 ## WhatsApp Business API
 
 Configurar variables WHATSAPP_* con valores de tu aplicación Meta. Exponer /api/whatsapp/webhook mediante HTTPS, registrar callback y verify token, suscribir eventos de mensajes. GET responde al desafío; POST valida x-hub-signature-256 usando el cuerpo original y APP_SECRET. La respuesta 200 solo llega tras persistir el evento. Los reintentos idénticos reutilizan payloadHash; antes de enviar mensajes o ejecutar acciones, el worker futuro también debe deduplicar por ID de mensaje/evento de Meta (payloads distintos pueden contener el mismo mensaje).

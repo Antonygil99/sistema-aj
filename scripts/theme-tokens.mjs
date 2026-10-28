@@ -4,7 +4,7 @@
 // values. Run `npm run theme` after adding colors; `tests/theme.test.mjs` fails while anything is stale.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-export const stylesheets = ['src/app/(workspace)/workspace.css', 'src/app/(workspace)/help.css'];
+export const stylesheets = ['src/app/(workspace)/workspace.css', 'src/app/(workspace)/help.css', 'src/app/(workspace)/novedades/releases.css'];
 export const themeFile = 'src/app/(workspace)/theme.css';
 // Surfaces whose role an automatic inversion cannot infer (the page sits below the panels, not above them).
 const overrides = {

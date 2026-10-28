@@ -52,6 +52,7 @@ export function AccountMenu({ user, roleLabel }: { user: AccountUser; roleLabel:
         <div className="account-menu-identity"><strong>{user.name}</strong><span>{user.email}</span><small className="account-role">{roleLabel}</small></div>
       </div>
       <button type="button" className="account-menu-item" onClick={() => { setPlace(null); openHelp(); }}><MessageQuestion aria-hidden="true"/>Centro de ayuda</button>
+      <Link className="account-menu-item" href="/novedades" onClick={() => setPlace(null)}><MessageQuestion aria-hidden="true"/>Novedades y mejoras</Link>
       <Link className="account-menu-item" href="/agenda" onClick={() => setPlace(null)}><Calendar aria-hidden="true"/>Mi agenda y Google Calendar</Link><button type="button" className="account-menu-item" onClick={() => { setPlace(null); openSettings(); }}><Setting2 aria-hidden="true"/>Preferencias</button>
       <button type="button" className="account-menu-item" disabled aria-describedby={`${menuId}-soon`}><Chart aria-hidden="true"/>Reportes<span className="soon-pill" id={`${menuId}-soon`}>Próximamente</span></button>
       {user.role === 'SUPERADMIN' ? <Link className="account-menu-item" href="/usuarios" onClick={() => setPlace(null)}><UserOctagon aria-hidden="true"/>Usuarios y accesos</Link> : null}

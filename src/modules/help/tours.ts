@@ -2,8 +2,8 @@ import { modules, type ModuleSlug } from '../catalog';
 import { resources, isResourceSlug } from '../resources/config';
 // Guided tours for the Help Center. Pure (unit tested in tests/tours.test.ts): the browser resolves each
 // step's first visible target and skips steps whose element is not on screen (role, view or empty list).
-export type TourStep = { targets?: string[]; title: string; body: string };
-export type Tour = { id: string; kind: 'component' | 'module'; title: string; summary: string; route?: string; minRole?: 'ADMIN' | 'SUPERADMIN'; listed?: boolean; steps: TourStep[] };
+export type TourStep = { targets?: string[]; title: string; body: string; illustration?: 'intake' };
+export type Tour = { id: string; kind: 'component' | 'module' | 'feature'; title: string; summary: string; route?: string; context?: 'client'; prepare?: 'intake'; minRole?: 'ADMIN' | 'SUPERADMIN'; listed?: boolean; steps: TourStep[] };
 type Role = 'USER' | 'ADMIN' | 'SUPERADMIN';
 const rank: Record<Role, number> = { USER: 0, ADMIN: 1, SUPERADMIN: 2 };
 const newButton = ['.resource-toolbar > .button'];
@@ -68,6 +68,33 @@ function moduleTour(slug: ModuleSlug): Tour {
   return { ...base, steps: [intro(tips[slug] ?? entry.description), ...tableSteps(slug)] };
 }
 export const tours: Tour[] = [
+  { id: 'funcion:ficha-cliente', kind: 'feature', title: 'Ficha del cliente', summary: 'Compartir un formulario, recibir respuestas y revisar los datos del expediente.', route: '/crm/clientes?view=dossiers', context: 'client', prepare: 'intake', minRole: 'ADMIN', steps: [
+    { title: 'Tu cliente también puede llenar su ficha', body: 'Comparte un formulario o captura los datos con él. La información llega al expediente para que la revises antes de incorporarla. Este recorrido solo explica: no guarda ni envía nada.', illustration: 'intake' },
+    { targets: ['.dossier-grid .dossier-card'], title: 'Elige el expediente de tu cliente', body: 'Abre su carpeta y busca «Ficha del cliente · formulario y WhatsApp». Allí puedes volver a iniciar este recorrido sobre los controles de su ficha.' },
+    { targets: ['[data-tour="intake-manual"]'], title: 'Capturar junto con el cliente', body: 'Abre la captura manual si el cliente te da sus datos por llamada, WhatsApp o en persona. Confirma con él la información y su autorización antes de guardar.' },
+    { targets: ['[data-tour="intake-link"]'], title: 'Crear su enlace externo', body: 'Genera un enlace y un código de acceso. Duran siete días. El cliente podrá llenar su ficha sin entrar al CRM. Renovar el enlace deja sin acceso al anterior.' },
+    { targets: ['.intake-share', '[data-tour="intake-link"]'], title: 'Comparte por WhatsApp', body: 'Al crear el enlace verás «Copiar mensaje para la bandeja» y «Abrir WhatsApp». Comparte el enlace y código solo con el cliente o su representante. Revisa el destinatario antes de enviar.' },
+    { targets: ['[data-tour="intake-refresh"]', '.resource-toolbar'], title: 'Recibir las respuestas', body: 'Pulsa «Actualizar respuestas» en la ficha. En Expedientes también verás las fichas pendientes de revisión. Las respuestas aún no cambian los datos principales ni las pólizas.' },
+    { title: 'Revisa y elige qué incorporar', body: 'Abre las respuestas completas. Selecciona por separado nombre, correo, teléfono o RFC y confirma la revisión. Los campos vacíos no borran datos; el resto queda en la ficha para futuros trámites.' },
+    { targets: ['[data-tour="intake-revoke"]', '.client-intake'], title: 'Tú controlas el acceso', body: 'Al tener un enlace activo verás «Revocar enlace». Esa acción cierra el acceso sin borrar respuestas. No pidas datos médicos, bancarios o firmas en esta ficha administrativa.' },
+  ] },
+  { id: 'funcion:finanzas', kind: 'feature', title: 'Pagos y renovaciones del expediente', summary: 'Preparar, revisar y guardar calendarios de recibos y nuevas vigencias.', route: '/crm/clientes?view=dossiers', context: 'client', minRole: 'ADMIN', steps: [
+    { title: 'Cada vigencia tiene su calendario', body: 'Abre un expediente para revisar las fechas y periodicidad de cada póliza. Los recibos y las renovaciones se preparan antes de guardar. El recorrido no modifica registros.' },
+    { targets: ['.dossier-grid .dossier-card'], title: 'Abre el expediente', body: 'Cada póliza tiene sus controles de pagos y renovación. Desde una carpeta puedes revisar los datos reales y continuar allí con el asesor.' },
+    { targets: ['.finance-panel'], title: 'Revisa antes de guardar', body: 'El panel de la póliza permite preparar el calendario o una renovación. Comprueba vigencia, moneda, prima y recibos. Una prima importada no demuestra por sí sola que un recibo esté pagado.' },
+    { title: 'Conserva la historia de la póliza', body: 'La renovación debe mantener el vínculo con la póliza anterior. Si otro asesor cambió los datos, actualiza y vuelve a revisar la propuesta antes de guardarla.' },
+  ] },
+  { id: 'modulo:novedades', kind: 'module', title: 'Novedades', summary: 'Funciones publicadas, mejoras y recorridos para aprender a usarlas.', route: '/novedades', steps: [
+    { targets: ['.release-spotlight', '.release-learning'], title: 'Descubre y aprende', body: 'Las funciones recientes tienen accesos para aprender sobre tu pantalla. Un recorrido no guarda registros, crea enlaces ni envía mensajes.' },
+    { targets: ['.release-filters'], title: 'Encuentra un cambio', body: 'Busca por función o módulo y filtra funciones, mejoras o correcciones. El historial muestra las opciones disponibles para tu rol.' },
+    { targets: ['.release-history'], title: 'Qué se publicó y cuándo', body: 'Cada entrega agrupa cambios por fecha. Usa «Abrir» para ir a la función o «Ver recorrido» para repetir su explicación.' },
+  ] },
+  { id: 'modulo:whatsapp', kind: 'module', title: 'WhatsApp', summary: 'Recibir mensajes, responder y resolver conversaciones desde el CRM.', route: '/whatsapp', steps: [
+    { title: 'Conversaciones del equipo', body: 'Esta bandeja recibe mensajes y permite responder manualmente desde la cuenta configurada. Necesita un token vigente y cumplir las condiciones de Meta.' },
+    { targets: ['.wa-list'], title: 'Encuentra la conversación', body: 'Busca por nombre o número, abre el contacto y revisa los mensajes recibidos antes de responder.' },
+    { targets: ['.wa-composer'], title: 'Revisa y envía', body: 'Escribe tu respuesta o pega el mensaje con el enlace y código de la ficha. Comprueba el destinatario y pulsa Enviar. Si falla, revisa la causa indicada antes de reintentar.' },
+    { title: 'Cierra el seguimiento cuando termines', body: 'Puedes marcar una conversación resuelta. Las respuestas automáticas de los agentes son una etapa distinta; esta bandeja mantiene el envío bajo control de una persona.' },
+  ] },
   { id: 'componente:navegacion', kind: 'component', title: 'Navegación', summary: 'El menú, sus grupos y cómo ganar espacio.', steps: [
     { targets: ['.workspace-nav', '.mobile-tabbar'], title: 'Tus módulos', body: 'Los módulos se agrupan en Relaciones, Operación y Organización. El que tienes abierto se marca en verde.' },
     { targets: ['.sidebar-toggle'], title: 'Más espacio', body: 'Contrae el menú para ver solo los íconos; pasa el cursor sobre uno para ver su nombre.' },
@@ -132,6 +159,8 @@ export function tourForPath(pathname: string): Tour | null {
   if (pathname === '/agenda') return tourById('modulo:agenda');
   if (pathname === '/avisos') return tourById('modulo:avisos-clientes');
   if (pathname === '/asistentes') return tourById('modulo:asistentes');
+  if (pathname === '/novedades') return tourById('modulo:novedades');
+  if (pathname === '/whatsapp') return tourById('modulo:whatsapp');
   if (pathname === '/crm/clientes/nuevo') return tourById('modulo:nuevo-expediente');
   if (/^\/crm\/clientes\/[^/]+$/.test(pathname)) return tourById('modulo:expediente');
   const match = /^\/crm\/([a-z]+)$/.exec(pathname);
