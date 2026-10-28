@@ -2,7 +2,7 @@ import { modules, type ModuleSlug } from '../catalog';
 import { resources, isResourceSlug } from '../resources/config';
 // Guided tours for the Help Center. Pure (unit tested in tests/tours.test.ts): the browser resolves each
 // step's first visible target and skips steps whose element is not on screen (role, view or empty list).
-export type TourStep = { targets?: string[]; title: string; body: string; illustration?: 'intake' | 'procedures' };
+export type TourStep = { targets?: string[]; title: string; body: string; illustration?: 'intake' | 'procedures' | 'mcp' };
 export type Tour = { id: string; kind: 'component' | 'module' | 'feature'; title: string; summary: string; route?: string; context?: 'client' | 'procedure'; prepare?: 'intake' | 'procedures'; minRole?: 'ADMIN' | 'SUPERADMIN'; listed?: boolean; steps: TourStep[] };
 type Role = 'USER' | 'ADMIN' | 'SUPERADMIN';
 const rank: Record<Role, number> = { USER: 0, ADMIN: 1, SUPERADMIN: 2 };
@@ -68,6 +68,12 @@ function moduleTour(slug: ModuleSlug): Tour {
   return { ...base, steps: [intro(tips[slug] ?? entry.description), ...tableSteps(slug)] };
 }
 export const tours: Tour[] = [
+  {id:'funcion:conexiones',kind:'feature',title:'Conectar tu asistente al CRM',summary:'Autorizar tu chat, revisar sus propuestas y retirar el acceso.',route:'/conexiones',steps:[
+    {title:'Un chat con acceso a tu espacio AJ',body:'Tu asistente consulta datos administrativos y prepara cambios. Tú eliges los permisos y revisas cada propuesta antes de aplicarla. Este recorrido no autoriza conexiones ni modifica registros.',illustration:'mcp'},
+    {targets:['[data-tour="mcp-connect"]'],title:'Copia la dirección y conecta',body:'Añade esta dirección como servidor MCP remoto en tu aplicación. Inicia sesión con la cuenta Google que usas en AJ y empieza con permiso de consulta. La disponibilidad depende de tu aplicación y plan.'},
+    {targets:['[data-tour="mcp-pending"]'],title:'Revisa antes de cambiar',body:'Aquí llegan las altas, ediciones, cargas y eliminaciones propuestas. Abre el cambio, comprueba los datos y confirma. Vence a los quince minutos y no sobreescribe cambios recientes del equipo.'},
+    {targets:['[data-tour="mcp-connections"]'],title:'Tú controlas el acceso',body:'Retira una conexión cuando lo necesites. Sus tokens dejan de funcionar y se cancelan sus propuestas pendientes. El rol del CRM siempre limita lo que puede hacer.'},
+  ]},
   {id:'funcion:tramites',kind:'feature',title:'Trámites y cambios de póliza',summary:'Preparar un cambio, revisar documentos y PDF, registrar firma y seguimiento.',route:'/tramites',context:'procedure',prepare:'procedures',minRole:'ADMIN',steps:[
     {title:'Un trámite, del borrador al endoso',body:'El piloto prepara cambios de domicilio o RFC en GMM individual MetLife. Se conserva la póliza actual. Este recorrido explica los pasos: no crea solicitudes ni envía documentos.',illustration:'procedures'},
     {targets:['[data-tour="procedure-create"]','.procedures-client'],title:'Parte del expediente correcto',body:'Selecciona la póliza y el cambio solicitado. Otras aseguradoras, Vida y Autos necesitan sus propias plantillas; no se reutiliza este formato para ellas.'},
@@ -168,6 +174,7 @@ export function tourForPath(pathname: string): Tour | null {
   if (pathname === '/avisos') return tourById('modulo:avisos-clientes');
   if (pathname === '/asistentes') return tourById('modulo:asistentes');
   if (pathname === '/novedades') return tourById('modulo:novedades');
+  if (pathname === '/conexiones') return tourById('funcion:conexiones');
   if (pathname === '/whatsapp') return tourById('modulo:whatsapp');
   if (pathname === '/tramites'||/^\/tramites\/[^/]+$/.test(pathname)) return tourById('funcion:tramites');
   if (pathname === '/crm/clientes/nuevo') return tourById('modulo:nuevo-expediente');

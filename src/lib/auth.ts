@@ -3,6 +3,11 @@ import { betterAuth } from 'better-auth';
 import { prismaAdapter } from '@better-auth/prisma-adapter';
 import { nextCookies } from 'better-auth/next-js';
 import { APIError } from 'better-auth/api';
+import { jwt } from 'better-auth/plugins';
+import { mcp } from '@better-auth/mcp';
+import { cimd } from '@better-auth/cimd';
+import { fetchClientMetadataResource } from '@better-auth/cimd/node';
+import { mcpResource, mcpScopes } from '@/modules/mcp/policy';
 import { getDb } from './db';
 import { normalizeEmail, permittedRole } from './access-policy';
 import { recordEvent } from '@/modules/events';
@@ -39,7 +44,7 @@ function createAuth() {
     session: { modelName: 'authSession', expiresIn: 60 * 60 * 24, updateAge: 60 * 60, cookieCache: { enabled: false } },
     account: { modelName: 'authAccount', accountLinking: { enabled: true, trustedProviders: ['google'], allowDifferentEmails: false }, encryptOAuthTokens: true },
     verification: { modelName: 'authVerification' },
-    rateLimit: { enabled: true, storage: 'database', modelName: 'authRateLimit', window: 60, max: 60 },
+    rateLimit: { enabled: true, storage: 'database', modelName: 'authRateLimit', window: 60, max: 60, customRules: {'/oauth2/register':{window:3600,max:10},'/oauth2/token':{window:60,max:30}} },
     socialProviders: {
       google: { clientId: process.env.GOOGLE_CLIENT_ID!, clientSecret: process.env.GOOGLE_CLIENT_SECRET!, prompt: 'select_account', accessType: 'online', includeGrantedScopes: true },
     },
@@ -53,7 +58,14 @@ function createAuth() {
         delete: { after: async (session, context) => { if (context?.path === '/sign-out') await recordSessionEvent(session.userId, 'signed_out'); } },
       },
     },
-    plugins: [nextCookies()],
+    plugins: [jwt(), mcp({
+      loginPage: '/mcp/connect', consentPage: '/mcp/consent', resource: mcpResource(),
+      scopes: mcpScopes, grantTypes: ['authorization_code', 'refresh_token'],
+      resources: [{ identifier: mcpResource(), name: 'Sistema AJ', allowedScopes: mcpScopes, accessTokenTtl: 300 }],
+      // Some deployed chat hosts still use RFC 7591; registration alone grants no access.
+      allowDynamicClientRegistration: true, allowUnauthenticatedClientRegistration: true,
+      refreshTokenReuseInterval: 0,
+    }), cimd({fetchClientMetadataResource, metadataProfile:'mcp-2026-07-28'}), nextCookies()],
   });
 }
 let instance: ReturnType<typeof createAuth> | undefined;

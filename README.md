@@ -153,3 +153,10 @@ El correo sale por Resend desde `avisos@segurosaleyjoel.com` (dominio verificado
 ## Agenda y Google Calendar
 
 Cada usuario puede abrir **Mi agenda** y conectar su propia cuenta Google para crear reuniones, recordatorios e invitaciones, con Google Meet cuando la cuenta lo admite. Las actividades pendientes asignadas se pueden agendar sin cambiar su estado. Consulta [configuraci?n y funcionamiento](docs/google-calendar.md). Aplicar la migraci?n `20261013120000_google_calendar` antes de desplegar.
+
+
+## Conexión personal con ChatGPT o Claude
+
+El servidor MCP remoto está en `/mcp`; cada persona autoriza su cuenta Google y elige permisos desde el chat. La pantalla **Conexiones** (`/conexiones`) permite revisar propuestas y revocar accesos. El rol del CRM sigue siendo obligatorio y los cambios requieren confirmación humana. No da acceso al código ni a despliegues.
+
+Consulta [la guía de conexión MCP](docs/conexion-mcp.md) para herramientas, límites de archivos, arquitectura, compatibilidad y pruebas. `npm run mcp:smoke` comprueba OAuth, permisos y operaciones con fixtures que se revierten; `npm run mcp:widget` regenera las tarjetas MCP Apps.

@@ -507,6 +507,11 @@ model AccessGrant {
   updatedAt DateTime @updatedAt
 }
 model AuthUser {
+  OauthClient_userId OauthClient[] @relation("OauthClient_userId")
+  OauthRefreshToken_userId OauthRefreshToken[] @relation("OauthRefreshToken_userId")
+  OauthAccessToken_userId OauthAccessToken[] @relation("OauthAccessToken_userId")
+  OauthConsent_userId OauthConsent[] @relation("OauthConsent_userId")
+
   id String @id
   name String
   email String @unique
@@ -559,6 +564,9 @@ model CalendarMeeting {
   @@index([activityId])
 }
 model AuthSession {
+  OauthRefreshToken_sessionId OauthRefreshToken[] @relation("OauthRefreshToken_sessionId")
+  OauthAccessToken_sessionId OauthAccessToken[] @relation("OauthAccessToken_sessionId")
+
   id String @id
   token String @unique
   expiresAt DateTime
@@ -715,4 +723,200 @@ model EmailTemplate {
   updatedByName  String
   updatedByEmail String?
   updatedAt      DateTime @updatedAt
+}
+
+model Jwks {
+  id String @id
+  publicKey String
+  privateKey String
+  createdAt DateTime
+  expiresAt DateTime?
+  alg String?
+  crv String?
+
+}
+
+model OauthClient {
+  OauthClientResource_clientId OauthClientResource[] @relation("OauthClientResource_clientId")
+  OauthRefreshToken_clientId OauthRefreshToken[] @relation("OauthRefreshToken_clientId")
+  OauthAccessToken_clientId OauthAccessToken[] @relation("OauthAccessToken_clientId")
+  OauthConsent_clientId OauthConsent[] @relation("OauthConsent_clientId")
+
+  id String @id
+  clientId String @unique
+  clientSecret String?
+  clientDiscoveryId String?
+  disabled Boolean? @default(false)
+  skipConsent Boolean?
+  enableEndSession Boolean?
+  subjectType String?
+  scopes String[] @default([])
+  clientCredentialsScopes String[] @default([])
+  userId String?
+  createdAt DateTime?
+  updatedAt DateTime?
+  name String?
+  uri String?
+  icon String?
+  contacts String[] @default([])
+  tos String?
+  policy String?
+  softwareId String?
+  softwareVersion String?
+  softwareStatement String?
+  redirectUris String[] @default([])
+  postLogoutRedirectUris String[] @default([])
+  backchannelLogoutUri String?
+  backchannelLogoutSessionRequired Boolean?
+  tokenEndpointAuthMethod String?
+  applicationType String?
+  jwks String?
+  jwksUri String?
+  grantTypes String[] @default([])
+  responseTypes String[] @default([])
+  requirePKCE Boolean?
+  dpopBoundAccessTokens Boolean? @default(false)
+  referenceId String?
+  metadata Json?
+  userIdRelation AuthUser? @relation("OauthClient_userId", fields: [userId], references: [id], onDelete: Restrict)
+  @@index([userId])
+}
+
+model OauthResource {
+  OauthClientResource_resourceId OauthClientResource[] @relation("OauthClientResource_resourceId")
+
+  id String @id
+  identifier String @unique
+  name String
+  accessTokenTtl Int?
+  refreshTokenTtl Int?
+  signingAlgorithm String?
+  signingKeyId String?
+  allowedScopes String[] @default([])
+  customClaims Json?
+  dpopBoundAccessTokensRequired Boolean? @default(false)
+  disabled Boolean? @default(false)
+  createdAt DateTime?
+  updatedAt DateTime?
+  policyVersion Int? @default(1)
+  metadata Json?
+
+}
+
+model OauthClientResource {
+  id String @id
+  clientId String
+  resourceId String
+  metadata Json?
+  createdAt DateTime?
+  clientIdRelation OauthClient @relation("OauthClientResource_clientId", fields: [clientId], references: [clientId], onDelete: Cascade)
+  @@index([clientId])
+  resourceIdRelation OauthResource @relation("OauthClientResource_resourceId", fields: [resourceId], references: [identifier], onDelete: Cascade)
+  @@index([resourceId])
+  @@unique([clientId, resourceId])
+}
+
+model OauthRefreshToken {
+  OauthAccessToken_refreshId OauthAccessToken[] @relation("OauthAccessToken_refreshId")
+
+  id String @id
+  token String @unique
+  clientId String
+  sessionId String?
+  userId String
+  referenceId String?
+  authorizationCodeId String?
+  resources String[] @default([])
+  requestedUserInfoClaims String[] @default([])
+  expiresAt DateTime
+  createdAt DateTime
+  revoked DateTime?
+  rotatedAt DateTime?
+  rotationReplayResponse String?
+  rotationReplayExpiresAt DateTime?
+  authTime DateTime?
+  confirmation Json?
+  scopes String[] @default([])
+  clientIdRelation OauthClient @relation("OauthRefreshToken_clientId", fields: [clientId], references: [clientId], onDelete: Restrict)
+  @@index([clientId])
+  sessionIdRelation AuthSession? @relation("OauthRefreshToken_sessionId", fields: [sessionId], references: [id], onDelete: SetNull)
+  @@index([sessionId])
+  userIdRelation AuthUser @relation("OauthRefreshToken_userId", fields: [userId], references: [id], onDelete: Restrict)
+  @@index([userId])
+  @@index([authorizationCodeId])
+}
+
+model OauthAccessToken {
+  id String @id
+  token String @unique
+  clientId String
+  sessionId String?
+  userId String?
+  referenceId String?
+  authorizationCodeId String?
+  resources String[] @default([])
+  requestedUserInfoClaims String[] @default([])
+  refreshId String?
+  expiresAt DateTime
+  createdAt DateTime
+  revoked DateTime?
+  confirmation Json?
+  scopes String[] @default([])
+  clientIdRelation OauthClient @relation("OauthAccessToken_clientId", fields: [clientId], references: [clientId], onDelete: Restrict)
+  @@index([clientId])
+  sessionIdRelation AuthSession? @relation("OauthAccessToken_sessionId", fields: [sessionId], references: [id], onDelete: SetNull)
+  @@index([sessionId])
+  userIdRelation AuthUser? @relation("OauthAccessToken_userId", fields: [userId], references: [id], onDelete: Restrict)
+  @@index([userId])
+  @@index([authorizationCodeId])
+  refreshIdRelation OauthRefreshToken? @relation("OauthAccessToken_refreshId", fields: [refreshId], references: [id], onDelete: Restrict)
+  @@index([refreshId])
+}
+
+model OauthConsent {
+  id String @id
+  clientId String
+  userId String?
+  referenceId String?
+  resources String[] @default([])
+  requestedUserInfoClaims String[] @default([])
+  scopes String[] @default([])
+  createdAt DateTime
+  updatedAt DateTime
+  clientIdRelation OauthClient @relation("OauthConsent_clientId", fields: [clientId], references: [clientId], onDelete: Restrict)
+  @@index([clientId])
+  userIdRelation AuthUser? @relation("OauthConsent_userId", fields: [userId], references: [id], onDelete: Restrict)
+  @@index([userId])
+}
+
+model OauthClientAssertion {
+  id String @id
+  expiresAt DateTime
+
+}
+
+// Proposed MCP changes are immutable, short-lived, owned by one person and OAuth client.
+model McpChange {
+  id String @id @default(cuid())
+  userId String
+  clientId String
+  module String
+  operation String
+  recordId String?
+  expectedUpdatedAt DateTime?
+  data Json
+  fileBytes Bytes?
+  status String @default("PENDING")
+  resultId String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([userId, status, expiresAt])
+}
+model McpRevocation {
+  id String @id @default(cuid())
+  userId String
+  clientId String
+  revokedBefore DateTime
+  @@unique([userId, clientId])
 }
