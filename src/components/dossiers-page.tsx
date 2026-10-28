@@ -24,7 +24,7 @@ export async function DossiersPage({ query = '', page = 0 }: { query?: string; p
   ]);
   const newButton = canEdit ? <Link className="button" href="/crm/clientes/nuevo"><Add aria-hidden="true"/>Nuevo expediente</Link> : null;
   return <>
-    <div className="resource-toolbar"><ClientViewSwitch current="dossiers"/><span className="resource-count">{total} expediente{total === 1 ? '' : 's'}</span>{newButton}</div>
+    <div className="resource-toolbar"><ClientViewSwitch current="dossiers"/><span className="resource-count">{total} expediente{total === 1 ? '' : 's'}</span>{canEdit?<Link className="button button-soft" href="/importaciones?destino=clientes">Importar</Link>:null}{newButton}</div>
     {pendingForms.length?<section className="document-panel"><h2>Fichas recibidas por revisar</h2><p className="lead-small">Respuestas manuales o externas guardadas en el CRM. Revisa la ficha antes de incorporar cambios.</p><div className="wizard-actions">{pendingForms.map(form=><Link className="button button-soft" key={form.client.id} href={`/crm/clientes/${form.client.id}#ficha-cliente`}>{form.client.name} · versión {form.revision}</Link>)}</div></section>:null}
     <form className="resource-filters"><label className="search-field"><SearchNormal1 aria-hidden="true"/><span className="sr-only">Buscar expediente</span><input name="q" type="search" defaultValue={q} placeholder="Nombre, correo o teléfono" maxLength={100}/></label><button className="button button-soft">Buscar</button></form>
     {clients.length ? <div className="dossier-grid">{clients.map((client, index) => {

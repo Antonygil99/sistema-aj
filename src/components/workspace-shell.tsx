@@ -43,7 +43,7 @@ function WorkspaceFrame({ children, user }: { children: ReactNode; user: Account
     document.getElementById('workspace-content')?.focus({ preventScroll: true });
   }, [pathname]);
   const current = modules.find(item => pathname === `/crm/${item.slug}` || pathname.startsWith(`/crm/${item.slug}/`));
-  const title = current?.label ?? (pathname === '/usuarios' ? 'Usuarios y accesos' : pathname === '/logs' ? 'Registro de actividad' : pathname === '/agenda' ? 'Mi agenda' : pathname === '/avisos' ? 'Avisos a clientes' : pathname === '/asistentes' ? 'Asistentes' : pathname === '/whatsapp' ? 'WhatsApp' : pathname.startsWith('/conexiones') ? 'Conexiones' : pathname === '/novedades' ? 'Novedades' : pathname.startsWith('/tramites') ? 'Trámites' : 'Resumen');
+  const title = current?.label ?? (pathname === '/usuarios' ? 'Usuarios y accesos' : pathname === '/logs' ? 'Registro de actividad' : pathname === '/agenda' ? 'Mi agenda' : pathname === '/avisos' ? 'Avisos a clientes' : pathname === '/asistentes' ? 'Asistentes' : pathname === '/whatsapp' ? 'WhatsApp' : pathname.startsWith('/importaciones') ? 'Importar contactos' : pathname.startsWith('/conexiones') ? 'Conexiones' : pathname === '/novedades' ? 'Novedades' : pathname.startsWith('/tramites') ? 'Trámites' : 'Resumen');
   // The gradient theme is the minimal one: icon-only sidebar with tooltips, so it is always compact.
   const iconsOnly = compact || preferences.theme === 'gradient';
   return <div className={`shell workspace${iconsOnly ? ' is-compact' : ''}`} data-theme={preferences.theme}><ToastProvider><ConfirmProvider><UploadProvider><TourProvider role={user.role}><AccountPanelsProvider role={user.role}>

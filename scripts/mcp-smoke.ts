@@ -13,6 +13,9 @@ import { POST as consentPost } from '../src/app/api/mcp/consent/route';
 import { POST as mcpPost } from '../src/app/mcp/route';
 import { oauthRedirect } from '../src/modules/mcp/consent';
 import { migrationUrl } from './migration-url.mjs';
+import { prepareIntakeProposal, intakeSummary } from '../src/modules/mcp/forms';
+import { prepareBatch, getBatch, applyBatch, editBatchRow, importReport } from '../src/modules/imports/server';
+import { POST as reviewPost } from '../src/app/api/mcp/review/[id]/route';
 
 // Explicit, rollback-only integration test. No actual clients, sessions, buckets or external messages are used.
 const globalDb=globalThis as unknown as {ajDb:PrismaClient};
@@ -31,7 +34,16 @@ let passed=false;const originalFetch=globalThis.fetch;
 await db.$queryRaw`SELECT 1`;
 try {
   await db.$transaction(async tx=>{
-    globalDb.ajDb=new Proxy(tx,{get(target,key){if(key==='$transaction')return async (fn:((value:typeof tx)=>unknown)|Promise<unknown>[])=>{if(Array.isArray(fn)){const results=[];for(const item of fn)results.push(await item);return results;}return fn(tx);};const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;}}) as PrismaClient;
+    // The fixture secret must never read/decrypt the production signing keyring.
+    // All generated keys are transaction fixtures and roll back with the test.
+    const fixtureKeys=new Set<string>();
+    const jwks={
+      async findMany(args:Parameters<typeof tx.jwks.findMany>[0]={}){return tx.jwks.findMany({...args,where:{AND:[args?.where??{},{id:{in:[...fixtureKeys]}}]}});},
+      async findFirst(args:Parameters<typeof tx.jwks.findFirst>[0]={}){return tx.jwks.findFirst({...args,where:{AND:[args?.where??{},{id:{in:[...fixtureKeys]}}]}});},
+      async findUnique(args:Parameters<typeof tx.jwks.findUnique>[0]){return fixtureKeys.has(String(args.where.id))?tx.jwks.findUnique(args):null;},
+      async create(args:Parameters<typeof tx.jwks.create>[0]){const key=await tx.jwks.create(args);fixtureKeys.add(key.id);return key;},
+    };
+    globalDb.ajDb=new Proxy(tx,{get(target,key){if(key==='jwks')return jwks;if(key==='$transaction')return async (fn:((value:typeof tx)=>unknown)|Promise<unknown>[])=>{if(Array.isArray(fn)){const results=[];for(const item of fn)results.push(await item);return results;}return fn(tx);};const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;}}) as PrismaClient;
     const email=`mcp-${marker}@example.invalid`,userId='mcp-'+marker,sessionId='mcp-session-'+marker,token=randomUUID();
     await tx.accessGrant.create({data:{email,role:'ADMIN',enabled:true}});
     await tx.authUser.create({data:{id:userId,name:'MCP verification',email,emailVerified:true}});
@@ -66,6 +78,7 @@ try {
     const rpc=(method:string,params?:unknown)=>mcpPost(request('/mcp',{method:'POST',headers:{Authorization:'Bearer '+tokens.access_token,'Content-Type':'application/json',Accept:'application/json, text/event-stream','MCP-Protocol-Version':'2025-11-25'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params})}));
     assert.equal((await mcpPost(new Request(base+'/mcp',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}))).status,401,'no anonymous MCP');
     const toolResponse=await rpc('tools/list');assert.equal(toolResponse.status,200);const rpcText=await toolResponse.text();const dataLine=rpcText.split('\n').find(line=>line.startsWith('data:'));const tools=JSON.parse(dataLine?dataLine.slice(5):rpcText);assert.ok(tools.result.tools.some((tool:{name:string})=>tool.name==='aj_list'));
+    assert.ok(['aj_prepare_intake','aj_intake_status','aj_prepare_import','aj_import_status'].every(name=>tools.result.tools.some((tool:{name:string})=>tool.name===name)),'new intake/import tools exposed');
     assert.ok(!tools.result.tools.some((tool:{name:string})=>/apply|commit|confirm/.test(tool.name)),'no model-callable approval');
     const capabilitiesResponse=await rpc('tools/call',{name:'aj_capabilities',arguments:{}});
     const capabilitiesText=await capabilitiesResponse.text(),capabilitiesLine=capabilitiesText.split('\n').find(line=>line.startsWith('data:'));
@@ -80,6 +93,18 @@ try {
     await applyProposal(actor,proposed.id);await applyProposal(actor,proposed.id);
     const edited=await tx.client.findUniqueOrThrow({where:{id:client.id}});assert.equal(edited.phone,'+525555555556');assert.equal(edited.email,client.email);assert.equal(edited.taxId,'KEEP');
     assert.equal(await tx.crmEvent.count({where:{recordId:client.id,module:'clientes'}}),1,'one audit and one commit');
+    const intakeDraft=await prepareIntakeProposal(actor,{clientId:client.id,mode:'draft',draft:{nombre:'Nombre por confirmar',correo:'draft@example.invalid'}});
+    assert.equal(await tx.clientIntake.count({where:{clientId:client.id}}),0,'intake proposal has no effects');
+    await applyProposal(actor,intakeDraft.id);
+    const intake=await tx.clientIntake.findUniqueOrThrow({where:{clientId:client.id}});assert.equal(intake.status,'DRAFT');assert.equal((intake.answers as Record<string,unknown>).privacyAccepted,false);assert.equal((await tx.client.findUniqueOrThrow({where:{id:client.id}})).name,client.name);
+    const intakeLink=await prepareIntakeProposal(actor,{clientId:client.id,mode:'share'});
+    const sharedResponse=await reviewPost(request('/api/mcp/review/'+intakeLink.id,{method:'POST',headers:{'Content-Type':'application/json'},body:'{"confirm":true}'}),{params:Promise.resolve({id:intakeLink.id})});
+    const deniedReview=await reviewPost(request('/api/mcp/review/'+intakeLink.id,{method:'POST',headers:{Authorization:'Bearer '+tokens.access_token,'Content-Type':'application/json'},body:'{"confirm":true}'}),{params:Promise.resolve({id:intakeLink.id})});assert.equal(deniedReview.status,403,'model token cannot confirm a form');
+    assert.equal(sharedResponse.status,200);const shared=await sharedResponse.json();assert.ok(shared.share?.url.includes('#'));assert.match(shared.share.pin,/^\d{8}$/);
+    assert.ok(!JSON.stringify(await intakeSummary(actor,client.id)).includes(shared.share.pin),'MCP status never exposes PIN');
+    assert.ok(!JSON.stringify(await tx.mcpChange.findUniqueOrThrow({where:{id:intakeLink.id}})).includes(shared.share.pin),'credentials not persisted in proposal');
+    assert.equal('share' in await applyProposal(actor,intakeLink.id),false,'retries never regenerate a link');
+    await assert.rejects(intakeSummary({...actor,id:'someone-else'},client.id),{code:'FORBIDDEN'});
     await assert.rejects(proposeChange(actor,{module:'clientes',operation:'update',recordId:client.id,expectedUpdatedAt:client.updatedAt.toISOString(),data:{name:'stale'}}),{code:'RECORD_CHANGED'});
     await assert.rejects(proposeChange({...actor,role:'USER'},{module:'clientes',operation:'create',data:{name:'denied'}}),{code:'PERMISSION_DENIED'});
     await tx.accessGrant.update({where:{email},data:{enabled:false}});await assert.rejects(actorFromClaims(claims),{code:'ACCESS_DISABLED'});await tx.accessGrant.update({where:{email},data:{enabled:true}});
@@ -93,10 +118,26 @@ try {
     await applyProposal(actor,upload.id,{storage:{async put(){puts++;},async remove(){removes++;},async exists(){return true;},async downloadUrl(){return 'https://example.invalid';}}});
     assert.equal(puts,1);assert.equal(removes,0);assert.equal(await tx.document.count({where:{clientId:client.id}}),1);
     const pending=await proposeChange(actor,{module:'clientes',operation:'create',data:{name:'pending'}});
+    const batch=await prepareBatch(actor,{target:'clientes',sourceName:'fixture.pdf',sourceKind:'PDF',rows:[{name:'Batch fixture '+marker,email:`batch-${marker}@example.invalid`,phone:'+525555555557',sourceRef:'página 1 fila 1',uncertainFields:['name']},{name:'Duplicate fixture',email:client.email},{name:'Bad fixture',email:'wrong'}]},{oauthClientId:actor.clientId});
+    assert.deepEqual(batch.counts,{total:3,new:1,matches:1,errors:1,imported:0,skipped:0});
+    assert.equal(await tx.client.count({where:{email:`batch-${marker}@example.invalid`}}),0,'batch preview never creates contacts');
+    await assert.rejects(getBatch({...actor,id:'someone-else'},batch.batch.id),{code:'IMPORT_NOT_FOUND'});
+    await assert.rejects(applyBatch(actor,batch.batch.id,{expectedUpdatedAt:batch.batch.updatedAt,selectedIds:[batch.rows[1].id],reviewed:true}),{code:'IMPORT_MATCHES_CHANGED'});
+    const raced=await tx.client.create({data:{name:'Race fixture '+marker,email:`batch-${marker}@example.invalid`}});
+    await assert.rejects(applyBatch(actor,batch.batch.id,{expectedUpdatedAt:batch.batch.updatedAt,selectedIds:[batch.rows[0].id],reviewed:true}),{code:'IMPORT_MATCHES_CHANGED'});
+    const correction=await editBatchRow(actor,batch.batch.id,{rowId:batch.rows[0].id,expectedUpdatedAt:batch.batch.updatedAt,data:{name:'Batch corrected '+marker,email:`corrected-${marker}@example.invalid`,phone:'+525555555558'},allowNameMatch:false});
+    const applied=await applyBatch(actor,batch.batch.id,{expectedUpdatedAt:correction.batch.updatedAt,selectedIds:[batch.rows[0].id],reviewed:true});assert.equal(applied.counts.imported,1);assert.equal(applied.counts.skipped,2);
+    await applyBatch(actor,batch.batch.id,{expectedUpdatedAt:correction.batch.updatedAt,selectedIds:[batch.rows[0].id],reviewed:true});
+    assert.equal(await tx.client.count({where:{email:`corrected-${marker}@example.invalid`}}),1,'batch applies once');
+    const imported=applied.rows.find(r=>r.state==='IMPORTED')!;assert.equal(await tx.documentFolder.count({where:{clientId:imported.resultId!}}),4);assert.equal(await tx.policy.count({where:{clientId:imported.resultId!}}),0);
+    const report=await importReport(actor,batch.batch.id);assert.ok(report.includes('IMPORT')&&report.includes('Omitida por coincidencia detectada.'));
+    const revokeBatch=await prepareBatch(actor,{target:'prospectos',sourceName:'revoke',rows:[{name:'pending import '+marker}]},{oauthClientId:actor.clientId});
+    assert.ok(raced.id);
     await revokeConnection(actor.id,actor.clientId);
+    assert.equal((await tx.crmImport.findUniqueOrThrow({where:{id:revokeBatch.batch.id}})).status,'CANCELLED');
     assert.equal((await tx.mcpChange.findUniqueOrThrow({where:{id:pending.id}})).status,'CANCELLED');
     await assert.rejects(actorFromClaims(claims),{code:'CONNECTION_REVOKED'});
     passed=true;throw Error(rollback);
   },{maxWait:30000,timeout:180000});
 }catch(error){if(!(error instanceof Error&&error.message===rollback))throw error;}finally{globalDb.ajDb=db;globalThis.fetch=originalFetch;await db.$disconnect();}
-assert.ok(passed);console.log('MCP_SMOKE_VERIFIED: OAuth PKCE, human consent, scoped MCP, private projections, reviewed partial edits, idempotency, stale versions, roles, uploads and revocation. All fixtures rolled back.');
+assert.ok(passed);console.log('MCP_SMOKE_VERIFIED: OAuth PKCE, human consent, scoped MCP, private projections, reviewed partial edits, idempotency, stale versions, roles, uploads, intake drafts/private sharing, reviewed imports, duplicate races, folders, reports and revocation. All fixtures rolled back.');

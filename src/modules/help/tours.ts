@@ -2,7 +2,7 @@ import { modules, type ModuleSlug } from '../catalog';
 import { resources, isResourceSlug } from '../resources/config';
 // Guided tours for the Help Center. Pure (unit tested in tests/tours.test.ts): the browser resolves each
 // step's first visible target and skips steps whose element is not on screen (role, view or empty list).
-export type TourStep = { targets?: string[]; title: string; body: string; illustration?: 'intake' | 'procedures' | 'mcp' };
+export type TourStep = { targets?: string[]; title: string; body: string; illustration?: 'intake' | 'procedures' | 'mcp' | 'imports' | 'mcpForms' };
 export type Tour = { id: string; kind: 'component' | 'module' | 'feature'; title: string; summary: string; route?: string; context?: 'client' | 'procedure'; prepare?: 'intake' | 'procedures'; minRole?: 'ADMIN' | 'SUPERADMIN'; listed?: boolean; steps: TourStep[] };
 type Role = 'USER' | 'ADMIN' | 'SUPERADMIN';
 const rank: Record<Role, number> = { USER: 0, ADMIN: 1, SUPERADMIN: 2 };
@@ -68,6 +68,19 @@ function moduleTour(slug: ModuleSlug): Tour {
   return { ...base, steps: [intro(tips[slug] ?? entry.description), ...tableSteps(slug)] };
 }
 export const tours: Tour[] = [
+  {id:'funcion:importaciones',kind:'feature',title:'Importar contactos con revisión',summary:'Relacionar columnas, detectar coincidencias y guardar las filas elegidas.',route:'/importaciones',minRole:'ADMIN',steps:[
+    {title:'Tu cartera entra con orden',body:'Importa hasta 500 prospectos o clientes desde Excel o CSV. También puedes revisar tablas preparadas por el chat a partir de imágenes o PDF. Este recorrido explica los pasos; no guarda registros.',illustration:'imports'},
+    {targets:['[data-tour="import-source"]'],title:'Elige el archivo',body:'Arrastra un archivo .xlsx, CSV o TSV de hasta 4 MB. Debe incluir encabezados. El archivo se procesa para preparar la tabla; no se publica ni se guarda en la biblioteca.'},
+    {targets:['[data-tour="import-mapping"]'],title:'Relaciona las columnas',body:'Elige la hoja y qué columna contiene nombre, correo, teléfono y RFC u origen. Las demás se descartan. Si los teléfonos son mexicanos de diez dígitos, elige explícitamente México (+52).'},
+    {targets:['[data-tour="import-counts"]','[data-tour="import-rows"]'],title:'Revisa coincidencias y faltantes',body:'Comparamos con clientes, prospectos y el mismo lote. Las coincidencias no se fusionan. Puedes corregir una fila y confirmar un homónimo; correo, teléfono y RFC coincidentes siguen bloqueados.'},
+    {targets:['[data-tour="import-confirm"]'],title:'Guarda solo lo revisado',body:'Selecciona las filas nuevas, compara con la fuente y confirma. Si cambió una coincidencia, el lote se detiene completo. Repetir la confirmación no duplica registros. Descarga el reporte para continuar con los omitidos.'},
+  ]},
+  {id:'funcion:ficha-mcp',kind:'feature',title:'Formularios del cliente desde el chat',summary:'Preparar una ficha o enlace externo y confirmar antes de compartir.',route:'/conexiones',minRole:'ADMIN',steps:[
+    {title:'Tu asistente prepara la ficha',body:'Pide al chat un formulario para un cliente existente o un borrador con nombre y contacto. La propuesta llega aquí y respeta al asesor responsable. El recorrido no crea enlaces ni cambia datos.',illustration:'mcpForms'},
+    {targets:['[data-tour="mcp-pending"]'],title:'Confirma el cliente correcto',body:'Abre la propuesta y comprueba el expediente. Un nuevo enlace dura siete días y revoca el anterior. Un borrador no confirma la información ni la autorización del cliente.'},
+    {targets:['[data-tour="mcp-pending"]'],title:'Comparte de forma privada',body:'Al confirmar, el CRM muestra una sola vez el enlace y código. Copia el mensaje para compartirlo con el cliente. El MCP solo consulta el estado; no recibe el código ni manda el WhatsApp.'},
+    {targets:['[data-tour="mcp-imports"]'],title:'También puedes preparar una lista',body:'El chat puede entregar un lote de prospectos o clientes para revisar aquí. Primero importa los clientes elegidos; después prepara sus formularios por expediente.'},
+  ]},
   {id:'funcion:conexiones',kind:'feature',title:'Conectar tu asistente al CRM',summary:'Autorizar tu chat, revisar sus propuestas y retirar el acceso.',route:'/conexiones',steps:[
     {title:'Un chat con acceso a tu espacio AJ',body:'Tu asistente consulta datos administrativos y prepara cambios. Tú eliges los permisos y revisas cada propuesta antes de aplicarla. Este recorrido no autoriza conexiones ni modifica registros.',illustration:'mcp'},
     {targets:['[data-tour="mcp-connect"]'],title:'Copia la dirección y conecta',body:'Añade esta dirección como servidor MCP remoto en tu aplicación. Inicia sesión con la cuenta Google que usas en AJ y empieza con permiso de consulta. La disponibilidad depende de tu aplicación y plan.'},
@@ -175,6 +188,7 @@ export function tourForPath(pathname: string): Tour | null {
   if (pathname === '/asistentes') return tourById('modulo:asistentes');
   if (pathname === '/novedades') return tourById('modulo:novedades');
   if (pathname === '/conexiones') return tourById('funcion:conexiones');
+  if (pathname === '/importaciones'||/^\/importaciones\/[^/]+$/.test(pathname)) return tourById('funcion:importaciones');
   if (pathname === '/whatsapp') return tourById('modulo:whatsapp');
   if (pathname === '/tramites'||/^\/tramites\/[^/]+$/.test(pathname)) return tourById('funcion:tramites');
   if (pathname === '/crm/clientes/nuevo') return tourById('modulo:nuevo-expediente');

@@ -7,20 +7,20 @@ import { agentProfileSchema, approvalSchema, privacyVersion, submissionSchema } 
 import { checkPin, hashPin, hashSecret, makePin, randomSecret } from './tokens';
 import type { Prisma } from '@/generated/prisma/client';
 
-export async function assertIntakeAccess(clientId:string,actor:Actor){
+export async function assertIntakeAccess(clientId:string,actor:Actor,db=getDb()){
   if(!actor.id || !['ADMIN','SUPERADMIN'].includes(actor.role))throw new ResourceError('FORBIDDEN',403);
-  const client=await getDb().client.findUnique({where:{id:clientId},include:{intake:{select:{createdById:true}},policies:{where:{archivedAt:null},select:{ownerEmail:true}}}});
+  const client=await db.client.findUnique({where:{id:clientId},include:{intake:{select:{createdById:true}},policies:{where:{archivedAt:null},select:{ownerEmail:true}}}});
   if(!client||client.archivedAt)throw new ResourceError('RECORD_NOT_FOUND',404);
   const owns=client.policies.some(p=>p.ownerEmail?.toLowerCase()===actor.email?.toLowerCase());
   const permitted=client.intake?(client.intake.createdById===actor.id||owns):(owns||!client.policies.some(p=>p.ownerEmail));
   if(actor.role!=='SUPERADMIN'&&!permitted)throw new ResourceError('FORBIDDEN',403);
   return client;
 }
-async function ensure(clientId:string,actor:Actor){
-  await assertIntakeAccess(clientId,actor);
-  const row=await getDb().clientIntake.upsert({where:{clientId},create:{clientId,createdById:actor.id!},update:{}});
+async function ensure(clientId:string,actor:Actor,db=getDb()){
+  await assertIntakeAccess(clientId,actor,db);
+  const row=await db.clientIntake.upsert({where:{clientId},create:{clientId,createdById:actor.id!},update:{}});
   // A concurrent administrator may have become the creator while the upsert waited.
-  await assertIntakeAccess(clientId,actor);
+  await assertIntakeAccess(clientId,actor,db);
   return row;
 }
 export async function staffIntake(clientId:string,actor:Actor){
@@ -32,9 +32,9 @@ export async function pendingIntakes(actor:Actor){
   if(!actor.id||!['ADMIN','SUPERADMIN'].includes(actor.role))return [];
   return getDb().clientIntake.findMany({where:{status:'SUBMITTED',client:{archivedAt:null},...(actor.role==='SUPERADMIN'?{}:{OR:[{createdById:actor.id},{client:{policies:{some:{archivedAt:null,ownerEmail:actor.email}}}}]})},select:{revision:true,client:{select:{id:true,name:true}}},orderBy:{updatedAt:'asc'},take:10});
 }
-export async function rotateIntakeLink(clientId:string,actor:Actor){
-  const row=await ensure(clientId,actor), token=randomSecret(), pin=makePin(), tokenHash=hashSecret(token),expiresAt=new Date(Date.now()+7*86400000);
-  await getDb().$transaction(async tx=>{
+export async function rotateIntakeLink(clientId:string,actor:Actor,db=getDb()){
+  const row=await ensure(clientId,actor,db), token=randomSecret(), pin=makePin(), tokenHash=hashSecret(token),expiresAt=new Date(Date.now()+7*86400000);
+  await db.$transaction(async tx=>{
     await tx.clientIntake.update({where:{id:row.id},data:{tokenHash,pinHash:hashPin(pin,tokenHash),expiresAt,accessHash:null,accessExpiresAt:null,failedAttempts:0,lockedUntil:null}});
     await tx.crmEvent.create({data:eventData(actor,'updated','fichas',row.id,'Enlace de ficha renovado')});
   });
@@ -117,8 +117,8 @@ export async function intakeState(clientId:string,actor:Actor){
   const row=await getDb().clientIntake.findUnique({where:{clientId},select:{status:true,revision:true,approvedAt:true}});
   return {status:row?.status??'NOT_STARTED',revision:row?.revision??0,approved:!!row?.approvedAt,url:`/crm/clientes/${clientId}#ficha-cliente`};
 }
-export async function prepareIntakeDraft(input:unknown,actor:Actor){
-  const data=agentProfileSchema.parse(input),row=await ensure(data.cliente_id,actor),db=getDb();
+export async function prepareIntakeDraft(input:unknown,actor:Actor,db=getDb()){
+  const data=agentProfileSchema.parse(input),row=await ensure(data.cliente_id,actor,db);
   await db.$transaction(async tx=>{
     await tx.$queryRaw`SELECT id FROM "ClientIntake" WHERE id = ${row.id} FOR UPDATE`;
     const current=await tx.clientIntake.findUniqueOrThrow({where:{id:row.id}});

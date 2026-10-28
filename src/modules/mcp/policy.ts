@@ -6,10 +6,11 @@ export const mcpResource = () => new URL('/mcp', process.env.BETTER_AUTH_URL || 
 export class McpError extends Error { constructor(public code: string, public status = 400) { super(code); } }
 export const moduleSchema = z.enum(['prospectos','clientes','polizas','cotizaciones','pagos','renovaciones','siniestros','actividades','productos','documentos','carpetas']);
 export type McpModule = z.infer<typeof moduleSchema>;
-export const operationSchema = z.enum(['create','update','archive','restore','delete','upload']);
+export const operationSchema = z.enum(['create','update','archive','restore','delete','upload','intake_link','intake_draft']);
 export type McpOperation = z.infer<typeof operationSchema>;
 export const moduleLabels:Record<McpModule,string>={prospectos:'Prospectos',clientes:'Clientes',polizas:'Pólizas',cotizaciones:'Cotizaciones',pagos:'Pagos',renovaciones:'Renovaciones',siniestros:'Siniestros',actividades:'Actividades',productos:'Productos',documentos:'Documentos',carpetas:'Carpetas'};
 export const fieldLabels:Record<string,string>={name:'Nombre',email:'Correo',phone:'Teléfono',taxId:'RFC',number:'Número de póliza',clientId:'Cliente',policyId:'Póliza',claimId:'Siniestro',prospectId:'Prospecto',productId:'Producto del catálogo',folderId:'Carpeta de destino',parentId:'Carpeta superior',insurer:'Aseguradora',product:'Producto',status:'Estado',startDate:'Inicio de vigencia',endDate:'Fin de vigencia',premium:'Prima',currency:'Moneda',paymentFrequency:'Periodicidad de pago',ownerEmail:'Responsable',reference:'Referencia',amount:'Importe',validUntil:'Válida hasta',dueDate:'Vencimiento',occurredAt:'Fecha del suceso',title:'Actividad',line:'Ramo',mimeType:'Tipo de archivo',color:'Color de carpeta',source:'Origen'};
+Object.assign(fieldLabels,{nombre:'Nombre',correo:'Correo',telefono:'Teléfono'});
 // Explicit administrative projections; no free-text diagnoses, claim narratives, bank details, tokens or file contents.
 export const fields: Record<McpModule, readonly string[]> = {
   prospectos:['name','email','phone','source','status','ownerEmail'],

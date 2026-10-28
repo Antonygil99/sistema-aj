@@ -32,7 +32,7 @@ La cuenta debe seguir habilitada en AJ. El servidor comprueba su rol y consentim
 
 Se consultan prospectos, clientes, pólizas, cotizaciones, pagos, renovaciones, estado administrativo de siniestros, actividades, productos, documentos y carpetas. Una ficha de cliente incluye un resumen limitado de sus pólizas. Se devuelven campos explícitamente permitidos; no diagnósticos, narrativas clínicas, notas libres, datos bancarios, firmas, credenciales ni contenido de documentos. Los datos administrativos que sí consultes se compartirán con el chat y su proveedor: autoriza solo aplicaciones que el equipo haya decidido usar.
 
-No se envían WhatsApp, correos o invitaciones. No se confirma un cobro sin el flujo de evidencia del CRM. Un siniestro que necesita descripción clínica debe darse de alta en su pantalla privada. Para borrar un producto con imagen utiliza su pantalla del catálogo. Los formularios, trámites, plantillas, agenda, proveedores de IA y gestión de usuarios conservan sus accesos propios.
+No se envían WhatsApp, correos o invitaciones. No se confirma un cobro sin el flujo de evidencia del CRM. Un siniestro que necesita descripción clínica debe darse de alta en su pantalla privada. Para borrar un producto con imagen utiliza su pantalla del catálogo. Los trámites de aseguradoras, plantillas, agenda, proveedores de IA y gestión de usuarios conservan sus accesos propios. La ficha general del cliente y la importación de contactos tienen herramientas específicas con revisión humana: [guía de importación y formularios](importacion-contactos.md).
 
 ## Cambios y archivos
 
@@ -56,6 +56,10 @@ No se envían WhatsApp, correos o invitaciones. No se confirma un cobro sin el f
 | `aj_prepare_upload` | Preparar una carga privada y su destino |
 | `aj_proposal_status` | Comprobar pendiente, aplicada, cancelada o vencida |
 | `aj_file_access` | Abrir una descarga privada con sesión del CRM |
+| `aj_prepare_intake` | Preparar enlace externo o borrador básico de ficha; confirmación en CRM |
+| `aj_intake_status` | Estado y campos básicos faltantes; sin respuestas ni PIN |
+| `aj_prepare_import` | Hasta 500 contactos desde filas o Excel/CSV; revisión por lotes |
+| `aj_import_status` | Resumen paginado del lote e identificadores de altas aplicadas |
 
 Los resultados incluyen `structuredContent` y una explicación breve. Las aplicaciones compatibles con MCP Apps muestran `ui://sistema-aj/crm.html`: tarjetas, datos del expediente, navegación y botón de revisión. La vista usa el puente oficial MCP Apps; no recibe cookies ni tokens ni hace peticiones de red directas. Los textos de registros se insertan como texto, nunca como HTML. Abrir un enlace y confirmar el cambio ocurre en el CRM.
 
@@ -89,4 +93,4 @@ Referencias: [autenticación de aplicaciones de ChatGPT](https://developers.open
 
 ## Siguiente prueba en el equipo
 
-Conectar una cuenta real desde ChatGPT y otra desde Claude; comprobar consulta, tarjeta, propuesta, revisión humana, carga y revocación. Después pueden ampliarse acciones de trámites, formularios o agenda mediante herramientas específicas y las mismas restricciones. No se debe añadir una herramienta genérica de SQL, HTTP arbitrario o ejecución de código.
+Conectar una cuenta real desde ChatGPT y otra desde Claude; comprobar consulta, tarjeta, propuesta, revisión humana, carga y revocación. Probar también una importación y una ficha con datos de prueba. Si el chat conserva el catálogo anterior, actualizar o volver a conectar para descubrir las herramientas nuevas. Después pueden ampliarse acciones de trámites o agenda mediante herramientas específicas y las mismas restricciones. No se debe añadir una herramienta genérica de SQL, HTTP arbitrario o ejecución de código.

@@ -23,7 +23,11 @@ export async function actorFromClaims(claims:JWTPayload):Promise<McpActor> {
 export async function revalidateActor(actor:McpActor) {
   return actorFromClaims({sub:actor.id,client_id:actor.clientId,iat:actor.issuedAt,scope:actor.scopes.join(' ')});
 }
-export async function purgeExpiredUploads() { await getDb().mcpChange.updateMany({where:{expiresAt:{lt:new Date()},fileBytes:{not:null}},data:{fileBytes:null}}); }
+export async function purgeExpiredUploads() {
+  const db=getDb();
+  await db.mcpChange.updateMany({where:{expiresAt:{lt:new Date()},fileBytes:{not:null}},data:{fileBytes:null}});
+  await db.crmImport.deleteMany({where:{OR:[{status:{not:'APPLIED'},expiresAt:{lt:new Date(Date.now()-7*86400000)}},{status:'APPLIED',appliedAt:{lt:new Date(Date.now()-30*86400000)}}]}});
+}
 export async function rateLimitMcp(userId:string) {
   const now=BigInt(Date.now()),cutoff=now-60000n,key='mcp:'+userId;
   const rows=await getDb().$queryRaw<{count:number}[]>`INSERT INTO "AuthRateLimit" (id,key,count,"lastRequest") VALUES (${key},${key},1,${now}) ON CONFLICT (key) DO UPDATE SET count=CASE WHEN "AuthRateLimit"."lastRequest"<${cutoff} THEN 1 ELSE "AuthRateLimit".count+1 END,"lastRequest"=CASE WHEN "AuthRateLimit"."lastRequest"<${cutoff} THEN ${now} ELSE "AuthRateLimit"."lastRequest" END RETURNING count`;
@@ -37,5 +41,6 @@ export async function revokeConnection(userId:string,clientId:string) {
     db.oauthRefreshToken.updateMany({where:{userId,clientId},data:{revoked:now,rotationReplayResponse:null}}),
     db.oauthAccessToken.updateMany({where:{userId,clientId},data:{revoked:now}}),
     db.mcpChange.updateMany({where:{userId,clientId,status:'PENDING'},data:{status:'CANCELLED',fileBytes:null}}),
+    db.crmImport.updateMany({where:{userId,oauthClientId:clientId,status:'READY'},data:{status:'CANCELLED'}}),
   ]);
 }

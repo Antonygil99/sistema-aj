@@ -4,6 +4,8 @@ Base full-stack de CRM de seguros con Next.js App Router, TypeScript, Prisma 7 y
 
 Para continuar el proyecto, consultar [CONTINUIDAD-SISTEMA-AJ.md](docs/CONTINUIDAD-SISTEMA-AJ.md).
 
+La importación de prospectos/clientes desde Excel o CSV y la preparación de fichas desde MCP están descritas en [Importación revisada y formularios](docs/importacion-contactos.md). Hasta 500 contactos por lote, con detección de coincidencias y confirmación humana. Las imágenes y PDF requieren extracción de filas en el chat; no hay OCR propio.
+
 ## Inicio en Windows (PowerShell)
 
 Requisitos: Node.js >=22.12 (se recomienda Node 24 LTS), npm y PostgreSQL; Docker Desktop es opcional para la base local.

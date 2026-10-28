@@ -1,6 +1,12 @@
 # Sistema AJ — continuidad del proyecto
 
-Actualizado: 13 de octubre de 2026. Documento para continuar el trabajo con Claude o cualquier desarrollador. No contiene credenciales ni correos privados de las cuentas autorizadas.
+Actualizado: 28 de octubre de 2026. Documento para continuar el trabajo con Claude o cualquier desarrollador. No contiene credenciales ni correos privados de las cuentas autorizadas.
+
+## Última ampliación: importaciones y fichas por MCP
+
+La guía vigente de esta ampliación es [importacion-contactos.md](importacion-contactos.md), junto con [conexion-mcp.md](conexion-mcp.md). Se añade `/importaciones` para ADMIN/SUPERADMIN: XLSX/CSV/TSV de hasta 4 MiB y 500 contactos, mapeo de columnas, corrección por fila, coincidencias contra prospectos/clientes/archivados/lote, confirmación humana y reporte CSV. No fusiona ni importa pólizas/cobros. La migración aditiva `20261028173000_reviewed_contact_imports` añade `CrmImport`/`CrmImportRow`; el despliegue usa `db:deploy`.
+
+MCP añade `aj_prepare_import`, `aj_import_status`, `aj_prepare_intake` y `aj_intake_status`. Los chats pueden aportar filas extraídas de PDF/imagen o un adjunto tabular disponible de hasta 1 MiB. No hay OCR propio. Los lotes se confirman únicamente en el CRM y la revocación cancela pendientes. La ficha individual reutiliza la captura existente, permisos del asesor y aprobación posterior: enlace de siete días y PIN de ocho dígitos visibles solo al humano en el CRM, o borrador que nunca confirma consentimiento. No envía mensajes. Ambas funciones incluyen tarjetas ilustradas, tutorial y Novedades; la navegación esencial sigue sin nuevas opciones laterales.
 
 ## 1. Objetivo y alcance acordado
 

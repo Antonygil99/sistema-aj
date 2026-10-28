@@ -920,3 +920,37 @@ model McpRevocation {
   revokedBefore DateTime
   @@unique([userId, clientId])
 }
+
+// Reviewed contact imports. Raw spreadsheets/PDFs are not stored in the database.
+model CrmImport {
+  id String @id @default(cuid())
+  userId String
+  oauthClientId String?
+  target String
+  sourceName String
+  sourceKind String
+  sourceSha256 String?
+  countryCode String?
+  status String @default("READY")
+  expiresAt DateTime
+  appliedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  rows CrmImportRow[]
+  @@index([userId, status, createdAt])
+}
+model CrmImportRow {
+  id String @id @default(cuid())
+  batchId String
+  batch CrmImport @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  rowNumber Int
+  sourceRef String?
+  data Json
+  issues String[] @default([])
+  warnings String[] @default([])
+  allowNameMatch Boolean @default(false)
+  reviewSnapshot Json?
+  status String @default("PENDING")
+  resultId String?
+  @@unique([batchId, rowNumber])
+}

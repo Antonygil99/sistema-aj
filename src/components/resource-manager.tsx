@@ -173,6 +173,7 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
         <button type="button" aria-pressed={view === 'list'} onClick={() => { chooseView('list'); void load(0, applied); }}><RowVertical aria-hidden="true"/>Lista</button>
       </div> : null}
       <span className="resource-count">{page.total} {page.total === 1 ? config.singular : config.plural}</span>
+      {canEdit&&['clientes','prospectos'].includes(slug)?<Link className="button button-soft" href={'/importaciones?destino='+slug}>Importar</Link>:null}
       {canEdit ? <button type="button" className="button" onClick={() => openEditor('new')}><Add aria-hidden="true"/>Nuev{config.article === 'una' ? 'a' : 'o'} {config.singular}</button> : <span className="badge">Acceso de consulta</span>}
     </div>
     <form className="resource-filters" onSubmit={event => { event.preventDefault(); void load(0, { ...draft, q: draft.q.trim() }, false, boardTake); }}>

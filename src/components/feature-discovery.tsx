@@ -16,6 +16,8 @@ const discoveries={
   intake:{id:'ficha-cliente',tour:'funcion:ficha-cliente',title:'La ficha la puede llenar tu cliente',body:'Comparte un formulario por WhatsApp y recibe sus datos aquí. Tú revisas qué incorporar al expediente.',anchor:'2026-10-27-fichas',art:'client-intake'},
   procedures:{id:'tramites',tour:'funcion:tramites',title:'Un cambio de póliza, con cada paso en orden',body:'Reutiliza la ficha del cliente, prepara la solicitud y revisa sus documentos hasta recibir el endoso.',anchor:'2026-10-27-tramites',art:'policy-procedure'},
   mcp:{id:'conexiones',tour:'funcion:conexiones',title:'Tu espacio AJ también conversa contigo',body:'Conecta ChatGPT o Claude, consulta expedientes y revisa las propuestas de tu asistente antes de aplicarlas.',anchor:'2026-10-28-conexiones',art:'crm-connections'},
+  imports:{id:'importaciones',tour:'funcion:importaciones',title:'Tu lista de contactos, lista para revisar',body:'Trae un Excel o una tabla del chat. Revisa coincidencias, corrige los datos y elige qué contactos guardar.',anchor:'2026-10-28-importaciones',art:'contact-import'},
+  mcpForms:{id:'formularios-mcp',tour:'funcion:ficha-mcp',title:'Del chat al formulario de tu cliente',body:'Pide preparar su ficha o un enlace para compartir. Confirma aquí y conserva el código de acceso del cliente.',anchor:'2026-10-28-importaciones',art:'intake-assistant'},
 } as const;
 export function FeatureDiscovery({feature}:{feature:keyof typeof discoveries}) {
   const item=discoveries[feature];

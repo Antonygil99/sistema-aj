@@ -12,6 +12,7 @@ import { getR2 } from '@/integrations/r2/server';
 import { eventData } from '@/modules/events';
 import { revalidateActor, type McpActor } from './actor';
 import { fields, models, project, safePatch, checkPermission, McpError, jsonData, type McpModule, type McpOperation } from './policy';
+import { applyIntakeProposal, type IntakeShare } from './forms';
 type Row = Record<string,unknown> & {id:string;updatedAt:Date};
 type Delegate = {findUnique(args:object):Promise<Row|null>;findMany(args:object):Promise<Row[]>;count(args:object):Promise<number>;create(args:object):Promise<Row>;updateMany(args:object):Promise<{count:number}>;delete(args:object):Promise<Row>};
 const delegate = (db:unknown,module:McpModule)=>(db as Record<string,Delegate>)[models[module][0].toLowerCase()+models[module].slice(1)];
@@ -43,6 +44,7 @@ function fullInput(module:ResourceSlug,row:Row,patch:Record<string,unknown>):Rec
   return {...merged,expectedUpdatedAt:row.updatedAt.toISOString()};
 }
 function permittedOperation(module:McpModule,operation:McpOperation,data:Record<string,unknown>) {
+  if(operation==='intake_link'||operation==='intake_draft')throw new McpError('USE_INTAKE_TOOL');
   if(operation==='upload'&&module!=='documentos')throw new McpError('INVALID_OPERATION');
   if(module==='documentos'&&operation==='create')throw new McpError('USE_UPLOAD_TOOL');
   if(module==='siniestros'&&operation==='create')throw new McpError('CLAIM_REQUIRES_PRIVATE_CRM_FORM');
@@ -85,6 +87,7 @@ export async function proposalForUser(id:string,userId:string) {
 const transactionalDb=(tx:Prisma.TransactionClient)=>new Proxy(tx,{get(target,key){if(key==='$transaction')return async (fn:(client:Prisma.TransactionClient)=>unknown)=>fn(tx);const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;}}) as PrismaClient;
 export async function applyProposal(actor:McpActor,id:string,options:{cancel?:boolean;file?:{name:string;mimeType:string;body:Uint8Array};storage?:FileStorage}={}) {
   let uploadedKey:string|undefined,removeKey:string|undefined;
+  let share:IntakeShare|undefined;
   const storage=()=>options.storage??getR2();
   try {
     const result=await getDb().$transaction(async tx=>{
@@ -105,7 +108,10 @@ export async function applyProposal(actor:McpActor,id:string,options:{cancel?:bo
         if(!row||!change.expectedUpdatedAt||row.updatedAt.getTime()!==change.expectedUpdatedAt.getTime())throw new McpError('RECORD_CHANGED',409);
       }
       let result:Record<string,unknown>|null=null;
-      if(operation==='upload') {
+      if(operation==='intake_link'||operation==='intake_draft') {
+        if(resource!=='clientes'||!change.recordId)throw new McpError('INVALID_OPERATION');
+        const prepared=await applyIntakeProposal(actor,change.recordId,operation,data,db);share=prepared.share;result={id:prepared.id};
+      } else if(operation==='upload') {
         const inputFile=options.file??(change.fileBytes?{name:String(data.name),mimeType:String(data.mimeType),body:change.fileBytes}:null);
         if(!inputFile)throw new McpError('FILE_REQUIRED');
         // The actor chooses the actual file on the trusted review page; metadata is validated again.
@@ -149,13 +155,13 @@ export async function applyProposal(actor:McpActor,id:string,options:{cancel?:bo
         }
       }
       if(!result)throw new McpError('INVALID_OPERATION');
-      const resultId=String(result.id),action={create:'created',update:'updated',archive:'archived',restore:'restored',delete:'deleted',upload:'uploaded'}[operation] as Parameters<typeof eventData>[1];
-      await tx.crmEvent.create({data:eventData(actor,action,resource,resultId,'Cambio revisado de conexión MCP',{proposalId:id,clientId:actor.clientId})});
+      const resultId=String(result.id),action={create:'created',update:'updated',archive:'archived',restore:'restored',delete:'deleted',upload:'uploaded',intake_link:'updated',intake_draft:'updated'}[operation] as Parameters<typeof eventData>[1];
+      await tx.crmEvent.create({data:eventData(actor,action,operation.startsWith('intake_')?'fichas':resource,resultId,'Cambio revisado de conexión MCP',{proposalId:id,clientId:actor.clientId})});
       await tx.mcpChange.update({where:{id},data:{status:'APPLIED',resultId,fileBytes:null}});
       return {id:resultId,status:'APPLIED'};
     },{maxWait:30000,timeout:30000});
     if(removeKey)await storage().remove(removeKey).catch(()=>console.error('R2_ORPHAN_CLEANUP_REQUIRED'));
-    return result;
+    return {...result,...share?{share}:{}};
   } catch(error){if(uploadedKey)await storage().remove(uploadedKey).catch(()=>console.error('R2_ORPHAN_CLEANUP_REQUIRED'));throw error;}
 }
 export async function liveProposalActor(userId:string,clientId:string,role:McpActor['role'],name:string,email:string) {
