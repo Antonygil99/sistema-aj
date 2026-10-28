@@ -7,7 +7,7 @@ import { migrationUrl } from './migration-url.mjs';
 const connectionString = migrationUrl(process.env);
 if (!connectionString) throw new Error('DATABASE_CONNECTION_NOT_CONFIGURED');
 const client = new pg.Client({ connectionString, connectionTimeoutMillis: 15000 });
-const required = ['Prospect','Client','Policy','Quote','Payment','Renewal','Claim','Document','Activity','WebhookEvent','AgentRun','AccessGrant','AuthUser','AuthSession','AuthAccount','AuthVerification','AuthRateLimit','AccessAudit','DocumentFolder','CrmEvent','Product','UserPreference','CalendarConnection','CalendarMeeting','ClientIntake','ClientIntakeRevision'];
+const required = ['Prospect','Client','Policy','Quote','Payment','Renewal','Claim','Document','Activity','WebhookEvent','AgentRun','AccessGrant','AuthUser','AuthSession','AuthAccount','AuthVerification','AuthRateLimit','AccessAudit','DocumentFolder','CrmEvent','Product','UserPreference','CalendarConnection','CalendarMeeting','ClientIntake','ClientIntakeRevision','InsuranceProcedure','ProcedureRevision','ProcedureAttachment','ProcedureExport','InsuranceTemplate'];
 const scrub = text => {
   let safe = text;
   for (const value of [connectionString, process.env.DIRECT_URL, process.env.DATABASE_URL, process.env.DATA_URL]) {

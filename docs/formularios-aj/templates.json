@@ -1,5 +1,5 @@
 {
-  "catalogVersion": "2026-10-27.1",
+  "catalogVersion": "2026-10-27.2",
   "brokerDefaults": {
     "MEDICAL": "Ale",
     "LIFE": "Ale",
@@ -123,10 +123,15 @@
       "fieldCount": 47,
       "widgetCount": 47,
       "strategy": "acroform",
-      "mappingStatus": "not_production_ready",
+      "mappingStatus": "partial_address_rfc_reviewed",
       "insurerAcceptanceStatus": "confirm_for_policy_and_channel",
       "reviewDate": "2026-10-27",
-      "defaultSelections": []
+      "defaultSelections": [],
+      "supportedPilotChanges": [
+        "ADDRESS",
+        "RFC"
+      ],
+      "implementationReference": "IMPLEMENTACION-TRAMITES-GMM.md"
     },
     {
       "id": "metlife-cambios-vida",

@@ -2,8 +2,8 @@ import { modules, type ModuleSlug } from '../catalog';
 import { resources, isResourceSlug } from '../resources/config';
 // Guided tours for the Help Center. Pure (unit tested in tests/tours.test.ts): the browser resolves each
 // step's first visible target and skips steps whose element is not on screen (role, view or empty list).
-export type TourStep = { targets?: string[]; title: string; body: string; illustration?: 'intake' };
-export type Tour = { id: string; kind: 'component' | 'module' | 'feature'; title: string; summary: string; route?: string; context?: 'client'; prepare?: 'intake'; minRole?: 'ADMIN' | 'SUPERADMIN'; listed?: boolean; steps: TourStep[] };
+export type TourStep = { targets?: string[]; title: string; body: string; illustration?: 'intake' | 'procedures' };
+export type Tour = { id: string; kind: 'component' | 'module' | 'feature'; title: string; summary: string; route?: string; context?: 'client' | 'procedure'; prepare?: 'intake' | 'procedures'; minRole?: 'ADMIN' | 'SUPERADMIN'; listed?: boolean; steps: TourStep[] };
 type Role = 'USER' | 'ADMIN' | 'SUPERADMIN';
 const rank: Record<Role, number> = { USER: 0, ADMIN: 1, SUPERADMIN: 2 };
 const newButton = ['.resource-toolbar > .button'];
@@ -68,6 +68,14 @@ function moduleTour(slug: ModuleSlug): Tour {
   return { ...base, steps: [intro(tips[slug] ?? entry.description), ...tableSteps(slug)] };
 }
 export const tours: Tour[] = [
+  {id:'funcion:tramites',kind:'feature',title:'Trámites y cambios de póliza',summary:'Preparar un cambio, revisar documentos y PDF, registrar firma y seguimiento.',route:'/tramites',context:'procedure',prepare:'procedures',minRole:'ADMIN',steps:[
+    {title:'Un trámite, del borrador al endoso',body:'El piloto prepara cambios de domicilio o RFC en GMM individual MetLife. Se conserva la póliza actual. Este recorrido explica los pasos: no crea solicitudes ni envía documentos.',illustration:'procedures'},
+    {targets:['[data-tour="procedure-create"]','.procedures-client'],title:'Parte del expediente correcto',body:'Selecciona la póliza y el cambio solicitado. Otras aseguradoras, Vida y Autos necesitan sus propias plantillas; no se reutiliza este formato para ellas.'},
+    {targets:['[data-tour="procedure-data"]'],title:'Reutiliza y confirma',body:'Puedes tomar datos de la ficha aprobada. Confirma quién es el contratante y completa sus nombres sin deducir apellidos. Captura por separado el dato nuevo y la fecha solicitada.'},
+    {targets:['[data-tour="procedure-attachments"]'],title:'Controla los faltantes',body:'Vincula identificación, Formato 5 y comprobante cuando aplique desde los documentos de la póliza. Los anexos y sus versiones se confirman con la aseguradora.'},
+    {targets:['[data-tour="procedure-pdf"]'],title:'Prepara el PDF revisado',body:'Después de revisar los datos podrás preparar el borrador con las dos páginas originales y una portada de pendientes. Las firmas y autorizaciones se dejan para sus titulares.'},
+    {targets:['[data-tour="procedure-status"]'],title:'Registra lo que realmente ocurrió',body:'Pendiente de firma, presentado con folio y solicitud firmada, o endoso recibido con evidencia. Descargar un PDF no confirma presentación ni cambia el contrato.'},
+  ]},
   { id: 'funcion:ficha-cliente', kind: 'feature', title: 'Ficha del cliente', summary: 'Compartir un formulario, recibir respuestas y revisar los datos del expediente.', route: '/crm/clientes?view=dossiers', context: 'client', prepare: 'intake', minRole: 'ADMIN', steps: [
     { title: 'Tu cliente también puede llenar su ficha', body: 'Comparte un formulario o captura los datos con él. La información llega al expediente para que la revises antes de incorporarla. Este recorrido solo explica: no guarda ni envía nada.', illustration: 'intake' },
     { targets: ['.dossier-grid .dossier-card'], title: 'Elige el expediente de tu cliente', body: 'Abre su carpeta y busca «Ficha del cliente · formulario y WhatsApp». Allí puedes volver a iniciar este recorrido sobre los controles de su ficha.' },
@@ -161,6 +169,7 @@ export function tourForPath(pathname: string): Tour | null {
   if (pathname === '/asistentes') return tourById('modulo:asistentes');
   if (pathname === '/novedades') return tourById('modulo:novedades');
   if (pathname === '/whatsapp') return tourById('modulo:whatsapp');
+  if (pathname === '/tramites'||/^\/tramites\/[^/]+$/.test(pathname)) return tourById('funcion:tramites');
   if (pathname === '/crm/clientes/nuevo') return tourById('modulo:nuevo-expediente');
   if (/^\/crm\/clientes\/[^/]+$/.test(pathname)) return tourById('modulo:expediente');
   const match = /^\/crm\/([a-z]+)$/.exec(pathname);

@@ -108,6 +108,10 @@ Invoke-RestMethod http://localhost:3000/api/crm/prospectos -Headers $headers
 
 Errores: 400 datos/JSON inválidos, 404 módulo desconocido, 409 identificador único duplicado, 422 relación inexistente, 503 servicio/configuración no disponible. No se exponen detalles de conexión ni payloads privados en errores.
 
+## Trámites administrativos
+
+Piloto manual de cambios de domicilio y RFC en GMM individual MetLife, dentro del expediente y en `/tramites`. Reutiliza la ficha aprobada, conserva revisiones, valida anexos y genera un borrador PDF con el formato revisado; firmas y aceptación siguen a cargo de sus titulares. El seguimiento crea una actividad y ninguna etapa cambia automáticamente la póliza. Ver [alcance, plantilla privada y verificación](docs/formularios-aj/IMPLEMENTACION-TRAMITES-GMM.md).
+
 ## Novedades y tutoriales
 
 `/novedades` muestra el historial de funciones del CRM y sus recorridos guiados. Al publicar cada función nueva, incluir una tarjeta con ilustración específica de esa función, tutorial repetible y entrada editorial con permisos en `src/modules/help/releases.ts` y `src/modules/help/tours.ts`. Ver [la guía de mantenimiento](docs/NOVEDADES-Y-RECORRIDOS.md). La ficha del cliente tiene una tarjeta contextual que se puede cerrar y un tutorial repetible desde el expediente o Ayuda.

@@ -1,6 +1,6 @@
 # Ficha del cliente: captura manual, WhatsApp y enlace externo
 
-Implementado el 27/10/2026. Esta fase comparte datos administrativos por cliente. La generación de los ocho formatos de aseguradora, firma electrónica y captura de información médica/bancaria sigue siendo un trabajo posterior.
+Implementado el 27/10/2026. Esta fase comparte datos administrativos por cliente. Como ampliación existe el piloto administrativo de cambios GMM MetLife con PDF revisado y seguimiento; ver IMPLEMENTACION-TRAMITES-GMM.md. Los demás formatos, firma electrónica y captura de información médica/bancaria siguen pendientes.
 
 ## Cómo se usa
 

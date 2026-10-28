@@ -5,6 +5,18 @@ export class ApiError extends Error {
   constructor(public readonly code: string, public readonly status: number, message: string, public readonly issues: Issue[] = []) { super(message); }
 }
 export const errorMessages: Record<string, string> = {
+  PROCEDURE_SCOPE: 'La póliza debe pertenecer a este expediente.',
+  PROCEDURE_POLICY_UNSUPPORTED: 'El piloto requiere una póliza MetLife del catálogo de Gastos Médicos. Confirma además que sea individual.',
+  PROCEDURE_STATE: 'Esta acción no corresponde a la etapa actual. Actualiza el trámite y revisa su estado.',
+  PROCEDURE_REVIEW_INCOMPLETE: 'Completa los datos del contratante, el cambio y las confirmaciones antes de revisar o preparar el PDF.',
+  PROCEDURE_SUBMISSION_INCOMPLETE: 'Faltan anexos, solicitud firmada, folio o fecha real de presentación. La presentación no puede tener una fecha futura.',
+  PROCEDURE_ENDORSEMENT_REQUIRED: 'Vincula el endoso o respuesta aceptada e indica su fecha efectiva antes de cerrar.',
+  PROCEDURE_EVIDENCE_SCOPE: 'El archivo debe estar activo y pertenecer a este expediente y esta póliza, sin vinculación a otro siniestro.',
+  PROCEDURE_FUTURE_DATE: 'La fecha de elaboración no puede estar en el futuro.',
+  PROCEDURE_TEMPLATE_CHANGED: 'La plantilla privada falta o no coincide con la versión revisada. Solicita revisión al superadmin.',
+  PROCEDURE_POLICY_CHANGED: 'La póliza cambió después de abrir este trámite. Conserva el historial y prepara una solicitud nueva con los datos actuales.',
+  PROCEDURE_PDF_OVERFLOW: 'Un dato no cabe legiblemente en el formato oficial. Revisa su extensión; no se generó un PDF recortado.',
+  PROCEDURE_PDF_CHARACTERS: 'El formato no puede representar uno de los caracteres capturados. Revisa los datos antes de generar el documento.',
   INTAKE_REVIEW_PENDING: 'Hay respuestas recibidas pendientes de revisión. Ábrelas en la ficha antes de preparar otro borrador.',
   INTAKE_BODY_TOO_LARGE: 'La captura supera el tamaño permitido. Usa solo los datos administrativos solicitados.',
   FINANCE_SCHEDULE_EXISTS: 'Esta póliza ya tiene recibos, incluso archivados. Revisa el calendario existente; no se duplicará.',

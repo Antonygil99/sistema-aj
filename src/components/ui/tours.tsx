@@ -27,10 +27,10 @@ function buildSteps(tour: Tour): DriveStep[] {
 }
 // Content can stream in after a navigation: wait briefly until a targeted step is on screen.
 async function resolveSteps(tour: Tour) {
-  const details = tour.prepare === 'intake' ? document.querySelector<HTMLDetailsElement>('#ficha-cliente') : null;
+  const details = tour.prepare ? document.querySelector<HTMLDetailsElement>(tour.prepare==='intake'?'#ficha-cliente':'#tramites-cliente') : null;
   if (details) {
     details.open = true;
-    for (let elapsed = 0; elapsed < 4500 && !details.querySelector('[data-tour="intake-link"]') && !details.querySelector('[role="alert"]'); elapsed += 150) await wait(150);
+    for (let elapsed = 0; elapsed < 4500 && !details.querySelector(tour.prepare==='intake'?'[data-tour="intake-link"]':'[data-tour="procedure-create"]') && !details.querySelector('[role="alert"]'); elapsed += 150) await wait(150);
   }
   const targeted = tour.steps.some(step => step.targets);
   for (let elapsed = 0; ; elapsed += 150) {
@@ -75,15 +75,15 @@ export function TourProvider({ role, children }: { role: Role; children: ReactNo
         popover.closeButton.setAttribute('aria-label', 'Cerrar recorrido');
         popover.nextButton.focus({ preventScroll: true });
       },
-      onDestroyed: () => { if (active.current === instance) active.current = null; markSeen(tour.id); if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true }); },
+      onDestroyed: () => { if (active.current === instance) active.current = null; markSeen(tour.context==='client'&&pathname==='/crm/clientes'?tour.id+'-intro':tour.id); if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true }); },
     });
     active.current = instance;
     instance.drive();
-  }, [markSeen, toast]);
+  }, [markSeen, toast, pathname]);
   const start = useCallback((id: string) => {
     const tour = tourById(id);
     if (!tour || !canSeeTour(tour, role)) return;
-    if (!tour.route || pathname === tour.route.split('?')[0] || tourForPath(pathname)?.id === tour.id || (tour.context === 'client' && /^\/crm\/clientes\/[^/]+$/.test(pathname) && pathname !== '/crm/clientes/nuevo')) { window.setTimeout(() => void run(tour), 350); return; }
+    if (!tour.route || pathname === tour.route.split('?')[0] || tourForPath(pathname)?.id === tour.id || ((tour.context === 'client'||tour.context==='procedure') && /^\/crm\/clientes\/[^/]+$/.test(pathname) && pathname !== '/crm/clientes/nuevo')) { window.setTimeout(() => void run(tour), 350); return; }
     pending.current = tour.id;
     router.push(tour.route);
   }, [pathname, role, router, run]);
