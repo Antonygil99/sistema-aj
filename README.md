@@ -110,7 +110,7 @@ Errores: 400 datos/JSON inválidos, 404 módulo desconocido, 409 identificador �
 
 ## Novedades y tutoriales
 
-`/novedades` muestra el historial de funciones del CRM y sus recorridos guiados. Al publicar una función, agregar su entrada editorial, permisos y recorrido en `src/modules/help/releases.ts` y `src/modules/help/tours.ts`. Ver [la guía de mantenimiento](docs/NOVEDADES-Y-RECORRIDOS.md). La ficha del cliente tiene una tarjeta contextual que se puede cerrar y un tutorial repetible desde el expediente o Ayuda.
+`/novedades` muestra el historial de funciones del CRM y sus recorridos guiados. Al publicar cada función nueva, incluir una tarjeta con ilustración específica de esa función, tutorial repetible y entrada editorial con permisos en `src/modules/help/releases.ts` y `src/modules/help/tours.ts`. Ver [la guía de mantenimiento](docs/NOVEDADES-Y-RECORRIDOS.md). La ficha del cliente tiene una tarjeta contextual que se puede cerrar y un tutorial repetible desde el expediente o Ayuda.
 
 ## WhatsApp Business API
 
