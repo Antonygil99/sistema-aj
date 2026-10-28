@@ -4,8 +4,19 @@ import { getDb } from '@/lib/db';
 import { allowedScopes, mcpScopes, McpError } from './policy';
 import type { AccessRole } from '@/lib/access-policy';
 export function oauthQuery(params:Record<string,string|string[]|undefined>) {
-  if(Object.values(params).some(v=>Array.isArray(v)))throw new McpError('INVALID_OAUTH_QUERY');
-  return new URLSearchParams(Object.entries(params).filter((entry):entry is [string,string]=>typeof entry[1]==='string')).toString();
+  const query=new URLSearchParams();
+  for(const [key,value]of Object.entries(params)){
+    if(value===undefined)continue;
+    // Better Auth signs a repeated ba_param entry for each protected query field.
+    // Preserve every value; repeated OAuth credentials/redirects remain ambiguous and are rejected.
+    if(Array.isArray(value)){
+      if(key!=='ba_param'||value.length>64)throw new McpError('INVALID_OAUTH_QUERY');
+      for(const item of value)query.append(key,item);
+    }else query.append(key,value);
+  }
+  const serialized=query.toString();
+  if(serialized.length>16000)throw new McpError('INVALID_OAUTH_QUERY');
+  return serialized;
 }
 export async function consentRequest(query:string,role:AccessRole) {
   if(query.length>16000||!await verifyOAuthQueryParams(query,process.env.BETTER_AUTH_SECRET!))throw new McpError('OAUTH_REQUEST_EXPIRED',400);

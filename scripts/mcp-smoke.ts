@@ -11,7 +11,7 @@ import { actorFromClaims,revokeConnection } from '../src/modules/mcp/actor';
 import { mcpScopes,mcpResource } from '../src/modules/mcp/policy';
 import { POST as consentPost } from '../src/app/api/mcp/consent/route';
 import { POST as mcpPost } from '../src/app/mcp/route';
-import { oauthRedirect } from '../src/modules/mcp/consent';
+import { oauthRedirect, oauthQuery, consentRequest } from '../src/modules/mcp/consent';
 import { migrationUrl } from './migration-url.mjs';
 import { prepareIntakeProposal, intakeSummary } from '../src/modules/mcp/forms';
 import { prepareBatch, getBatch, applyBatch, editBatchRow, importReport } from '../src/modules/imports/server';
@@ -51,6 +51,8 @@ try {
     const auth=getAuth()!,ctx=await auth.$context,base=new URL(ctx.baseURL).origin;
     const cookie=ctx.authCookies.sessionToken.name+'='+encodeURIComponent(token+'.'+await makeSignature(token,process.env.BETTER_AUTH_SECRET!));
     const request=(path:string,init:RequestInit={})=>new Request(base+path,{...init,headers:{origin:base,cookie,...init.headers}});
+    // Match Next.js page searchParams: repeated keys become arrays, not comma-joined strings.
+    const throughPage=(query:string)=>{const params=new URLSearchParams(query);return oauthQuery(Object.fromEntries([...new Set(params.keys())].map(key=>[key,params.getAll(key).length>1?params.getAll(key):params.get(key)!])));};
     const discovery=await auth.handler(request('/.well-known/oauth-protected-resource/mcp'));
     assert.equal(discovery.status,200);assert.equal((await discovery.json()).resource,mcpResource());
     const issuerMetadata=await auth.handler(request('/.well-known/oauth-authorization-server/api/auth'));
@@ -63,11 +65,13 @@ try {
     const beforeLogin=await auth.handler(new Request(base+'/api/auth/oauth2/authorize?'+query));
     const loginRedirect=beforeLogin.headers.get('location');assert.ok(loginRedirect?.includes('/mcp/connect?'));
     const continuationHeaders=new Headers({cookie,origin:base,accept:'application/json'});
-    const continued=await auth.api.oauth2Continue({request:new Request(base+'/mcp/connect',{headers:continuationHeaders}),headers:continuationHeaders,body:{selected:true,oauth_query:new URL(loginRedirect!,base).search.slice(1)}});
+    const continued=await auth.api.oauth2Continue({request:new Request(base+'/mcp/connect',{headers:continuationHeaders}),headers:continuationHeaders,body:{selected:true,oauth_query:throughPage(new URL(loginRedirect!,base).search.slice(1))}});
     assert.ok((await oauthRedirect(continued)).includes('/mcp/consent?'),'resume after Google session');
     const authorization=await auth.handler(request('/api/auth/oauth2/authorize?'+query));
     const redirect=authorization.headers.get('location');assert.ok(redirect);assert.ok(redirect.includes('/mcp/consent?'),'redirect to trusted consent page');
-    const signedQuery=new URL(redirect,base).search.slice(1);
+    const signedQuery=throughPage(new URL(redirect,base).search.slice(1));
+    assert.ok(new URLSearchParams(signedQuery).getAll('ba_param').length>1,'provider signature metadata survives page serialization');
+    assert.equal((await consentRequest(signedQuery,'ADMIN')).clientId,registration.client_id,'page can display authenticated consent');
     const response=await consentPost(request('/api/mcp/consent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accept:true,query:signedQuery,scopes:['crm:read','crm:write','crm:files','offline_access']})}));
     assert.equal(response.status,200,'human consent');const approved=await response.json();
     const code=new URL(approved.redirect_uri).searchParams.get('code');assert.ok(code);

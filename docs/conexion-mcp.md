@@ -73,6 +73,7 @@ Los resultados incluyen `structuredContent` y una explicación breve. Las aplica
 - Modelos añadidos: `Jwks`, tablas `Oauth*` del proveedor, `McpChange` y `McpRevocation`. Migración aditiva `20261028120000_mcp_connections`; no sustituye tablas ni datos existentes.
 - Se reutilizan las operaciones del CRM dentro de la transacción de la propuesta, con bloqueo y comprobación de la versión original. La auditoría registra actor, cliente OAuth e identificador de propuesta, sin copiar credenciales ni contenido del archivo.
 - La clave privada de firma la administra el plugin JWT con el secreto existente. No hay variables nuevas obligatorias. `BETTER_AUTH_URL` debe mantener el origen HTTPS canónico; `BETTER_AUTH_SECRET`, Google y PostgreSQL siguen siendo necesarios para el acceso existente; R2 para archivos.
+- Los enlaces firmados del proveedor incluyen varios `ba_param`. Next.js los entrega como un arreglo: `oauthQuery` conserva todos sus valores antes de verificar la firma. Otros parámetros OAuth duplicados se rechazan; las páginas de entrada muestran cómo reiniciar una solicitud inválida. No quitar la firma, ampliar permisos ni reutilizar enlaces vencidos para resolver un fallo de conexión.
 
 Comprobaciones:
 

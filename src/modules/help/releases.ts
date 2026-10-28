@@ -7,6 +7,9 @@ export type Release = { id: string; date: string; title: string; summary: string
 // Editorial history, backed by the repository's commits. Add new releases here when shipping a feature;
 // do not derive user-facing promises from commit messages or a third-party approval state at runtime.
 export const releases: Release[] = [
+  {id:'2026-10-28-oauth-query',date:'2026-10-28',title:'Conexión del chat sin interrupciones',summary:'Corregida la lectura del enlace de autorización.',changes:[
+    {id:'mcp-consent-query-fix',title:'Pantalla de permisos del MCP corregida',body:'La autorización conserva los parámetros repetidos de la firma del proveedor. Las solicitudes inválidas muestran cómo reiniciar la conexión; la firma, vigencia, sesión y permisos siguen verificándose.',area:'Conexiones',kind:'fix',href:'/conexiones',tour:'funcion:conexiones'},
+  ]},
   {id:'2026-10-28-pago-unico',date:'2026-10-28',title:'Un recibo para el pago único',summary:'El calendario del alta se reemplaza solo después de confirmarlo.',changes:[
     {id:'single-receipt-confirmation',title:'Cambiar a pago único con aviso',body:'Al elegir Pago único, confirma si quieres reemplazar los recibos del borrador por uno con la prima total. Cancelar conserva la periodicidad, fechas e importes anteriores. También se avisa antes de regenerar un calendario editado.',area:'Pagos',kind:'fix',href:'/crm/clientes/nuevo',minRole:'ADMIN',tour:'modulo:nuevo-expediente'},
   ]},

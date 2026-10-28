@@ -6,9 +6,10 @@ import { oauthQuery, consentRequest, oauthRedirect } from '@/modules/mcp/consent
 import { SignInButton } from '@/components/sign-in-button';
 export const dynamic='force-dynamic';
 export default async function Connect({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}) {
-  const query=oauthQuery(await searchParams),requestHeaders=await headers();
+  const requestHeaders=await headers();
+  let query:string;
   let request:Awaited<ReturnType<typeof consentRequest>>;
-  try {request=await consentRequest(query,'SUPERADMIN');}catch{return <main className="auth-screen"><section className="auth-card"><h1>Vuelve a iniciar la conexión</h1><p>La solicitud ya venció o no es válida. Regresa a tu aplicación y conecta Sistema AJ otra vez.</p></section></main>;}
+  try {query=oauthQuery(await searchParams);request=await consentRequest(query,'SUPERADMIN');}catch{return <main className="auth-screen"><section className="auth-card"><h1>Vuelve a iniciar la conexión</h1><p>La solicitud ya venció o no es válida. Regresa a tu aplicación y conecta Sistema AJ otra vez.</p></section></main>;}
   const user=await currentUser(requestHeaders);
   if(user) {
     const oauthHeaders=new Headers(requestHeaders);oauthHeaders.set('accept','application/json');
