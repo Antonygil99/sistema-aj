@@ -14,6 +14,8 @@ Actualizado: 28 de octubre de 2026. Esta conexión trabaja con datos administrat
 5. Prueba: «¿Qué permisos tengo en Sistema AJ?» y «Busca al cliente [nombre]». Después: «Prepara el cambio de su teléfono a [número confirmado]».
 6. Abre **Revisar en el CRM**, comprueba el registro y confirma. Vuelve al chat y pide comprobar el estado de la propuesta.
 
+Si una conexión existente solo permite consulta, pulsa **Actualizar herramientas** en la configuración del complemento y abre un chat nuevo. Pide «Usa Sistema AJ y solicita permiso para preparar cambios con `aj_request_change_access`». El servidor devuelve el desafío OAuth para pedir autorización adicional; en la pantalla de AJ marca **Proponer altas y cambios** y **Proponer cargas y organizar archivos**, y autoriza. Después pide comprobar tus permisos. «Permitir todo» en ChatGPT regula las confirmaciones de herramientas y no cambia los ámbitos del token. La pantalla de información del complemento no muestra un editor OAuth en todas las versiones; no prometer que existe ni modificar consentimientos directamente en la base para simular un token ampliado.
+
 La disponibilidad de conexiones personalizadas y de componentes MCP Apps depende de la aplicación, cuenta, plan y administración de la organización. Si una aplicación requiere registro previo de cliente y no utiliza descubrimiento de cliente ni registro dinámico, se deberá preparar esa configuración específica. La primera conexión real en cada host sigue siendo una comprobación de aceptación del usuario; una prueba del protocolo no acredita esa interfaz particular.
 
 No se necesitan claves de OpenAI o Anthropic nuevas para este servidor: la conversación usa el servicio de IA del chat que conectes. No copies tokens de Vercel, Google, R2 ni `AJ_API_TOKEN` en el chat.
@@ -50,6 +52,7 @@ No se envían WhatsApp, correos o invitaciones. No se confirma un cobro sin el f
 | Herramienta | Función |
 | --- | --- |
 | `aj_capabilities` | Rol, permisos, campos, límites y conexión |
+| `aj_request_change_access` | Solicitar nueva autorización para cambios y archivos; no modifica registros |
 | `aj_list` | Búsqueda paginada; máximo 25 registros |
 | `aj_detail` | Registro administrativo; expediente con pólizas |
 | `aj_propose_change` | Preparar alta, edición, archivo, restauración o eliminación |
@@ -74,6 +77,7 @@ Los resultados incluyen `structuredContent` y una explicación breve. Las aplica
 - Se reutilizan las operaciones del CRM dentro de la transacción de la propuesta, con bloqueo y comprobación de la versión original. La auditoría registra actor, cliente OAuth e identificador de propuesta, sin copiar credenciales ni contenido del archivo.
 - La clave privada de firma la administra el plugin JWT con el secreto existente. No hay variables nuevas obligatorias. `BETTER_AUTH_URL` debe mantener el origen HTTPS canónico; `BETTER_AUTH_SECRET`, Google y PostgreSQL siguen siendo necesarios para el acceso existente; R2 para archivos.
 - Los enlaces firmados del proveedor incluyen varios `ba_param`. Next.js los entrega como un arreglo: `oauthQuery` conserva todos sus valores antes de verificar la firma. Otros parámetros OAuth duplicados se rechazan; las páginas de entrada muestran cómo reiniciar una solicitud inválida. No quitar la firma, ampliar permisos ni reutilizar enlaces vencidos para resolver un fallo de conexión.
+- Cada herramienta declara sus ámbitos OAuth en `securitySchemes` y su espejo `_meta.securitySchemes`. El catálogo usa el handler público del SDK porque la versión v2 no conserva extensiones desconocidas de descriptor. Si falta un ámbito que el rol vigente permite, la llamada devuelve `_meta['mcp/www_authenticate']` con `insufficient_scope`, descripción, metadatos y ámbitos requeridos; no crea propuestas ni datos. Los usuarios de consulta no reciben una invitación para adquirir permisos administrativos. Los tokens de consulta continúan siendo solo de consulta hasta completar una nueva autorización.
 
 Comprobaciones:
 

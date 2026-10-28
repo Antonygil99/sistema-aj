@@ -79,16 +79,36 @@ try {
     assert.equal(exchange.status,200,'PKCE token exchange');const tokens=await exchange.json();assert.ok(tokens.access_token);assert.ok(tokens.refresh_token);
     const claims=decodeJwt(tokens.access_token);const actor=await actorFromClaims(claims);assert.equal(actor.id,userId);assert.equal(actor.role,'ADMIN');
     globalThis.fetch=async (url,init)=>String(url)===base+'/api/auth/jwks'?auth.handler(new Request(String(url),init)):originalFetch(url,init);
-    const rpc=(method:string,params?:unknown)=>mcpPost(request('/mcp',{method:'POST',headers:{Authorization:'Bearer '+tokens.access_token,'Content-Type':'application/json',Accept:'application/json, text/event-stream','MCP-Protocol-Version':'2025-11-25'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params})}));
+    const rpcWith=(token:string,method:string,params?:unknown)=>mcpPost(request('/mcp',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Accept:'application/json, text/event-stream','MCP-Protocol-Version':'2025-11-25'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params})}));
+    const rpc=(method:string,params?:unknown)=>rpcWith(tokens.access_token,method,params);
+    const rpcJson=async(response:Response)=>{assert.equal(response.status,200);const value=await response.text(),line=value.split('\n').find(line=>line.startsWith('data:'));return JSON.parse(line?line.slice(5):value);};
     assert.equal((await mcpPost(new Request(base+'/mcp',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}))).status,401,'no anonymous MCP');
     const toolResponse=await rpc('tools/list');assert.equal(toolResponse.status,200);const rpcText=await toolResponse.text();const dataLine=rpcText.split('\n').find(line=>line.startsWith('data:'));const tools=JSON.parse(dataLine?dataLine.slice(5):rpcText);assert.ok(tools.result.tools.some((tool:{name:string})=>tool.name==='aj_list'));
     assert.ok(['aj_prepare_intake','aj_intake_status','aj_prepare_import','aj_import_status'].every(name=>tools.result.tools.some((tool:{name:string})=>tool.name===name)),'new intake/import tools exposed');
+    for(const [name,scopes]of [['aj_request_change_access',['crm:read','crm:write','crm:files']],['aj_prepare_upload',['crm:read','crm:files']],['aj_prepare_import',['crm:read','crm:write']]] as const){const tool=tools.result.tools.find((t:{name:string})=>t.name===name);assert.deepEqual(tool.securitySchemes,[{type:'oauth2',scopes}]);assert.deepEqual(tool._meta.securitySchemes,tool.securitySchemes,'top-level and compatibility OAuth metadata');}
     assert.ok(!tools.result.tools.some((tool:{name:string})=>/apply|commit|confirm/.test(tool.name)),'no model-callable approval');
     const capabilitiesResponse=await rpc('tools/call',{name:'aj_capabilities',arguments:{}});
     const capabilitiesText=await capabilitiesResponse.text(),capabilitiesLine=capabilitiesText.split('\n').find(line=>line.startsWith('data:'));
     const capabilities=JSON.parse(capabilitiesLine?capabilitiesLine.slice(5):capabilitiesText);
     assert.equal(capabilities.result.isError,undefined);assert.equal(capabilities.result.structuredContent.inputSchemas.clientes.properties.email.type,'string');
     assert.equal(capabilities.result.structuredContent.inputSchemas.siniestros.createAvailable,false);
+    const secondRegistration=await auth.handler(request('/api/auth/oauth2/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({client_name:'Read-only MCP fixture '+marker,redirect_uris:['https://example.invalid/mcp-callback'],token_endpoint_auth_method:'none',grant_types:['authorization_code','refresh_token'],response_types:['code'],scope:mcpScopes.join(' ')})}));
+    assert.equal(secondRegistration.status,201);const secondClient=(await secondRegistration.json()).client_id;
+    async function authorizeScopes(scope:string){
+      const q=new URLSearchParams(query);q.set('client_id',secondClient);q.set('scope',scope);q.set('state',randomUUID());
+      const start=await auth.handler(request('/api/auth/oauth2/authorize?'+q)),location=start.headers.get('location');assert.ok(location?.includes('/mcp/consent?'));
+      const approval=await consentPost(request('/api/mcp/consent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accept:true,query:throughPage(new URL(location!,base).search.slice(1)),scopes:scope.split(' ')})}));assert.equal(approval.status,200);
+      const code=new URL((await approval.json()).redirect_uri).searchParams.get('code')!;
+      const exchange=await auth.handler(request('/api/auth/oauth2/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'authorization_code',client_id:secondClient,code,code_verifier:verifier,redirect_uri:'https://example.invalid/mcp-callback',resource:mcpResource()})}));assert.equal(exchange.status,200);return (await exchange.json()).access_token as string;
+    }
+    const readToken=await authorizeScopes('crm:read'),beforeChanges=await tx.mcpChange.count({where:{userId}});
+    const needsAccess=await rpcJson(await rpcWith(readToken,'tools/call',{name:'aj_request_change_access',arguments:{}}));
+    assert.equal(needsAccess.result.isError,true);assert.match(needsAccess.result._meta['mcp/www_authenticate'][0],/error="insufficient_scope"/);assert.match(needsAccess.result._meta['mcp/www_authenticate'][0],/scope="crm:read crm:write crm:files"/);
+    const blockedCreate=await rpcJson(await rpcWith(readToken,'tools/call',{name:'aj_propose_change',arguments:{module:'clientes',operation:'create',data:{name:'Must not create '+marker}}}));assert.equal(blockedCreate.result.isError,true);assert.ok(blockedCreate.result._meta['mcp/www_authenticate']);
+    assert.equal(await tx.mcpChange.count({where:{userId}}),beforeChanges,'a scope challenge never prepares or applies a business change');
+    await tx.accessGrant.update({where:{email},data:{role:'USER'}});const userDenied=await rpcJson(await rpcWith(readToken,'tools/call',{name:'aj_request_change_access',arguments:{}}));assert.equal(userDenied.result.isError,true);assert.equal(userDenied.result._meta?.['mcp/www_authenticate'],undefined,'read-only CRM users cannot upgrade to administrator scopes');await tx.accessGrant.update({where:{email},data:{role:'ADMIN'}});
+    const upgradedToken=await authorizeScopes('crm:read crm:write crm:files');
+    const accessReady=await rpcJson(await rpcWith(upgradedToken,'tools/call',{name:'aj_request_change_access',arguments:{}}));assert.equal(accessReady.result.isError,undefined);assert.ok(accessReady.result.structuredContent.scopes.includes('crm:write'));assert.equal(await tx.mcpChange.count({where:{userId}}),beforeChanges);
     const forgedApproval=await consentPost(request('/api/mcp/consent',{method:'POST',headers:{Authorization:'Bearer '+tokens.access_token,'Content-Type':'application/json'},body:'{}'}));assert.equal(forgedApproval.status,403,'OAuth cannot self-approve');
     const crossOrigin=await consentPost(request('/api/mcp/consent',{method:'POST',headers:{origin:'https://attacker.invalid','Content-Type':'application/json'},body:'{}'}));assert.equal(crossOrigin.status,403,'cross-site approval denied');
     const client=await tx.client.create({data:{name:'MCP fixture '+marker,email:'preserve@example.invalid',phone:'+525555555555',taxId:'KEEP'}});
@@ -142,6 +162,6 @@ try {
     assert.equal((await tx.mcpChange.findUniqueOrThrow({where:{id:pending.id}})).status,'CANCELLED');
     await assert.rejects(actorFromClaims(claims),{code:'CONNECTION_REVOKED'});
     passed=true;throw Error(rollback);
-  },{maxWait:30000,timeout:180000});
+  },{maxWait:30000,timeout:240000});
 }catch(error){if(!(error instanceof Error&&error.message===rollback))throw error;}finally{globalDb.ajDb=db;globalThis.fetch=originalFetch;await db.$disconnect();}
-assert.ok(passed);console.log('MCP_SMOKE_VERIFIED: OAuth PKCE, human consent, scoped MCP, private projections, reviewed partial edits, idempotency, stale versions, roles, uploads, intake drafts/private sharing, reviewed imports, duplicate races, folders, reports and revocation. All fixtures rolled back.');
+assert.ok(passed);console.log('MCP_SMOKE_VERIFIED: OAuth PKCE, human consent, incremental scope challenges, reauthorization, scoped MCP, private projections, reviewed partial edits, idempotency, stale versions, roles, uploads, intake drafts/private sharing, reviewed imports, duplicate races, folders, reports and revocation. All fixtures rolled back.');
