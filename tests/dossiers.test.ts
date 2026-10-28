@@ -10,6 +10,11 @@ test('el calendario reparte la prima en centavos y el último recibo absorbe el 
   assert.equal(rows.reduce((sum, r) => sum + Math.round(r.amount * 100), 0), 100000);
 });
 
+test('pago único reemplaza cualquier cantidad anterior por un recibo con la prima completa', () => {
+  assert.deepEqual(makeSchedule(11738.52, 12, '2026-09-24', 'ONCE'), [{ amount: 11738.52, dueDate: '2026-09-24' }]);
+  assert.equal(policyInput.safeParse({ ...policy, premium: 11738.52, startDate: '2026-09-24', endDate: '2027-09-24', paymentFrequency: 'ONCE', payments: makeSchedule(11738.52, 12, '2026-09-24', 'ONCE') }).success, true);
+});
+
 test('los vencimientos mensuales respetan el fin de mes sin saltar al mes siguiente', () => {
   assert.deepEqual(makeSchedule(300, 3, '2026-01-31', 'MONTHLY').map(r => r.dueDate), ['2026-01-31', '2026-02-28', '2026-03-31']);
   assert.deepEqual(makeSchedule(200, 2, '2026-03-15', 'SEMIANNUAL').map(r => r.dueDate), ['2026-03-15', '2026-09-15']);

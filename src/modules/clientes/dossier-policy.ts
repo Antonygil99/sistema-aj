@@ -25,6 +25,8 @@ export function clientIssues(input: unknown) {
   return result.success ? [] : [...new Set(result.error.issues.map(issue => clientMessages[String(issue.path[0])] ?? 'Revisa los datos del cliente.'))];
 }
 export function makeSchedule(total: number, count: number, first: string, frequency: keyof typeof frequencies) {
+  // A previous installment count must never produce multiple same-day receipts for a single payment.
+  if (frequency === 'ONCE') count = 1;
   if (!Number.isFinite(total) || total <= 0 || !Number.isInteger(count) || count < 1 || count > 120 || !/^\d{4}-\d{2}-\d{2}$/.test(first)) return [];
   const cents = Math.round(total * 100), months = { ONCE: 0, MONTHLY: 1, QUARTERLY: 3, SEMIANNUAL: 6, ANNUAL: 12 }[frequency];
   const base = new Date(first + 'T00:00:00Z');

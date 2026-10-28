@@ -7,6 +7,9 @@ export type Release = { id: string; date: string; title: string; summary: string
 // Editorial history, backed by the repository's commits. Add new releases here when shipping a feature;
 // do not derive user-facing promises from commit messages or a third-party approval state at runtime.
 export const releases: Release[] = [
+  {id:'2026-10-28-pago-unico',date:'2026-10-28',title:'Un recibo para el pago único',summary:'El calendario del alta se reemplaza solo después de confirmarlo.',changes:[
+    {id:'single-receipt-confirmation',title:'Cambiar a pago único con aviso',body:'Al elegir Pago único, confirma si quieres reemplazar los recibos del borrador por uno con la prima total. Cancelar conserva la periodicidad, fechas e importes anteriores. También se avisa antes de regenerar un calendario editado.',area:'Pagos',kind:'fix',href:'/crm/clientes/nuevo',minRole:'ADMIN',tour:'modulo:nuevo-expediente'},
+  ]},
   {id:'2026-10-28-importaciones',date:'2026-10-28',title:'De una lista al expediente',summary:'Importaciones revisadas y fichas preparadas desde tu chat.',changes:[
     {id:'contact-import-review',title:'Importar prospectos y clientes por lotes',body:'Excel, CSV o filas preparadas por el chat, hasta 500 contactos por revisión. Relaciona columnas, detecta coincidencias, corrige filas y guarda solo los nuevos seleccionados, con reporte privado. No se crean pólizas ni cobros.',area:'Clientes',kind:'feature',href:'/importaciones',tour:'funcion:importaciones',minRole:'ADMIN'},
     {id:'mcp-client-intake',title:'Preparar formularios desde el MCP',body:'Consulta el estado de una ficha y prepara un borrador o enlace por cliente. Confirmas en el CRM; el enlace y código se muestran allí para compartirlos. El asistente respeta al responsable y no obtiene consentimiento en nombre del cliente.',area:'Conexiones',kind:'feature',href:'/conexiones',tour:'funcion:ficha-mcp',minRole:'ADMIN'},
