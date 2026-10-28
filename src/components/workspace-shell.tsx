@@ -1,11 +1,10 @@
 'use client';
-import { GoogleCalendarBrandIcon, WhatsAppBrandIcon } from '@/components/brand-icons';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ArrowRight3, Category, DocumentText, MagicStar, NotificationBing, SidebarLeft, SidebarRight, UserOctagon } from '@/components/icons';
+import { ArrowRight3, SidebarLeft, SidebarRight } from '@/components/icons';
 import { modules, type ModuleSlug } from '@/modules/catalog';
-import { moduleIcons } from './module-icons';
+import { WorkspaceNavigation } from './workspace-navigation';
 import { AccountMenu, type AccountUser } from './account-menu';
 import { ToastProvider } from './ui/toast';
 import { ConfirmProvider } from './ui/confirm';
@@ -51,12 +50,7 @@ function WorkspaceFrame({ children, user }: { children: ReactNode; user: Account
     <a href="#workspace-content" className="workspace-skip">Ir al contenido</a>
     <aside className="workspace-sidebar">
       <div className="sidebar-brand-row"><Link href="/" className="workspace-brand" aria-label="Sistema AJ, inicio"><span className="workspace-mark">aj</span><span className="sidebar-label brand-wordmark">Sistema AJ<small>Tu espacio de trabajo</small></span></Link><button className="sidebar-toggle" aria-label={compact ? 'Ampliar menú' : 'Contraer menú'} aria-expanded={!compact} onClick={() => setCompact(value => !value)}>{compact ? <SidebarRight/> : <SidebarLeft/>}</button></div>
-      <nav aria-label="Navegación principal" className="workspace-nav">
-        <div className="nav-group"><p className="nav-label sidebar-label">Principal</p><Link href="/" aria-current={pathname === '/' ? 'page' : undefined} aria-label="Resumen" data-tooltip="Resumen"><Category aria-hidden="true"/><span className="sidebar-label">Resumen</span></Link><Link href="/agenda" aria-current={pathname === '/agenda' ? 'page' : undefined} aria-label="Mi agenda" data-tooltip="Mi agenda"><GoogleCalendarBrandIcon/><span className="sidebar-label">Mi agenda</span></Link><Link href="/avisos" aria-current={pathname === '/avisos' ? 'page' : undefined} aria-label="Avisos a clientes" data-tooltip="Avisos a clientes"><NotificationBing aria-hidden="true"/><span className="sidebar-label">Avisos a clientes</span></Link><Link href="/whatsapp" aria-current={pathname === '/whatsapp' ? 'page' : undefined} aria-label="WhatsApp" data-tooltip="WhatsApp"><WhatsAppBrandIcon aria-hidden="true"/><span className="sidebar-label">WhatsApp</span></Link>{user.role === 'SUPERADMIN' ? <Link href="/asistentes" aria-current={pathname === '/asistentes' ? 'page' : undefined} aria-label="Asistentes" data-tooltip="Asistentes"><MagicStar aria-hidden="true"/><span className="sidebar-label">Asistentes</span></Link> : null}</div>
-        {groups.map(group => <div className="nav-group" key={group.label}><p className="nav-label sidebar-label">{group.label}</p>{group.slugs.map(slug => { const item = modules.find(module => module.slug === slug)!; const Icon = moduleIcons[slug]; return <Link key={slug} href={`/crm/${slug}`} aria-current={pathname === `/crm/${slug}` ? 'page' : undefined} aria-label={item.label} data-tooltip={item.label}><Icon aria-hidden="true"/><span className="sidebar-label">{item.label}</span></Link>; })}</div>)}
-        {user.role === 'SUPERADMIN' ? <div className="nav-group"><p className="nav-label sidebar-label">Administración</p><Link href="/usuarios" aria-current={pathname === '/usuarios' ? 'page' : undefined} aria-label="Usuarios y accesos" data-tooltip="Usuarios y accesos"><UserOctagon aria-hidden="true"/><span className="sidebar-label">Usuarios y accesos</span></Link><Link href="/logs" aria-current={pathname === '/logs' ? 'page' : undefined} aria-label="Registro de actividad" data-tooltip="Registro de actividad"><DocumentText aria-hidden="true"/><span className="sidebar-label">Registro de actividad</span></Link></div> : null}
-        <div className="nav-group"><p className="nav-label sidebar-label">Descubrir</p><Link href="/conexiones" aria-current={pathname.startsWith("/conexiones") ? "page" : undefined} aria-label="Conexiones" data-tooltip="Conexiones"><MagicStar aria-hidden="true"/><span className="sidebar-label">Conexiones</span></Link><Link href="/novedades" aria-current={pathname === '/novedades' ? 'page' : undefined} aria-label="Novedades" data-tooltip="Novedades"><MagicStar aria-hidden="true"/><span className="sidebar-label">Novedades</span></Link>{user.role!=='USER'?<Link href="/tramites" aria-current={pathname.startsWith('/tramites')?'page':undefined} aria-label="Trámites" data-tooltip="Trámites"><DocumentText aria-hidden="true"/><span className="sidebar-label">Trámites</span></Link>:null}</div>
-      </nav>
+      <WorkspaceNavigation key={pathname} role={user.role}/>
       <div className="sidebar-account"><AccountMenu user={user} roleLabel={roles[user.role]}/></div>
     </aside>
     {/* Outside the main panel so it can sit in the topbar on desktop and beside the brand on phones (CSS places it). */}

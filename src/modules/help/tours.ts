@@ -110,7 +110,7 @@ export const tours: Tour[] = [
     { title: 'Cierra el seguimiento cuando termines', body: 'Puedes marcar una conversación resuelta. Las respuestas automáticas de los agentes son una etapa distinta; esta bandeja mantiene el envío bajo control de una persona.' },
   ] },
   { id: 'componente:navegacion', kind: 'component', title: 'Navegación', summary: 'El menú, sus grupos y cómo ganar espacio.', steps: [
-    { targets: ['.workspace-nav', '.mobile-tabbar'], title: 'Tus módulos', body: 'Los módulos se agrupan en Relaciones, Operación y Organización. El que tienes abierto se marca en verde.' },
+    { targets: ['.workspace-nav', '.mobile-tabbar'], title: 'Lo esencial, a la vista', body: 'La barra lateral reúne los accesos de uso diario. Pulsa los tres puntos de «Más» para abrir seguimiento, herramientas y administración según tu rol. La sección actual queda marcada.' },
     { targets: ['.sidebar-toggle'], title: 'Más espacio', body: 'Contrae el menú para ver solo los íconos; pasa el cursor sobre uno para ver su nombre.' },
     { targets: ['.mobile-tabbar button[aria-haspopup]'], title: 'Más módulos', body: 'En el celular, «Más» abre todos los módulos, el Centro de ayuda y tu cuenta.' },
   ] },

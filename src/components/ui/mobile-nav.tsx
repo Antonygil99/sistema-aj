@@ -3,7 +3,7 @@ import { GoogleCalendarBrandIcon, WhatsAppBrandIcon } from '@/components/brand-i
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Category, Chart, DocumentText, Element3, FolderOpen, MagicStar, MessageQuestion, Moon, NotificationBing, People, Setting2, UserAdd, UserOctagon } from '@/components/icons';
+import { Category, Chart, DocumentText, More, FolderOpen, MagicStar, MessageQuestion, Moon, NotificationBing, People, Setting2, UserAdd, UserOctagon } from '@/components/icons';
 import { modules, type ModuleSlug } from '@/modules/catalog';
 import { moduleIcons } from '../module-icons';
 import { SignOutButton } from '../sign-out-button';
@@ -26,7 +26,7 @@ export function MobileNav({ groups, user }: { groups: { label: string; slugs: Mo
   return <>
     <nav className="mobile-tabbar" aria-label="Navegación móvil">
       {primary.map(item => { const Icon = item.icon; const active = isActive(item.href); return <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className={active ? 'is-active' : ''}><Icon variant={active ? 'Bold' : 'Linear'} aria-hidden="true"/><span>{item.label}</span></Link>; })}
-      <button type="button" className={!inPrimary ? 'is-active' : ''} aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}><Element3 variant={!inPrimary ? 'Bold' : 'Linear'} aria-hidden="true"/><span>Más</span></button>
+      <button type="button" className={!inPrimary ? 'is-active' : ''} aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}><More aria-hidden="true"/><span>Más</span></button>
     </nav>
     <Modal open={open} onClose={() => setOpen(false)} title="Todo tu espacio" description="Módulos, accesos y tu cuenta" size="sm" className="mobile-menu">
       {groups.map(group => <section key={group.label} className="mobile-menu-group"><p className="mobile-menu-label">{group.label}</p><div className="mobile-menu-grid">{group.slugs.map(slug => { const item = modules.find(module => module.slug === slug)!; const Icon = moduleIcons[slug]; return <Link key={slug} href={`/crm/${slug}`} onClick={() => setOpen(false)} aria-current={isActive(`/crm/${slug}`) ? 'page' : undefined}><Icon aria-hidden="true"/><span>{item.label}</span></Link>; })}</div></section>)}

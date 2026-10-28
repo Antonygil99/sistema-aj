@@ -7,6 +7,9 @@ export type Release = { id: string; date: string; title: string; summary: string
 // Editorial history, backed by the repository's commits. Add new releases here when shipping a feature;
 // do not derive user-facing promises from commit messages or a third-party approval state at runtime.
 export const releases: Release[] = [
+  {id:'2026-10-28-navegacion',date:'2026-10-28',title:'Un menú más ligero',summary:'Los accesos de cada día a la vista; el resto, en Más.',changes:[
+    {id:'navigation-overflow',title:'Lo esencial y un botón Más',body:'Resumen, WhatsApp, agenda, prospectos, clientes, pólizas, pagos y documentos quedan visibles. Los demás módulos y accesos se reúnen en un menú de tres puntos con navegación por teclado y permisos por rol.',area:'Interfaz',kind:'improvement',href:'/',tour:'componente:navegacion'},
+  ]},
   {id:'2026-10-28-conexiones',date:'2026-10-28',title:'Sistema AJ desde tu asistente',summary:'Conexiones personales, resultados compactos y propuestas revisadas.',changes:[
     {id:'mcp-personal',title:'Conexión MCP personal',body:'Prepara la conexión de ChatGPT o Claude con tu cuenta Google del CRM. Elige los permisos y revoca el acceso desde Conexiones. Su uso depende de las funciones de tu aplicación y plan.',area:'Conexiones',kind:'feature',href:'/conexiones',tour:'funcion:conexiones'},
     {id:'mcp-proposals',title:'Datos y archivos con revisión',body:'Consulta registros administrativos, propone altas, ediciones y organización de documentos. Las propuestas vencen a los quince minutos y se confirman en el CRM; eliminar exige Superadmin. Los datos médicos y bancarios quedan fuera de la consulta general.',area:'Conexiones',kind:'feature',href:'/conexiones',tour:'funcion:conexiones'},
