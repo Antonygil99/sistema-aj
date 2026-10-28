@@ -21,7 +21,7 @@ async function policyAccess(id:string,actor:Actor){
   return p;
 }
 export async function procedureAccess(id:string,actor:Actor){
-  human(actor);const row=await getDb().insuranceProcedure.findFirst({where:{id,...active,...scope(actor)},include:{policy:{select:{id:true,number:true,insurer:true,product:true,updatedAt:true}},client:{select:{id:true,name:true}},attachments:{where:{active:true},include:{document:{select:{id:true,name:true,archivedAt:true}}}},exports:{select:{id:true,revision:true,createdAt:true}},revisions:{select:{revision:true,status:true,createdAt:true},orderBy:{revision:'desc'},take:30}}});
+  human(actor);const row=await getDb().insuranceProcedure.findFirst({where:{id,...active,...scope(actor)},include:{policy:{select:{id:true,number:true,insurer:true,product:true,startDate:true,endDate:true,updatedAt:true}},client:{select:{id:true,name:true}},attachments:{where:{active:true},include:{document:{select:{id:true,name:true,archivedAt:true}}}},exports:{select:{id:true,revision:true,createdAt:true}},revisions:{select:{revision:true,status:true,createdAt:true},orderBy:{revision:'desc'},take:30}}});
   if(!row)fail('RECORD_NOT_FOUND',404);return row;
 }
 const json=(value:unknown)=>JSON.parse(JSON.stringify(value)) as Prisma.InputJsonObject;
