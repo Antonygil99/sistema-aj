@@ -13,6 +13,7 @@ export function IntakeDiscovery() {
   return <FeatureDiscovery feature="intake"/>;
 }
 const discoveries={
+  insurers:{id:'aseguradoras-productos',tour:'funcion:aseguradoras',title:'Una aseguradora, todos sus productos',body:'Abre una compañía para ver sus productos. Cada producto conserva su ramo y administrador; personaliza el perfil desde los tres puntos.',anchor:'2026-10-29-insurers',art:'insurer-catalog'},
   email:{id:'correos-personales',tour:'funcion:correos',title:'Tus correos, con tu estilo',body:'Crea plantillas, inserta variables como chips y revisa el mensaje con los datos de tu cliente antes de enviarlo.',anchor:'2026-10-29-email',art:'email-templates'},
   drive:{id:'drive-referencias',tour:'funcion:drive',title:'El expediente apunta a Drive',body:'Conecta tu cuenta, explora la carpeta del equipo y vincula referencias sin copiar originales ni cambiar sus permisos.',anchor:'2026-10-29-drive',art:'drive-references'},
   brokers:{id:'brokers-privados',tour:'funcion:brokers',title:'Tu bandeja, tu atención',body:'Solo ves los canales asignados a tu cuenta. Cada broker conserva sus conversaciones y el superadmin prepara la configuración.',anchor:'2026-10-29-brokers',art:'broker-inboxes'},

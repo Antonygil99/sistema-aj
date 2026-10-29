@@ -1,4 +1,5 @@
 import 'server-only';
+import {ensureInsurer} from '@/modules/aseguradoras/server';
 import { getDb } from '@/lib/db';
 import { getR2 } from '@/integrations/r2/server';
 import { isProductImageKey } from '../documentos/file-policy';
@@ -48,6 +49,7 @@ export async function findResource(slug: ResourceSlug, id: string) {
 }
 export async function createResource(slug: ResourceSlug, input: unknown, db = getDb()) {
   const data = applyRules(slug, schemas[slug].parse(input) as Record<string, unknown>);
+  if(slug==='productos')return db.$transaction(async tx=>{if(!data.ownerEmail||!await tx.accessGrant.findFirst({where:{email:String(data.ownerEmail),enabled:true,role:{in:['ADMIN','SUPERADMIN']}}}))throw new ResourceError('PRODUCT_OWNER_INVALID',422);const insurer=await ensureInsurer(tx,String(data.insurer));return delegate(tx,slug).create({data:{...data,insurerId:insurer.id},...withInclude(slug)});});
   if (slug === 'pagos' && data.status === 'PAID') throw new ResourceError('FINANCE_USE_CONFIRMATION',422);
   // A policy from the catalog inherits the product's responsible (Ale for medical, Joel for autos) unless one was chosen.
   if (slug === 'polizas' && data.productId && !data.ownerEmail) {
@@ -60,6 +62,7 @@ export async function createResource(slug: ResourceSlug, input: unknown, db = ge
 export async function updateResource(slug: ResourceSlug, id: string, input: unknown, db = getDb()) {
   const { expectedUpdatedAt, data } = parseUpdate(slug, input);
   return db.$transaction(async tx => {
+    if(slug==='productos'){if(!data.ownerEmail||!await tx.accessGrant.findFirst({where:{email:String(data.ownerEmail),enabled:true,role:{in:['ADMIN','SUPERADMIN']}}}))throw new ResourceError('PRODUCT_OWNER_INVALID',422);data.insurerId=(await ensureInsurer(tx,String(data.insurer))).id;}
     if (slug === 'polizas') {
       const existing = await tx.policy.findUnique({ where: { id }, include: { nextPolicy: { select: { id: true } } } });
       if (existing && (existing.nextPolicy || existing.previousPolicyId)) {

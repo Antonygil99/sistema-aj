@@ -1,4 +1,5 @@
 'use client';
+import {InsurerPicker} from '@/components/ui/insurer-picker';
 import {Select} from '@/components/ui/select';
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
@@ -22,7 +23,7 @@ type Filters = { q: string; status: string; archived: boolean };
 const PAGE = 20;
 const nestedKey = (field: Field) => field.name.replace(/Id$/, '');
 // Generic CRM table: search, filters, active/archived views, create/edit modal, archive/restore, permanent delete.
-export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuery = '', openId, initialView = 'list', toolbarStart }: { slug: ResourceSlug; initial: Page; canEdit: boolean; canDelete: boolean; initialQuery?: string; openId?: string; initialView?: 'list' | 'board'; toolbarStart?: ReactNode }) {
+export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuery = '', openId, initialView = 'list', toolbarStart, insurerId, initialValues={}, editorOnly=false, onDismiss, onSaved }: { slug: ResourceSlug; initial: Page; canEdit: boolean; canDelete: boolean; initialQuery?: string; openId?: string; initialView?: 'list' | 'board'; toolbarStart?: ReactNode;insurerId?:string;initialValues?:Record<string,string>;editorOnly?:boolean;onDismiss?:()=>void;onSaved?:()=>void }) {
   const config = resources[slug];
   // A global-search result arrives with ?open=<id>: start with that record's card open.
   const [initialRow] = useState(() => openId ? initial.data.find(row => row.id === openId) ?? null : null);
@@ -31,23 +32,23 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
   const [draft, setDraft] = useState<Filters>({ q: initialQuery, status: '', archived: false });
   const [applied, setApplied] = useState<Filters>({ q: initialQuery, status: '', archived: false });
   const [loading, setLoading] = useState(false);
-  const [editing, setEditing] = useState<Row | 'new' | null>(initialRow);
-  const [modalOpen, setModalOpen] = useState(Boolean(initialRow));
-  const [values, setValues] = useState<Record<string, string>>(() => rowToForm(config, initialRow));
+  const [editing, setEditing] = useState<Row | 'new' | null>(editorOnly?'new':initialRow);
+  const [modalOpen, setModalOpen] = useState(editorOnly||Boolean(initialRow));
+  const [values, setValues] = useState<Record<string, string>>(() => ({...rowToForm(config,initialRow),...(!initialRow?initialValues:{})}));
   const [labels, setLabels] = useState<Record<string, string>>(() => relationLabels(config.fields, initialRow));
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
   // Errors shown under each field (from local checks or the API's validation issues).
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   // Snapshot of the form when it opened, to warn before discarding unsaved changes.
-  const [snapshot, setSnapshot] = useState(() => JSON.stringify(rowToForm(config, initialRow)));
+  const [snapshot, setSnapshot] = useState(() => JSON.stringify(({...rowToForm(config,initialRow),...(!initialRow?initialValues:{})})));
   const toast = useToast();
   const team = useTeam();
   // Catalog images are chosen in the form and uploaded right after the record is saved.
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [removeImage, setRemoveImage] = useState(false);
   const confirm = useConfirm();
-  const listRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null),savedInEditor=useRef(false);
   const fieldLabels = Object.fromEntries(config.fields.map(field => [field.name, field.label]));
   const [view, setView] = useState<'list' | 'board'>(config.board ? initialView : 'list');
   const { update: updatePreferences } = usePreferences();
@@ -56,12 +57,13 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
     if (!quiet) setLoading(true);
     try {
       const params = new URLSearchParams({ take: String(take), skip: String(nextSkip), q: filters.q, archived: filters.archived ? '1' : '0' });
+      if (insurerId) params.set('insurerId',insurerId);
       if (filters.status) params.set('status', filters.status);
       const result = await apiFetch<Page>(`/api/crm/${slug}?${params}`);
       setPage(result); setSkip(nextSkip); setApplied(filters);
     } catch (error) { if (!quiet) toast({ kind: 'error', title: 'No se pudo actualizar el listado', message: error instanceof Error ? error.message : undefined }); }
     finally { if (!quiet) setLoading(false); }
-  }, [slug, toast]);
+  }, [slug, toast,insurerId]);
   // A teammate changed this module: refresh quietly unless the user is in the middle of editing.
   useEffect(() => {
     const onRemote = (event: Event) => { if ((event as CustomEvent<{ module: string }>).detail.module === slug && !modalOpen) void load(skip, applied, true); };
@@ -77,10 +79,10 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
   function openEditor(row: Row | 'new') {
     setEditing(row); setFormError('');
     const record = row === 'new' ? null : row;
-    setValues(rowToForm(config, record));
+    setValues({...rowToForm(config,record),...(!record?initialValues:{})});
     setLabels(relationLabels(config.fields, record));
     setImageFile(null); setRemoveImage(false); setFieldErrors({});
-    setSnapshot(JSON.stringify(rowToForm(config, record)));
+    setSnapshot(JSON.stringify({...rowToForm(config,record),...(!record?initialValues:{})}));
     setModalOpen(true);
   }
   async function save(event: FormEvent<HTMLFormElement>) {
@@ -103,7 +105,8 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
       }
       setModalOpen(false);
       toast({ kind: 'success', title: `${capitalize(config.singular)} ${modifying ? 'actualizad' : 'registrad'}${config.article === 'una' ? 'a' : 'o'}`, message: config.title({ ...(modifying ? editing : {}), ...body } as Row) || undefined });
-      await load(modifying ? skip : 0, modifying ? applied : { ...applied, archived: false });
+      if(editorOnly)savedInEditor.current=true;else onSaved?.();
+      if(!editorOnly)await load(modifying ? skip : 0, modifying ? applied : { ...applied, archived: false });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'No se pudo guardar.';
       const byField = error instanceof ApiError ? issuesByField(error.issues, config.fields) : {};
@@ -163,7 +166,7 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
     } catch (error) { toast({ kind: 'error', title: 'No se pudo avanzar', message: error instanceof Error ? error.message : undefined }); }
   }
   const statusOf = (row: Row) => typeof row.status === 'string' && config.statuses ? { label: config.statuses[row.status] ?? row.status, tone: config.statusTones?.[row.status] ?? 'neutral' } : null;
-  return <div className="resource">
+  return <div className="resource" hidden={editorOnly}>
     <div className="resource-toolbar">
       {toolbarStart}
       <div className="segmented" role="tablist" aria-label="Vista">
@@ -215,7 +218,7 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
         action={filtered ? <button type="button" className="button button-soft" onClick={() => { const next = { q: '', status: '', archived: applied.archived }; setDraft(next); void load(0, next); }}>Limpiar filtros</button> : canEdit && !applied.archived ? <button type="button" className="button" onClick={() => openEditor('new')}><Add aria-hidden="true"/>Registrar {config.article} {config.singular}</button> : undefined}/>}
     </div>
     {page.total > PAGE && view === 'list' ? <div className="document-pagination"><button type="button" className="text-button" disabled={loading || skip === 0} onClick={() => void load(Math.max(0, skip - PAGE), applied)}>Anterior</button><span>{skip + 1}–{Math.min(skip + PAGE, page.total)} de {page.total}</span><button type="button" className="text-button" disabled={loading || skip + PAGE >= page.total} onClick={() => void load(skip + PAGE, applied)}>Siguiente</button></div> : null}
-    <Modal icon={readOnly?Eye:editingRow?Edit2:Add} open={modalOpen} onClose={() => void requestClose()} busy={saving} size="lg"
+    <Modal onAfterClose={editorOnly?()=>{if(savedInEditor.current)onSaved?.();else onDismiss?.();}:undefined} icon={readOnly?Eye:editingRow?Edit2:Add} open={modalOpen} onClose={() => void requestClose()} busy={saving} size="lg"
       title={editing === 'new' ? `Nuev${config.article === 'una' ? 'a' : 'o'} ${config.singular}` : readOnly ? capitalize(config.singular) : `Editar ${config.singular}`}
       description={editingRow?.archivedAt ? 'Archivado: restáuralo para poder editarlo.' : editingRow ? `Registrado el ${new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium' }).format(new Date(editingRow.createdAt))}` : 'Los campos marcados con * son obligatorios.'}
       footer={<>{editingRow && canEdit ? <button type="button" className="text-button" disabled={saving} onClick={() => void setArchived(editingRow, !editingRow.archivedAt)}>{editingRow.archivedAt ? <><ArrowRotateLeft aria-hidden="true"/>Restaurar</> : <><Archive aria-hidden="true"/>Archivar</>}</button> : null}
@@ -227,7 +230,7 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
       <form id={`form-${slug}`} className="resource-form" onSubmit={save} noValidate={false}>
         {config.guide?.(values.status ?? '') ? <blockquote className="delivery-guide form-guide"><MessageText aria-hidden="true"/><span><small>Mensaje guía · {config.statuses?.[values.status] ?? ''}</small>{config.guide(values.status ?? '')}</span></blockquote> : null}
         {config.fields.filter(field => !field.showWhen || field.showWhen.values.includes(values[field.showWhen.field] ?? '')).flatMap((field, index) => [field.section ? <h3 key={`section-${field.name}`} className="form-section">{field.section}{config.progress ? <span className="delivery-score">{config.progress(values as unknown as Row).done}/{config.progress(values as unknown as Row).total}</span> : null}</h3> : null, <FieldInput key={field.name} field={field} value={values[field.name] ?? ''} label={labels[field.name] ?? ''} disabled={readOnly || saving} autoFocus={index === 0 && !readOnly && field.type !== 'image'}
-          team={team} error={fieldErrors[field.name]} image={field.type === 'image' ? { current: removeImage || !editingRow ? null : config.image?.(editingRow) ?? null, file: imageFile, onFile: file => { setImageFile(file); setRemoveImage(false); }, onRemove: () => { setImageFile(null); setRemoveImage(true); } } : undefined}
+          team={slug==='productos'?team.filter(member=>member.role==='ADMIN'||member.role==='SUPERADMIN'):team} error={fieldErrors[field.name]} image={field.type === 'image' ? { current: removeImage || !editingRow ? null : config.image?.(editingRow) ?? null, file: imageFile, onFile: file => { setImageFile(file); setRemoveImage(false); }, onRemove: () => { setImageFile(null); setRemoveImage(true); } } : undefined}
           onChange={(value, label, related) => { if (fieldErrors[field.name]) setFieldErrors(current => { const next = { ...current }; delete next[field.name]; return next; }); setValues(current => ({ ...current, [field.name]: value, ...(related && config.prefill ? config.prefill(field.name, related, current) : {}) })); if (label !== undefined) setLabels(current => ({ ...current, [field.name]: label })); }}/>])}
         {formError ? <p role="alert" className="form-error">{formError}</p> : null}
       </form>
@@ -252,6 +255,7 @@ function FieldInput({ field, value, label, disabled, autoFocus, onChange, team, 
   let control;
   if (field.type === 'image' && image) return <div className="form-field is-wide"><span className="form-label">{field.label}<span className="optional">Opcional</span></span><ImageField control={image} disabled={disabled}/>{field.hint ? <small className="form-hint">{field.hint}</small> : null}</div>;
   if (field.type === 'relation' && field.relation) control = <RelationPicker relation={field.relation} value={value} initialLabel={label} label={field.label} required={field.required} disabled={disabled} onChange={(id, text, row) => onChange(id, text, row)}/>;
+  else if(field.type==='insurer')control=<InsurerPicker value={value} required={field.required} disabled={disabled} onChange={onChange}/>;
   else if (field.type === 'owner') control = <Select {...common} value={value} onChange={event => onChange(event.target.value)}><option value="">Sin asignar</option>{value && !team.some(member => member.email === value) ? <option value={value}>{value}</option> : null}{team.map(member => <option key={member.email} value={member.email}>{member.name ? `${member.name} · ${member.email}` : member.email}</option>)}</Select>;
   else if (field.type === 'textarea') control = <textarea {...common} value={value} maxLength={field.maxLength} rows={4} onChange={event => onChange(event.target.value)}/>;
   else if (field.type === 'select' || field.type === 'currency') control = <Select {...common} value={value} onChange={event => onChange(event.target.value)}>{!field.required ? <option value="">Sin especificar</option> : null}{Object.entries(field.type === 'currency' ? currencies : field.options ?? {}).filter(([key]) => !field.hiddenOptions?.includes(key) || key === value).map(([key, text]) => <option key={key} value={key}>{text}</option>)}</Select>;

@@ -6,7 +6,7 @@ import { gsap, growFrom, isMobile, prefersReducedMotion, shrinkTo } from './moti
 import { useDrag } from './use-drag';
 type Props = {
   open: boolean; onClose: () => void; title: string; description?: string; children?: ReactNode; footer?: ReactNode;
-  icon?: Icon; size?: 'sm' | 'md' | 'lg'; busy?: boolean; tone?: 'default' | 'danger'; className?: string;
+  onAfterClose?:()=>void; icon?: Icon; size?: 'sm' | 'md' | 'lg'; busy?: boolean; tone?: 'default' | 'danger'; className?: string;
 };
 let scrollLocks=0;
 let originalOverflow='';
@@ -15,7 +15,7 @@ export function lockBodyScroll(){if(scrollLocks++===0){originalOverflow=document
 const focusable = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [contenteditable="true"], [tabindex]:not([tabindex="-1"])';
 export function portalTarget() { return typeof document === 'undefined' ? null : document.getElementById('workspace-portal') ?? document.body; }
 // Dialog on desktop, bottom sheet on phones. It grows out of the control that opened it and returns to it on close.
-export function Modal({ open, onClose, title, description, children, footer, size = 'md', busy = false, tone = 'default', icon:HeaderIcon, className = '' }: Props) {
+export function Modal({ open, onClose, title, description, children, footer, size = 'md', busy = false, tone = 'default', icon:HeaderIcon, onAfterClose, className = '' }: Props) {
   const [rendered, setRendered] = useState(open);
   const panel = useRef<HTMLDivElement>(null);
   const backdrop = useRef<HTMLDivElement>(null);
@@ -23,8 +23,8 @@ export function Modal({ open, onClose, title, description, children, footer, siz
   const origin = useRef<DOMRect | null>(null);
   const sheet = useRef(false);
   const titleId = useId(), descriptionId = useId();
-  const closeRef = useRef(onClose);
-  useEffect(() => { closeRef.current = onClose; });
+  const closeRef = useRef(onClose),afterCloseRef=useRef(onAfterClose);
+  useEffect(() => { closeRef.current = onClose;afterCloseRef.current=onAfterClose; });
   if (open && !rendered) setRendered(true);
   useLayoutEffect(() => {
     if (!open) return;
@@ -45,7 +45,7 @@ export function Modal({ open, onClose, title, description, children, footer, siz
       return lockBodyScroll();
     }
     gsap.to(shade, { opacity: 0, duration: 0.22 });
-    const done = () => { setRendered(false); requestAnimationFrame(()=>{const target=trigger.current;if(target&&document.contains(target)&&!target.closest('[data-modal-open="false"]'))target.focus({preventScroll:true});}); };
+    const done = () => { setRendered(false); requestAnimationFrame(()=>{const target=trigger.current;if(target&&document.contains(target)&&!target.closest('[data-modal-open="false"]'))target.focus({preventScroll:true});afterCloseRef.current?.();}); };
     if (sheet.current && !prefersReducedMotion()) gsap.to(el, { yPercent: 100, y: 0, duration: 0.26, ease: 'power2.in', onComplete: done });
     else { const rect = trigger.current && document.contains(trigger.current) ? trigger.current.getBoundingClientRect() : origin.current; shrinkTo(el, rect).eventCallback('onComplete', done); }
   }, [open, rendered]);

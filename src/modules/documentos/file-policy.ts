@@ -40,6 +40,7 @@ export function validateFile(name: string, type: string, body: Uint8Array) {
 export function isManagedKey(key: string) {
   return /^aj\/documents\/[a-f0-9-]{36}\.(pdf|jpe?g|png|webp|mp3|ogg|wav|mp4)$/.test(key);
 }
+export function isInsurerImageKey(key:string){return /^aj\/insurers\/[a-f0-9-]{36}\.(jpe?g|png|webp)$/.test(key);}
 export const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 export function isProductImageKey(key: string) {
   return /^aj\/products\/[a-f0-9-]{36}\.(jpe?g|png|webp)$/.test(key);

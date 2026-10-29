@@ -1,4 +1,6 @@
 import 'dotenv/config';
+import {createResource,updateResource,listResource} from '../src/modules/resources/server';
+import {PATCH as patchInsurer} from '../src/app/api/insurers/[id]/route';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {PrismaPg} from '@prisma/adapter-pg';
@@ -152,7 +154,29 @@ try{await db.$transaction(async tx=>{
  await assert.rejects(emailOptions(client.id,{kind:'DOCUMENTOS',actor:a,policyId:foreignPolicy.id}),{code:'EMAIL_CONTEXT_INVALID'});
  await assert.rejects(sendClientEmail(a,{...body,requestId:randomUUID(),documentIds:[],message:'Hola {cliente}'}),{code:'EMAIL_VARIABLES_PENDING'});
  await deleteBrokerTemplate(a,t2.id,t2.updatedAt.toISOString());assert.equal(await personalTemplate(a,'BIENVENIDA'),null);
+ {
+ const company='Fixture insurer '+marker;
+ const first=await createResource('productos',{name:'Fixture product A '+marker,insurer:company,line:'AUTO',ownerEmail:a.email});
+ const second=await createResource('productos',{name:'Fixture product B '+marker,insurer:'  '+company.toUpperCase()+'  ',line:'MEDICAL',ownerEmail:j.email});
+ assert.equal(first.insurerId,second.insurerId,'several product lines/admins share one insurer profile');
+ const scoped=await listResource('productos',{insurerId:String(first.insurerId),take:100});assert.equal(scoped.total,2);
+ const otherCompanyProduct=await createResource('productos',{name:String(first.name),insurer:'Other '+company,line:'AUTO',ownerEmail:a.email});assert.notEqual(otherCompanyProduct.insurerId,first.insurerId,'different insurers may offer products with the same name');
+ const linked=await tx.policy.create({data:{number:'CATALOG-'+marker,clientId:client.id,productId:first.id,insurer:company,product:'Fixture',premium:1,startDate:new Date('2026-01-01'),endDate:new Date('2027-01-01')}});
+ const row=await tx.insurer.findUniqueOrThrow({where:{id:String(first.insurerId)}});
+ const profile=(version:string)=>{const f=new FormData();f.set('description','Fixture profile');f.set('expectedUpdatedAt',version);f.set('removeImage','0');return f;};
+ const profileContext={params:Promise.resolve({id:row.id})};
+ assert.equal((await patchInsurer(await request(a,'/api/insurers/'+row.id,{method:'PATCH',body:profile(row.updatedAt.toISOString())}),profileContext)).status,200);
+ assert.equal((await patchInsurer(await request(a,'/api/insurers/'+row.id,{method:'PATCH',body:profile(row.updatedAt.toISOString())}),profileContext)).status,409);
+ assert.equal((await tx.policy.findUniqueOrThrow({where:{id:linked.id}})).productId,first.id,'editing the profile preserves policy links');
+ await tx.accessGrant.update({where:{email:j.email},data:{role:'USER'}});
+ await assert.rejects(createResource('productos',{name:'Denied '+marker,insurer:company,ownerEmail:j.email}),{code:'PRODUCT_OWNER_INVALID'});
+ const currentProfile=await tx.insurer.findUniqueOrThrow({where:{id:row.id}});
+ assert.equal((await patchInsurer(await request(j,'/api/insurers/'+row.id,{method:'PATCH',body:profile(currentProfile.updatedAt.toISOString())}),profileContext)).status,403);
+ await tx.accessGrant.update({where:{email:j.email},data:{role:'ADMIN'}});
+ await updateResource('productos',first.id,{name:String(first.name),insurer:company,line:'LIFE',ownerEmail:j.email,expectedUpdatedAt:(first.updatedAt as Date).toISOString()});
+ assert.equal((await tx.product.findUniqueOrThrow({where:{id:first.id}})).ownerEmail,j.email,'responsible belongs to each product, not its insurer');
+ }
  passed=true;throw Error(rollback);
-},{timeout:120000});}catch(e){if(!(e instanceof Error)||e.message!==rollback)throw e;}finally{state.ajDb=oldDb;globalThis.fetch=oldFetch;keys.forEach((k,i)=>{if(env[i]===undefined)delete process.env[k];else process.env[k]=env[i];});await db.$disconnect();}
+},{timeout:240000});}catch(e){if(!(e instanceof Error)||e.message!==rollback)throw e;}finally{state.ajDb=oldDb;globalThis.fetch=oldFetch;keys.forEach((k,i)=>{if(env[i]===undefined)delete process.env[k];else process.env[k]=env[i];});await db.$disconnect();}
 assert.ok(passed);
 console.log('BROKER_WORKFLOWS_VERIFIED: real SQL + signed human sessions, isolated HTTP lists/counts, foreign thread/reply/close denied, channel administration denied, disabled channels preserve history, renewal evidence/version/financial checks, explicit resource publication and public catalog excludes private links. All fixtures rolled back; no external messages.');

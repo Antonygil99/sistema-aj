@@ -56,6 +56,7 @@ function moduleTour(slug: ModuleSlug): Tour {
     { targets: ['.delivery-board .delivery-card'], title: 'Las cinco señales', body: 'Abre una tarjeta y marca si el cliente la recibió, la entendió, sabe a quién acudir, cuándo avisar y el primer paso en una urgencia.' },
     { targets: ['.resource-toolbar .segmented[aria-label="Responsable"]'], title: 'Solo las tuyas', body: 'Filtra las pólizas a tu cargo. Al marcar la entrega se programan seguimientos a 7, 30 y 90 días en Actividades.' },
   ] };
+  if(slug==='productos')return {...base,title:'Aseguradoras y productos',steps:[intro('El catálogo se organiza por aseguradora. Sus productos conservan un ramo y un administrador responsable.'),{targets:['.insurer-grid'],title:'Abre una aseguradora',body:'Cada tarjeta reúne todos sus productos activos. Abre una para consultar, crear, editar o archivar productos.'},{targets:['.insurer-options'],title:'Personaliza el perfil',body:'Los tres puntos o el clic derecho permiten editar la descripción y la imagen de la aseguradora.'},{targets:['.insurer-catalog .resource-toolbar .button'],title:'Añade un producto',body:'Elige una aseguradora existente o Nueva aseguradora, selecciona el ramo y asigna un administrador. Al guardar se crea también el perfil si aún no existe.'}]};
   if (slug === 'documentos') return { ...base, steps: [
     intro('La biblioteca privada del equipo y de cada expediente, organizada en carpetas.'),
     { targets: ['.drive-breadcrumb'], title: 'Dónde estás', body: 'La ruta de carpetas. Toca cualquier nivel para regresar.' },
@@ -68,6 +69,7 @@ function moduleTour(slug: ModuleSlug): Tour {
   return { ...base, steps: [intro(tips[slug] ?? entry.description), ...tableSteps(slug)] };
 }
 export const tours: Tour[] = [
+  {...moduleTour('productos'),id:'funcion:aseguradoras',kind:'feature',title:'Catálogo por aseguradora',route:'/crm/productos'},
   {id:'funcion:brokers',kind:'feature',title:'Mi bandeja privada',summary:'Canales propios y preparación de la conexión.',route:'/whatsapp',steps:[
     {title:'Tu bandeja pertenece a tu cuenta',body:'Solo aparecen conversaciones de tus canales asignados. Un número pendiente de asociación conserva su historial y no se muestra a otros brokers.',illustration:'brokers'},
     {targets:['.wa-toolbar'],title:'Comprueba el estado',body:'Consultar el número confirma acceso de lectura en Meta. El envío se valida con una respuesta revisada; los números reales esperan su autorización correspondiente.'},

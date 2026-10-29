@@ -10,7 +10,7 @@ export type Field = {
   // Options listed only while they are the current value (e.g. CLIENTE, reachable only through conversion).
   hiddenOptions?: string[]; maxLength?: number; placeholder?: string; hint?: string; wide?: boolean;
   // 'owner' picks a teammate (stored as email); 'image' is uploaded separately after saving the record.
-  type: 'text' | 'textarea' | 'email' | 'tel' | 'money' | 'currency' | 'date' | 'select' | 'relation' | 'owner' | 'image';
+  type: 'text' | 'textarea' | 'email' | 'tel' | 'money' | 'currency' | 'date' | 'select' | 'relation' | 'owner' | 'image' | 'insurer';
   options?: Record<string, string>; relation?: RelationSlug; defaultValue?: string;
   // Only shown (and sent) while another field has one of these values.
   showWhen?: { field: string; values: string[] };
@@ -241,9 +241,9 @@ export const resources: Record<ResourceSlug, ResourceConfig> = {
     fields: [
       { name: 'image', label: 'Imagen', type: 'image', wide: true, hint: 'PNG, JPG o WEBP de hasta 4 MB.' },
       { name: 'name', label: 'Nombre del producto', type: 'text', required: true, maxLength: 250, placeholder: 'Médica Vital' },
-      { name: 'insurer', label: 'Aseguradora', type: 'text', required: true, maxLength: 250 },
+      { name: 'insurer', label: 'Aseguradora', type: 'insurer', required: true, maxLength: 250 },
       { name: 'line', label: 'Ramo', type: 'select', required: true, defaultValue: 'MEDICAL', options: productLineLabels },
-      owner('Responsable por defecto'),
+      {...owner('Administrador responsable'),required:true},
       { name: 'description', label: 'Descripción breve', type: 'textarea', maxLength: 600, wide: true, placeholder: 'Para quién es y qué resuelve.' },
       { name: 'highlights', label: 'Datos básicos del servicio', type: 'textarea', maxLength: 5000, wide: true, hint: 'Un dato por línea: coberturas, red médica, suma asegurada, deducible, contacto de emergencia…' },
     ],

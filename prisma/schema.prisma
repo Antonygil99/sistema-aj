@@ -373,8 +373,10 @@ model DocumentFolder {
 // Product catalog (Médica Vital, autos…): image stored in private R2, responsible by line.
 model Product {
   id          String @id @default(cuid())
-  name        String @unique
+  name        String
   insurer     String
+  insurerId   String?
+  insurerProfile Insurer? @relation(fields: [insurerId], references: [id], onDelete: Restrict)
   line        ProductLine @default(MEDICAL)
   description String?
   highlights  String?
@@ -382,6 +384,8 @@ model Product {
   imageKey    String? @unique
   imageType   String?
   policies    Policy[]
+  @@index([insurerId])
+  @@unique([insurerId, line, name])
   archivedAt  DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -1038,4 +1042,16 @@ model BrokerEmailTemplate {
  updatedAt DateTime @updatedAt
  @@unique([ownerEmail,defaultKind])
  @@index([ownerEmail,name])
+}
+
+model Insurer {
+ id String @id @default(cuid())
+ name String
+ normalizedName String @unique
+ description String?
+ imageKey String? @unique
+ imageType String?
+ products Product[]
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
 }
