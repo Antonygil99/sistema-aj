@@ -9,6 +9,7 @@ export type Release = { id: string; date: string; title: string; summary: string
 export const releases: Release[] = [
   {id:'2026-10-29-ui',date:'2026-10-29',title:'Acciones claras y diálogos del CRM',summary:'Iconos congruentes y una presentación compartida para formularios y confirmaciones.',changes:[
     {id:'action-icons',title:'Cada acción con su icono',body:'Editar utiliza el lápiz, consultar el ojo, crear el signo más y el editor de correo muestra viñetas reales para las listas. Se alinearon acciones de guardado, navegación, cuenta y buscador.',area:'Interfaz',kind:'improvement',href:'/crm/prospectos'},
+    {id:'styled-selects',title:'Desplegables con diseño propio',body:'Los selectores de módulos, filtros y formularios comparten opciones estilizadas, selección visible y estados deshabilitados. Funcionan con teclado y dentro de ventanas en móvil, sin el menú nativo del navegador.',area:'Interfaz',kind:'improvement',href:'/avisos?tab=plantillas'},
     {id:'shared-dialogs',title:'Ventanas más claras',body:'Cabeceras con contexto, campos y botones uniformes, fondo separado y confirmaciones destructivas diferenciadas. En móvil se adaptan a la pantalla; los formularios largos se desplazan conservando sus acciones.',area:'Interfaz',kind:'improvement',href:'/crm/prospectos'},
   ]},
   {id:'2026-10-29-email',date:'2026-10-29',title:'Correos con formato y plantillas personales',summary:'Variables visuales, tiempos por asesor y envío individual revisado.',changes:[

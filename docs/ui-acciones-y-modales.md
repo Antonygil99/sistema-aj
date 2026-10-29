@@ -23,3 +23,7 @@ Conservar Escape, trampa de foco (incluyendo editores contentEditable), bloqueo 
 ## Verificación
 
 Comprobación de tipos y lint; pruebas existentes de temas, iconos, módulos y recorridos. Navegador con componentes reales y API simulada: formulario de prospecto, confirmaciones anidadas, foco seguro, Escape, restauración del foco, desplazamiento en 320/390 px, temas claro/oscuro/gradiente y redactor de correo con vista previa/edición. No se guardaron registros ni se enviaron correos durante estas pruebas de interfaz.
+
+## Desplegables compartidos
+
+Los 42 controles select visibles se sustituyeron por Select de `src/components/ui/select.tsx`, incluidos filtros GET del registro y el formulario de captura externo. El select nativo interno queda oculto únicamente para conservar validación, FormData y eventos React; su menú nunca se muestra. El botón combobox mantiene el nombre accesible, opciones deshabilitadas, valor y requisitos de cada campo. La lista se porta fuera del área desplazable del modal, se coloca según el espacio visible, conserva el tema y permite flechas, Inicio/Fin, escritura por prefijo, Enter, Escape y Tab. Escape cierra primero las opciones. Las pruebas de navegador comprobaron formularios controlados, eventos y FormData, validación, colocación en 320/390 px y los tres temas; sin escrituras al CRM.

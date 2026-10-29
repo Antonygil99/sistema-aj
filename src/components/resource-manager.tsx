@@ -1,4 +1,6 @@
 'use client';
+import {Select} from '@/components/ui/select';
+
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import Link from 'next/link';
 import { TickCircle, Add, Archive, ArrowRight, ArrowRotateLeft, Kanban, Edit2, Eye, MessageText, Refresh2, RowVertical, SearchNormal1, Trash } from '@/components/icons';
@@ -178,7 +180,7 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
     </div>
     <form className="resource-filters" onSubmit={event => { event.preventDefault(); void load(0, { ...draft, q: draft.q.trim() }, false, boardTake); }}>
       <label className="search-field"><SearchNormal1 aria-hidden="true"/><span className="sr-only">Buscar</span><input type="search" value={draft.q} placeholder={config.searchHint} maxLength={100} onChange={event => setDraft({ ...draft, q: event.target.value })}/></label>
-      {config.statuses && !(config.board && view === 'board') ? <label className="sr-label"><span className="sr-only">Estado</span><select value={draft.status} onChange={event => { const next = { ...draft, status: event.target.value }; setDraft(next); void load(0, next); }}><option value="">Todos los estados</option>{Object.entries(config.statuses).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label> : null}
+      {config.statuses && !(config.board && view === 'board') ? <label className="sr-label"><span className="sr-only">Estado</span><Select value={draft.status} onChange={event => { const next = { ...draft, status: event.target.value }; setDraft(next); void load(0, next); }}><option value="">Todos los estados</option>{Object.entries(config.statuses).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</Select></label> : null}
       <button className="button button-soft" disabled={loading}>Buscar</button>
       <button type="button" className="icon-button" aria-label="Actualizar listado" disabled={loading} onClick={() => void load(skip, applied)}><Refresh2 aria-hidden="true" className={loading ? 'is-spinning' : ''}/></button>
     </form>
@@ -250,9 +252,9 @@ function FieldInput({ field, value, label, disabled, autoFocus, onChange, team, 
   let control;
   if (field.type === 'image' && image) return <div className="form-field is-wide"><span className="form-label">{field.label}<span className="optional">Opcional</span></span><ImageField control={image} disabled={disabled}/>{field.hint ? <small className="form-hint">{field.hint}</small> : null}</div>;
   if (field.type === 'relation' && field.relation) control = <RelationPicker relation={field.relation} value={value} initialLabel={label} label={field.label} required={field.required} disabled={disabled} onChange={(id, text, row) => onChange(id, text, row)}/>;
-  else if (field.type === 'owner') control = <select {...common} value={value} onChange={event => onChange(event.target.value)}><option value="">Sin asignar</option>{value && !team.some(member => member.email === value) ? <option value={value}>{value}</option> : null}{team.map(member => <option key={member.email} value={member.email}>{member.name ? `${member.name} · ${member.email}` : member.email}</option>)}</select>;
+  else if (field.type === 'owner') control = <Select {...common} value={value} onChange={event => onChange(event.target.value)}><option value="">Sin asignar</option>{value && !team.some(member => member.email === value) ? <option value={value}>{value}</option> : null}{team.map(member => <option key={member.email} value={member.email}>{member.name ? `${member.name} · ${member.email}` : member.email}</option>)}</Select>;
   else if (field.type === 'textarea') control = <textarea {...common} value={value} maxLength={field.maxLength} rows={4} onChange={event => onChange(event.target.value)}/>;
-  else if (field.type === 'select' || field.type === 'currency') control = <select {...common} value={value} onChange={event => onChange(event.target.value)}>{!field.required ? <option value="">Sin especificar</option> : null}{Object.entries(field.type === 'currency' ? currencies : field.options ?? {}).filter(([key]) => !field.hiddenOptions?.includes(key) || key === value).map(([key, text]) => <option key={key} value={key}>{text}</option>)}</select>;
+  else if (field.type === 'select' || field.type === 'currency') control = <Select {...common} value={value} onChange={event => onChange(event.target.value)}>{!field.required ? <option value="">Sin especificar</option> : null}{Object.entries(field.type === 'currency' ? currencies : field.options ?? {}).filter(([key]) => !field.hiddenOptions?.includes(key) || key === value).map(([key, text]) => <option key={key} value={key}>{text}</option>)}</Select>;
   else control = <input {...common} value={value} maxLength={field.maxLength} placeholder={field.placeholder}
     type={field.type === 'money' ? 'text' : field.type === 'date' ? 'date' : field.type} inputMode={field.type === 'money' ? 'decimal' : undefined}
     autoComplete={field.type === 'email' ? 'email' : field.type === 'tel' ? 'tel' : field.name === 'name' ? 'name' : 'off'} onChange={event => onChange(event.target.value)}/>;

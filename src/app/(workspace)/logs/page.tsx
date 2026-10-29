@@ -1,3 +1,4 @@
+import {Select} from '@/components/ui/select';
 import Link from 'next/link';
 import { requireUser } from '@/lib/session';
 import { auditActions, auditDetail, auditFilters, auditModules, auditRoles } from '@/modules/audit';
@@ -24,9 +25,9 @@ export default async function Logs({ searchParams }: { searchParams: Promise<Sea
     <p>Consulta las acciones del equipo de los últimos tres días, quién las realizó y cuándo. Los registros más antiguos se eliminan automáticamente. Solo el superadmin puede ver este historial.</p>
     <form action="/logs" className="resource-filters audit-filters">
       <label className="search-field"><span>Buscar persona o registro</span><input name="q" defaultValue={filters.q} placeholder="Nombre, correo o registro" maxLength={120}/></label>
-      <label>Acción<select name="action" defaultValue={filters.action ?? ''}><option value="">Todas las acciones</option>{Object.entries(auditActions).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
-      <label>Módulo<select name="module" defaultValue={filters.module ?? ''}><option value="">Todos los módulos</option>{Object.entries(auditModules).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
-      <label>Rol al realizar la acción<select name="role" defaultValue={filters.role ?? ''}><option value="">Todos los roles</option>{Object.entries(auditRoles).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
+      <label>Acción<Select name="action" defaultValue={filters.action ?? ''}><option value="">Todas las acciones</option>{Object.entries(auditActions).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</Select></label>
+      <label>Módulo<Select name="module" defaultValue={filters.module ?? ''}><option value="">Todos los módulos</option>{Object.entries(auditModules).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</Select></label>
+      <label>Rol al realizar la acción<Select name="role" defaultValue={filters.role ?? ''}><option value="">Todos los roles</option>{Object.entries(auditRoles).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</Select></label>
       <label>Desde<input type="date" name="from" defaultValue={filters.from}/></label>
       <label>Hasta<input type="date" name="to" defaultValue={filters.to}/></label>
       <button className="button" type="submit">Filtrar</button><Link href="/logs" className="text-button">Limpiar filtros</Link>

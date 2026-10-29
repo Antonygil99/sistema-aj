@@ -1,4 +1,6 @@
 'use client';
+import {Select} from '@/components/ui/select';
+
 import { useState } from 'react';
 import { Add } from '@/components/icons';
 import { FcGoogle } from 'react-icons/fc';
@@ -47,7 +49,7 @@ export function UserManager({ initial }: { initial: Grant[] }) {
       footer={<><span className="modal-footer-spacer"/><button type="button" className="text-button" disabled={pending} onClick={() => setAdding(false)}>Cancelar</button><button type="submit" form="access-form" className="button" disabled={pending}>Añadir acceso</button></>}>
       <form id="access-form" className="resource-form" onSubmit={async event => { event.preventDefault(); if (await save({ email: email.trim(), role, enabled: true }, 'Acceso añadido')) { setEmail(''); setAdding(false); } }}>
         <div className="form-field is-wide"><label><span className="form-label">Correo de Google</span><input data-autofocus type="email" value={email} onChange={event => setEmail(event.target.value)} required maxLength={254} autoComplete="off"/></label></div>
-        <div className="form-field is-wide"><label><span className="form-label">Rol</span><select value={role} onChange={event => setRole(event.target.value as 'USER' | 'ADMIN')}><option value="USER">Usuario · Consulta y descarga</option><option value="ADMIN">Administrador · Operación del CRM</option></select></label></div>
+        <div className="form-field is-wide"><label><span className="form-label">Rol</span><Select value={role} onChange={event => setRole(event.target.value as 'USER' | 'ADMIN')}><option value="USER">Usuario · Consulta y descarga</option><option value="ADMIN">Administrador · Operación del CRM</option></Select></label></div>
       </form>
     </Modal>
   </>;

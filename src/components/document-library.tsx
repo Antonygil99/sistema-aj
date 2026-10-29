@@ -1,4 +1,6 @@
 'use client';
+import {Select} from '@/components/ui/select';
+
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type DragEvent, type KeyboardEvent, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import dynamic from 'next/dynamic';
@@ -256,8 +258,8 @@ export function DocumentLibrary({ initial, initialTotal, initialFolders, options
     <form className="resource-filters" onSubmit={event => { event.preventDefault(); void load(folderId, 0, query.trim()); }}>
       <label className="search-field"><span className="sr-only">Buscar en esta carpeta</span><input type="search" value={query} placeholder="Buscar en esta carpeta" onChange={event => setQuery(event.target.value)} maxLength={100}/></label>
       <button className="button button-soft" disabled={busy}>Buscar</button>
-      {canUpload && !clientId ? <label><span className="sr-only">Asociar nuevas cargas a</span><select value={attachment} onChange={event => setAttachment(event.target.value)}><option value="">Cargas generales del equipo</option>{options.map(option => <option key={`${option.kind}:${option.id}`} value={`${option.kind}:${option.id}`}>Vincular a: {option.label}</option>)}</select></label> : null}
-      {!clientId ? <label><span className="sr-only">Abrir la biblioteca de un expediente</span><select value="" onChange={event => { if (event.target.value) router.push(`/crm/documentos?clientId=${encodeURIComponent(event.target.value)}`); }}><option value="">Abrir expediente…</option>{options.filter(option => option.kind === 'clientId').map(option => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label> : <Link className="text-button" href="/crm/documentos">Archivos del equipo</Link>}
+      {canUpload && !clientId ? <label><span className="sr-only">Asociar nuevas cargas a</span><Select value={attachment} onChange={event => setAttachment(event.target.value)}><option value="">Cargas generales del equipo</option>{options.map(option => <option key={`${option.kind}:${option.id}`} value={`${option.kind}:${option.id}`}>Vincular a: {option.label}</option>)}</Select></label> : null}
+      {!clientId ? <label><span className="sr-only">Abrir la biblioteca de un expediente</span><Select value="" onChange={event => { if (event.target.value) router.push(`/crm/documentos?clientId=${encodeURIComponent(event.target.value)}`); }}><option value="">Abrir expediente…</option>{options.filter(option => option.kind === 'clientId').map(option => <option key={option.id} value={option.id}>{option.label}</option>)}</Select></label> : <Link className="text-button" href="/crm/documentos">Archivos del equipo</Link>}
     </form>
     <div className="drive-path">
       <nav className="drive-breadcrumb" aria-label="Ruta de carpetas"><button type="button" className="text-button" disabled={busy} onClick={() => void load(null)}>{clientName || 'Mi unidad'}</button>{path.map(folder => <span key={folder.id}><ArrowRight3 aria-hidden="true"/><button type="button" className="text-button" disabled={busy} onClick={() => void load(folder.id)}>{folder.name}</button></span>)}</nav>
@@ -320,7 +322,7 @@ export function DocumentLibrary({ initial, initialTotal, initialFolders, options
     {composerUsed ? <EmailComposer request={composer} senderName={userName} onClose={() => setComposerState(null)}/> : null}
     <Modal open={moving !== null} onClose={() => setMoving(null)} busy={busy} size="sm" title="Mover archivo" description={moving?.name}
       footer={<><span className="modal-footer-spacer"/><button type="button" className="text-button" disabled={busy} onClick={() => setMoving(null)}>Cancelar</button><button type="submit" form="move-form" className="button" disabled={busy}>Mover aquí</button></>}>
-      <form id="move-form" className="resource-form" onSubmit={event => { event.preventDefault(); if (moving) void move(moving, destination || null); }}><div className="form-field is-wide"><label><span className="form-label">Carpeta de destino</span><select data-autofocus value={destination} onChange={event => setDestination(event.target.value)}><option value="">{clientName || 'Mi unidad'} (raíz)</option>{reachableFolders(folders).map(folder => <option value={folder.id} key={folder.id}>{folderPath(folder, folders)}</option>)}</select></label><small className="form-hint">Mover no cambia el expediente al que pertenece el archivo.</small></div></form>
+      <form id="move-form" className="resource-form" onSubmit={event => { event.preventDefault(); if (moving) void move(moving, destination || null); }}><div className="form-field is-wide"><label><span className="form-label">Carpeta de destino</span><Select data-autofocus value={destination} onChange={event => setDestination(event.target.value)}><option value="">{clientName || 'Mi unidad'} (raíz)</option>{reachableFolders(folders).map(folder => <option value={folder.id} key={folder.id}>{folderPath(folder, folders)}</option>)}</Select></label><small className="form-hint">Mover no cambia el expediente al que pertenece el archivo.</small></div></form>
     </Modal>
   </>;
 }
