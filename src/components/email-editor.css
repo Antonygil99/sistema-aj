@@ -36,3 +36,12 @@
 @media(max-width:480px){.rich-email-input{padding:16px;min-height:200px}.email-editor-footer{padding:8px;gap:2px}.email-format-tools{gap:0}.email-format-tools button{width:30px;height:36px;padding:6px}.email-toolbar-divider{margin:0 4px}.email-insert-data{gap:4px;padding:8px 5px;font-size:11px;min-height:36px}.email-insert-data>svg:first-child{display:none}.email-editor-frame.is-subject{padding-right:6px}.email-editor-frame.is-subject .rich-email-input{padding:14px;min-height:0}}
 
 @media(max-width:360px){.email-editor-footer{flex-wrap:wrap}.email-editor-footer>.email-insert-data{margin-left:auto}.email-toolbar-divider{display:none}}
+
+/* Creation is an action, visually distinct from choosing an existing template. */
+.workspace .template-list button.button{display:flex;align-items:center;justify-content:flex-start;gap:10px;min-height:44px;padding:12px 14px;border-radius:12px;border-color:transparent;font-weight:600}
+.workspace .template-list button.button>svg{width:20px;height:20px;flex-shrink:0}
+.workspace .template-list button.button:not(:disabled):hover{background:var(--accent-strong);box-shadow:0 2px 6px #13251b14}
+.workspace .template-list button.button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.workspace .template-list button.button:disabled{opacity:.5;cursor:wait}
+.template-form .wizard-actions .text-button{display:inline-flex;align-items:center;gap:7px}
+.template-form .wizard-actions .text-button svg{width:16px;height:16px;flex-shrink:0}
