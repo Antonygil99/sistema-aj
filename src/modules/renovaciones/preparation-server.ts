@@ -1,18 +1,24 @@
 import 'server-only';
+import {driveEvidenceOptions,verifyDriveEvidence} from '@/modules/drive/server';
 import {getDb} from '@/lib/db';
 import type {Actor} from '@/lib/api';
 import {eventData} from '@/modules/events';
 import {preparationSchema,premiumComparison,canTransitionPreparation} from './preparation';
 import {ResourceError} from '@/modules/resources/rules';
-export async function renewalPreparation(policyId:string){
+export async function renewalPreparation(policyId:string,actor?:Actor,headers?:Headers){
   const db=getDb(),policy=await db.policy.findFirst({where:{id:policyId,archivedAt:null,client:{archivedAt:null}},select:{id:true,number:true,premium:true,currency:true,startDate:true,endDate:true,clientId:true,ownerEmail:true,updatedAt:true}});
   if(!policy)throw new ResourceError('RECORD_NOT_FOUND',404);
   const [draft,documents,history]=await Promise.all([db.renewalPreparation.findUnique({where:{policyId}}),db.document.findMany({where:{archivedAt:null,OR:[{policyId},{clientId:policy.clientId,policyId:null,claimId:null}]},select:{id:true,name:true},take:200,orderBy:{createdAt:'desc'}}),db.crmEvent.findMany({where:{module:'renovaciones',recordId:policyId},select:{id:true,label:true,actorName:true,createdAt:true,details:true},take:30,orderBy:{createdAt:'desc'}})]);
-  return {policy,draft,documents,history};
+  let driveDocuments:Awaited<ReturnType<typeof driveEvidenceOptions>>=[],driveMessage='';
+  if(actor&&headers)try{driveDocuments=await driveEvidenceOptions(policy.clientId,actor,headers);}catch{driveMessage='No se pudieron verificar las referencias de Drive. Puedes continuar con R2 o renovar la conexión de Google.';}
+  return {policy,draft,documents:[...documents,...driveDocuments],history,driveMessage};
 }
-export async function saveRenewalPreparation(policyId:string,input:unknown,actor:Actor){
+export async function saveRenewalPreparation(policyId:string,input:unknown,actor:Actor,headers?:Headers){
   const d=preparationSchema.parse(input),db=getDb();
   if(!actor.id||actor.role==='USER')throw new ResourceError('FORBIDDEN',403);
+  const driveSources=new Map<string,Awaited<ReturnType<typeof verifyDriveEvidence>>>();
+  const sourcePolicy=await db.policy.findFirst({where:{id:policyId,archivedAt:null},select:{clientId:true}});
+  for(const id of [d.oldDocumentId,d.newDocumentId].filter(id=>id.startsWith('drive:'))){if(!headers||!sourcePolicy)throw new ResourceError('FINANCE_EVIDENCE_SCOPE',422);driveSources.set(id,await verifyDriveEvidence(sourcePolicy.clientId,id.slice(6),actor,headers));}
   const result=await db.$transaction(async tx=>{
     await tx.$queryRaw`SELECT id FROM "Policy" WHERE id=${policyId} FOR UPDATE`;
     const policy=await tx.policy.findFirst({where:{id:policyId,archivedAt:null,client:{archivedAt:null}}});
@@ -23,6 +29,8 @@ export async function saveRenewalPreparation(policyId:string,input:unknown,actor
     const existing=await tx.renewalPreparation.findUnique({where:{policyId}});
     if((existing?.updatedAt.toISOString()??null)!==d.expectedUpdatedAt)throw new ResourceError('RECORD_CHANGED',409);
     for(const id of [d.oldDocumentId,d.newDocumentId].filter(Boolean)){
+      if(id.startsWith('drive:')){await tx.$queryRaw`SELECT id FROM "ClientDriveLink" WHERE id=${id.slice(6)} FOR SHARE`;const verified=driveSources.get(id);if(!verified||sourcePolicy?.clientId!==policy.clientId||!await tx.driveConnection.findFirst({where:{userId:actor.id!,enabled:true,folderId:verified.rootFolderId,updatedAt:verified.connectionUpdatedAt}})||!await tx.clientDriveLink.findFirst({where:{id:verified.linkId,clientId:policy.clientId,fileId:verified.fileId,rootFolderId:verified.rootFolderId}}))throw new ResourceError('FINANCE_EVIDENCE_SCOPE',422);continue;}
+
       const doc=await tx.document.findFirst({where:{id,archivedAt:null,OR:[{policyId},{clientId:policy.clientId,policyId:null,claimId:null}]}});
       if(!doc)throw new ResourceError('FINANCE_EVIDENCE_SCOPE',422);
     }

@@ -84,6 +84,7 @@ try{await db.$transaction(async tx=>{
  const foreign=await tx.document.create({data:{name:'Ajeno fixture.pdf',mimeType:'application/pdf',storageKey:'fixture/'+marker+'/foreign.pdf',clientId:other.id}});
  const input={expectedUpdatedAt:null,expectedPolicyUpdatedAt:policy.updatedAt.toISOString(),status:'READY',number:'000-3403/NEXT-'+marker,premium:'12000.00',currency:'MXN',startDate:'2027-01-01',endDate:'2028-01-01',paymentNotes:'Revisar recibos emitidos',summary:'Propuesta de prueba',oldDocumentId:old.id,newDocumentId:next.id,channel:'',communicationNote:'',reviewed:true};
  await assert.rejects(saveRenewalPreparation(policy.id,{...input,newDocumentId:foreign.id},a),{code:'FINANCE_EVIDENCE_SCOPE'});
+ await assert.rejects(saveRenewalPreparation(policy.id,{...input,newDocumentId:'drive:fixture-link'},a),{code:'FINANCE_EVIDENCE_SCOPE'});
  const saved=await saveRenewalPreparation(policy.id,input,a);
  assert.equal(saved.comparison.percent,'20.00');assert.equal(saved.draft.status,'READY');
  await assert.rejects(saveRenewalPreparation(policy.id,input,a),{code:'RECORD_CHANGED'});
