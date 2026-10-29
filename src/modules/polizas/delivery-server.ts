@@ -1,4 +1,6 @@
 import 'server-only';
+import {insurerImageMetadata} from '@/modules/aseguradoras/server';
+import {productImage} from '@/modules/productos/images';
 import { getDb } from '@/lib/db';
 import { ResourceError } from '../resources/rules';
 import { deliveryInput } from './delivery-schema';
@@ -8,12 +10,12 @@ const policySelect = {
   id: true, number: true, product: true, insurer: true, updatedAt: true, ownerEmail: true, deliveredAt: true, referralPotential: true,
   ...Object.fromEntries(checklist.map(item => [item.field, true])),
   client: { select: { id: true, name: true } },
-  catalogProduct: { select: { id: true, name: true, imageType: true, updatedAt: true } },
+  catalogProduct: { select: { id: true, name: true, imageType: true, updatedAt: true,insurerProfile:insurerImageMetadata } },
   activities: { where: { archivedAt: null, kind: { in: followUps.map(item => item.kind) } }, select: { id: true, kind: true, status: true, dueDate: true } },
 } as const;
 type PolicyRow = Record<string, unknown> & {
   id: string; number: string; product: string; insurer: string; updatedAt: Date; ownerEmail: string | null; deliveredAt: Date | null; referralPotential: boolean;
-  client: { id: string; name: string }; catalogProduct: { id: string; name: string; imageType: string | null; updatedAt: Date } | null;
+  client: { id: string; name: string }; catalogProduct: { id: string; name: string; imageType: string | null; updatedAt: Date;insurerProfile?:unknown } | null;
   activities: { id: string; kind: string | null; status: string; dueDate: Date | null }[];
 };
 function toCard(row: PolicyRow): DeliveryCard {
@@ -23,7 +25,7 @@ function toCard(row: PolicyRow): DeliveryCard {
   const product = row.catalogProduct;
   return {
     id: row.id, number: row.number, product: row.product, insurer: row.insurer, updatedAt: row.updatedAt.toISOString(), ownerEmail: row.ownerEmail,
-    client: row.client, catalogProduct: product ? { id: product.id, name: product.name, image: product.imageType ? `/api/products/${encodeURIComponent(product.id)}/image?v=${encodeURIComponent(product.updatedAt.toISOString())}` : null } : null,
+    client: row.client, catalogProduct: product ? { id: product.id, name: product.name, image: productImage(product) } : null,
     deliveredAt: row.deliveredAt?.toISOString() ?? null, referralPotential: row.referralPotential, checks, followUps: items,
     stage: deliveryStage(state, items), completed: isComplete(state), next: nextFollowUp(items),
   };

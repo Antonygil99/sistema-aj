@@ -1,5 +1,5 @@
 import 'server-only';
-import {ensureInsurer} from '@/modules/aseguradoras/server';
+import {preserveCompanyImage,insurerImageMetadata,ensureInsurer} from '@/modules/aseguradoras/server';
 import { getDb } from '@/lib/db';
 import { getR2 } from '@/integrations/r2/server';
 import { isProductImageKey } from '../documentos/file-policy';
@@ -14,7 +14,7 @@ type Delegate = {
   create(args: object): Promise<Stored>; updateMany(args: object): Promise<{ count: number }>; delete(args: object): Promise<Stored>;
 };
 const policyWithClient = { select: { id: true, number: true, client: { select: { id: true, name: true } } } };
-const productSummary = { select: { id: true, name: true, insurer: true, imageType: true, updatedAt: true } };
+const productSummary = { select: { id: true, name: true, insurer: true, imageType: true, updatedAt: true,insurerProfile:insurerImageMetadata } };
 const definitions: Record<ResourceSlug, { model: string; include?: object; omit?: object; orderBy: object[] }> = {
   prospectos: { model: 'prospect', include: { referredBy: { select: { id: true, name: true } }, convertedClient: { select: { id: true, name: true } } }, orderBy: [{ createdAt: 'desc' }] },
   clientes: { model: 'client', orderBy: [{ createdAt: 'desc' }] },
@@ -24,7 +24,7 @@ const definitions: Record<ResourceSlug, { model: string; include?: object; omit?
   renovaciones: { model: 'renewal', include: { policy: policyWithClient }, orderBy: [{ dueDate: 'asc' }] },
   siniestros: { model: 'claim', include: { policy: policyWithClient }, orderBy: [{ occurredAt: 'desc' }] },
   // Bucket keys never reach the browser; imageType tells whether an image exists.
-  productos: { model: 'product', omit: { imageKey: true }, orderBy: [{ name: 'asc' }] },
+  productos: { model: 'product', include:{insurerProfile:insurerImageMetadata}, omit: { imageKey: true }, orderBy: [{ name: 'asc' }] },
   actividades: { model: 'activity', include: { client: { select: { id: true, name: true } }, prospect: { select: { id: true, name: true } }, policy: { select: { id: true, number: true } }, claim: { select: { id: true, reference: true } } }, orderBy: [{ dueDate: { sort: 'asc', nulls: 'last' } }, { createdAt: 'desc' }] },
 };
 function delegate(client: unknown, slug: ResourceSlug) { return (client as Record<string, Delegate>)[definitions[slug].model]; }
@@ -61,6 +61,7 @@ export async function createResource(slug: ResourceSlug, input: unknown, db = ge
 // Optimistic concurrency: the update only applies to the version the user edited.
 export async function updateResource(slug: ResourceSlug, id: string, input: unknown, db = getDb()) {
   const { expectedUpdatedAt, data } = parseUpdate(slug, input);
+  if(slug==='productos'){const product=await db.product.findUnique({where:{id},select:{imageKey:true,insurerId:true,updatedAt:true}});if(product?.imageKey&&product.updatedAt.getTime()===expectedUpdatedAt.getTime())await preserveCompanyImage(db,product.insurerId);}
   return db.$transaction(async tx => {
     if(slug==='productos'){if(!data.ownerEmail||!await tx.accessGrant.findFirst({where:{email:String(data.ownerEmail),enabled:true,role:{in:['ADMIN','SUPERADMIN']}}}))throw new ResourceError('PRODUCT_OWNER_INVALID',422);data.insurerId=(await ensureInsurer(tx,String(data.insurer))).id;}
     if (slug === 'polizas') {
@@ -86,6 +87,7 @@ export async function updateResource(slug: ResourceSlug, id: string, input: unkn
   });
 }
 export async function archiveResource(slug: ResourceSlug, id: string, archived: boolean, db = getDb()) {
+  if(slug==='productos'&&archived){const product=await db.product.findUnique({where:{id},select:{imageKey:true,insurerId:true}});if(product?.imageKey)await preserveCompanyImage(db,product.insurerId);}
   if (slug === 'pagos' && (await db.payment.findUnique({ where: { id }, select: { status:true } }))?.status === 'PAID') throw new ResourceError('FINANCE_PAID_LOCKED',409);
   const result = await delegate(db, slug).updateMany({ where: { id, archivedAt: archived ? null : { not: null }, ...(slug === 'pagos' ? { status: { not: 'PAID' } } : {}) }, data: { archivedAt: archived ? new Date() : null } });
   if (!result.count) {
@@ -99,6 +101,7 @@ export async function deleteResource(slug: ResourceSlug, id: string, db = getDb(
   if (slug === 'pagos' && (await db.payment.findUnique({ where: { id }, select: { status:true } }))?.status === 'PAID') throw new ResourceError('FINANCE_PAID_LOCKED',409);
   // A deleted catalog product takes its stored image with it (after the row is gone).
   const image = slug === 'productos' ? (await db.product.findUnique({ where: { id }, select: { imageKey: true } }))?.imageKey : null;
+  if(slug==='productos'&&image){const product=await db.product.findUnique({where:{id},select:{insurerId:true}});if(product)await preserveCompanyImage(db,product.insurerId);}
   try {
     const record = await db.$transaction(async tx => {
       if (slug === 'pagos') {

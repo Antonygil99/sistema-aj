@@ -1,10 +1,11 @@
 'use client';
+import {productCompanyImage} from '@/modules/productos/images';
 import {InsurerPicker} from '@/components/ui/insurer-picker';
 import {Select} from '@/components/ui/select';
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import Link from 'next/link';
-import { TickCircle, Add, Archive, ArrowRight, ArrowRotateLeft, Kanban, Edit2, Eye, MessageText, Refresh2, RowVertical, SearchNormal1, Trash } from '@/components/icons';
+import { TickCircle, Add, Archive, ArrowRight, ArrowRotateLeft, Kanban, DocumentUpload, Edit2, Eye, MessageText, Refresh2, RowVertical, SearchNormal1, Trash } from '@/components/icons';
 import { currencies, formToBody, resources, rowToForm, type Field, type ResourceSlug, type Row, type Tone } from '@/modules/resources/config';
 import { apiFetch, ApiError } from './ui/client-api';
 import { useConfirm } from './ui/confirm';
@@ -66,7 +67,7 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
   }, [slug, toast,insurerId]);
   // A teammate changed this module: refresh quietly unless the user is in the middle of editing.
   useEffect(() => {
-    const onRemote = (event: Event) => { if ((event as CustomEvent<{ module: string }>).detail.module === slug && !modalOpen) void load(skip, applied, true); };
+    const onRemote = (event: Event) => { if (((event as CustomEvent<{ module: string }>).detail.module === slug||(slug==='productos'&&(event as CustomEvent<{module:string}>).detail.module==='aseguradoras')) && !modalOpen) void load(skip, applied, true); };
     window.addEventListener('aj:remote-change', onRemote);
     return () => window.removeEventListener('aj:remote-change', onRemote);
   }, [slug, modalOpen, load, skip, applied]);
@@ -230,7 +231,7 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
       <form id={`form-${slug}`} className="resource-form" onSubmit={save} noValidate={false}>
         {config.guide?.(values.status ?? '') ? <blockquote className="delivery-guide form-guide"><MessageText aria-hidden="true"/><span><small>Mensaje guía · {config.statuses?.[values.status] ?? ''}</small>{config.guide(values.status ?? '')}</span></blockquote> : null}
         {config.fields.filter(field => !field.showWhen || field.showWhen.values.includes(values[field.showWhen.field] ?? '')).flatMap((field, index) => [field.section ? <h3 key={`section-${field.name}`} className="form-section">{field.section}{config.progress ? <span className="delivery-score">{config.progress(values as unknown as Row).done}/{config.progress(values as unknown as Row).total}</span> : null}</h3> : null, <FieldInput key={field.name} field={field} value={values[field.name] ?? ''} label={labels[field.name] ?? ''} disabled={readOnly || saving} autoFocus={index === 0 && !readOnly && field.type !== 'image'}
-          team={slug==='productos'?team.filter(member=>member.role==='ADMIN'||member.role==='SUPERADMIN'):team} error={fieldErrors[field.name]} image={field.type === 'image' ? { current: removeImage || !editingRow ? null : config.image?.(editingRow) ?? null, file: imageFile, onFile: file => { setImageFile(file); setRemoveImage(false); }, onRemove: () => { setImageFile(null); setRemoveImage(true); } } : undefined}
+          team={slug==='productos'?team.filter(member=>member.role==='ADMIN'||member.role==='SUPERADMIN'):team} error={fieldErrors[field.name]} image={field.type === 'image' ? { current: !editingRow?null:removeImage?productCompanyImage(editingRow):config.image?.(editingRow)??null, inherited:!!productCompanyImage(editingRow)&&(removeImage||!editingRow?.imageType),hasOwnImage:!!editingRow?.imageType&&!removeImage,file: imageFile, onFile: file => { setImageFile(file); setRemoveImage(false); }, onRemove: () => { setImageFile(null); setRemoveImage(true); } } : undefined}
           onChange={(value, label, related) => { if (fieldErrors[field.name]) setFieldErrors(current => { const next = { ...current }; delete next[field.name]; return next; }); setValues(current => ({ ...current, [field.name]: value, ...(related && config.prefill ? config.prefill(field.name, related, current) : {}) })); if (label !== undefined) setLabels(current => ({ ...current, [field.name]: label })); }}/>])}
         {formError ? <p role="alert" className="form-error">{formError}</p> : null}
       </form>
@@ -247,7 +248,7 @@ function labelFor(field: Field, nested: Row) {
 }
 function capitalize(text: string) { return text.charAt(0).toUpperCase() + text.slice(1); }
 function StatusPill({ label, tone }: { label: string; tone: Tone }) { return <span className={`status-pill tone-${tone}`}>{label}</span>; }
-type ImageControl = { current: string | null; file: File | null; onFile: (file: File) => void; onRemove: () => void };
+type ImageControl = { inherited?:boolean;hasOwnImage?:boolean;current: string | null; file: File | null; onFile: (file: File) => void; onRemove: () => void };
 function FieldInput({ field, value, label, disabled, autoFocus, onChange, team, image, error }: { field: Field; value: string; label: string; disabled: boolean; autoFocus: boolean; onChange: (value: string, label?: string, related?: Row) => void; team: Teammate[]; image?: ImageControl; error?: string }) {
   const title = <>{field.label}{field.required ? <span aria-hidden="true"> *</span> : <span className="optional">Opcional</span>}</>;
   const describedBy = [error ? `${field.name}-error` : '', field.hint ? `${field.name}-hint` : ''].filter(Boolean).join(' ') || undefined;
@@ -314,8 +315,8 @@ function ImageField({ control, disabled }: { control: ImageControl; disabled: bo
     </div>
     <div className="image-field-actions">
       <input ref={input} type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" tabIndex={-1} disabled={disabled} onChange={event => { const file = event.target.files?.[0]; if (file) control.onFile(file); event.target.value = ''; }}/>
-      <button type="button" className="button button-soft" disabled={disabled} onClick={() => input.current?.click()}>{shown ? 'Cambiar imagen' : 'Elegir imagen'}</button>
-      {shown ? <button type="button" className="text-button is-danger" disabled={disabled} onClick={control.onRemove}>Quitar</button> : null}
+      <button type="button" className="button button-soft" disabled={disabled} onClick={() => input.current?.click()}><DocumentUpload aria-hidden="true"/>{shown ? control.inherited&&!control.file?'Personalizar imagen':'Cambiar imagen' : 'Elegir imagen'}</button>
+      {control.file||control.hasOwnImage?<button type="button" className="text-button" disabled={disabled} onClick={control.onRemove}><ArrowRotateLeft aria-hidden="true"/>Usar imagen de la aseguradora</button>:null}<small className="form-hint">{control.inherited&&!control.file?'Imagen heredada de la aseguradora.':control.file||control.hasOwnImage?'Imagen propia de este producto.':'Se usará la imagen de la aseguradora cuando esté disponible.'}</small>
     </div>
   </div>;
 }

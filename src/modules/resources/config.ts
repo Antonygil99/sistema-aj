@@ -1,3 +1,4 @@
+import {productImage} from '../productos/images';
 import { diagnosisProgress, diagnosisQuestions, prospectStages, stageLabels, stageMessage } from '../prospectos/pipeline';
 // Shared, serializable-free description of each CRM table: used by the API (search, nullable fields)
 // and by the browser (columns, forms, labels). Keep it free of server imports.
@@ -253,7 +254,7 @@ export const resources: Record<ResourceSlug, ResourceConfig> = {
     ],
     title: row => text(row.name), nullable: ['description', 'highlights', 'ownerEmail'],
     imageUpload: id => `/api/products/${encodeURIComponent(id)}/image`,
-    image: row => row.imageType ? `/api/products/${encodeURIComponent(row.id)}/image?v=${encodeURIComponent(row.updatedAt)}` : null,
+    image: productImage,
   },
 };
 for (const config of Object.values(resources)) {

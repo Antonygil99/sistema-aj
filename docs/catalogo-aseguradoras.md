@@ -16,3 +16,9 @@ La migración complementaria `20261029235930_product_company_names` permite nomb
 ## Reutilización de imágenes existentes
 
 Cuando el perfil no tiene imagen propia y useProductImage está activo (valor inicial), la tarjeta y el editor muestran la imagen válida del producto activo más recientemente actualizado de esa misma compañía. El endpoint continúa autenticado y genera un enlace temporal; no se exponen claves del bucket. Los archivos de productos permanecen intactos y no se copian ni se borran. Una imagen subida al perfil tiene prioridad. Quitar la imagen desactiva la reutilización, para que no reaparezca al guardar. La migración `20261030000000_insurer_product_images` añade solo este indicador. Comprobado con SQL en transacción revertida: prioridad, selección por compañía, exclusión de archivados, eliminación explícita y ausencia de claves privadas en el catálogo.
+
+## Imagen predeterminada de productos
+
+Los productos sin imagen propia heredan la imagen efectiva de su aseguradora. Una imagen individual tiene prioridad y se puede volver al valor por defecto desde «Usar imagen de la aseguradora». La disponibilidad se incluye como metadatos seguros en catálogo, consulta individual y entregas. Las URL heredadas cambian de versión cuando cambia la compañía.
+
+El resolutor consulta objetos almacenados directamente y evita redirecciones recíprocas entre compañía y producto. Antes de alterar una imagen individual que sirva como logo histórico, el servidor conserva una copia independiente en la compañía; cambiar, reasignar, archivar o eliminar ese producto no elimina el logo compartido. Si una compañía todavía no tiene logo, la nueva personalización de un producto no se adopta como logo para los demás. Estas copias se validan, se guardan con claves diferentes y usan actualización por versión para respetar un cambio concurrente del perfil. No requieren una migración adicional ni reemplazan imágenes individuales existentes.
