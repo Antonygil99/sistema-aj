@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import Link from 'next/link';
-import { Add, Archive, ArrowRight, ArrowRotateLeft, Category, Edit2, Eye, MessageText, Refresh2, RowVertical, SearchNormal1, Trash } from '@/components/icons';
+import { TickCircle, Add, Archive, ArrowRight, ArrowRotateLeft, Kanban, Edit2, Eye, MessageText, Refresh2, RowVertical, SearchNormal1, Trash } from '@/components/icons';
 import { currencies, formToBody, resources, rowToForm, type Field, type ResourceSlug, type Row, type Tone } from '@/modules/resources/config';
 import { apiFetch, ApiError } from './ui/client-api';
 import { useConfirm } from './ui/confirm';
@@ -169,7 +169,7 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
         <button type="button" role="tab" aria-selected={applied.archived} disabled={loading} onClick={() => { const next = { ...draft, archived: true }; setDraft(next); void load(0, next); }}>Archivados</button>
       </div>
       {config.board && !applied.archived ? <div className="segmented" role="group" aria-label="Forma de ver">
-        <button type="button" aria-pressed={view === 'board'} onClick={() => { chooseView('board'); const next = { ...draft, status: '' }; setDraft(next); void load(0, next, false, 100); }}><Category aria-hidden="true"/>Embudo</button>
+        <button type="button" aria-pressed={view === 'board'} onClick={() => { chooseView('board'); const next = { ...draft, status: '' }; setDraft(next); void load(0, next, false, 100); }}><Kanban aria-hidden="true"/>Embudo</button>
         <button type="button" aria-pressed={view === 'list'} onClick={() => { chooseView('list'); void load(0, applied); }}><RowVertical aria-hidden="true"/>Lista</button>
       </div> : null}
       <span className="resource-count">{page.total} {page.total === 1 ? config.singular : config.plural}</span>
@@ -213,7 +213,7 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
         action={filtered ? <button type="button" className="button button-soft" onClick={() => { const next = { q: '', status: '', archived: applied.archived }; setDraft(next); void load(0, next); }}>Limpiar filtros</button> : canEdit && !applied.archived ? <button type="button" className="button" onClick={() => openEditor('new')}><Add aria-hidden="true"/>Registrar {config.article} {config.singular}</button> : undefined}/>}
     </div>
     {page.total > PAGE && view === 'list' ? <div className="document-pagination"><button type="button" className="text-button" disabled={loading || skip === 0} onClick={() => void load(Math.max(0, skip - PAGE), applied)}>Anterior</button><span>{skip + 1}–{Math.min(skip + PAGE, page.total)} de {page.total}</span><button type="button" className="text-button" disabled={loading || skip + PAGE >= page.total} onClick={() => void load(skip + PAGE, applied)}>Siguiente</button></div> : null}
-    <Modal open={modalOpen} onClose={() => void requestClose()} busy={saving} size="lg"
+    <Modal icon={readOnly?Eye:editingRow?Edit2:Add} open={modalOpen} onClose={() => void requestClose()} busy={saving} size="lg"
       title={editing === 'new' ? `Nuev${config.article === 'una' ? 'a' : 'o'} ${config.singular}` : readOnly ? capitalize(config.singular) : `Editar ${config.singular}`}
       description={editingRow?.archivedAt ? 'Archivado: restáuralo para poder editarlo.' : editingRow ? `Registrado el ${new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium' }).format(new Date(editingRow.createdAt))}` : 'Los campos marcados con * son obligatorios.'}
       footer={<>{editingRow && canEdit ? <button type="button" className="text-button" disabled={saving} onClick={() => void setArchived(editingRow, !editingRow.archivedAt)}>{editingRow.archivedAt ? <><ArrowRotateLeft aria-hidden="true"/>Restaurar</> : <><Archive aria-hidden="true"/>Archivar</>}</button> : null}
@@ -221,7 +221,7 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
         {editingRow && config.modalLinks ? config.modalLinks(editingRow).map(link => <Link key={link.href} className={link.primary ? 'button button-soft' : 'text-button'} href={link.href}>{link.label}</Link>) : null}
         <span className="modal-footer-spacer"/>
         <button type="button" className="text-button" disabled={saving} onClick={() => void requestClose()}>{readOnly ? 'Cerrar' : 'Cancelar'}</button>
-        {!readOnly ? <button type="submit" form={`form-${slug}`} className="button" disabled={saving}>{saving ? 'Guardando…' : 'Guardar'}</button> : null}</>}>
+        {!readOnly ? <button type="submit" form={`form-${slug}`} className="button" disabled={saving}><TickCircle aria-hidden="true"/>{saving ? 'Guardando…' : 'Guardar'}</button> : null}</>}>
       <form id={`form-${slug}`} className="resource-form" onSubmit={save} noValidate={false}>
         {config.guide?.(values.status ?? '') ? <blockquote className="delivery-guide form-guide"><MessageText aria-hidden="true"/><span><small>Mensaje guía · {config.statuses?.[values.status] ?? ''}</small>{config.guide(values.status ?? '')}</span></blockquote> : null}
         {config.fields.filter(field => !field.showWhen || field.showWhen.values.includes(values[field.showWhen.field] ?? '')).flatMap((field, index) => [field.section ? <h3 key={`section-${field.name}`} className="form-section">{field.section}{config.progress ? <span className="delivery-score">{config.progress(values as unknown as Row).done}/{config.progress(values as unknown as Row).total}</span> : null}</h3> : null, <FieldInput key={field.name} field={field} value={values[field.name] ?? ''} label={labels[field.name] ?? ''} disabled={readOnly || saving} autoFocus={index === 0 && !readOnly && field.type !== 'image'}

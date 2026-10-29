@@ -2,11 +2,11 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { Card, CloseCircle, Clock, DocumentText, DocumentUpload, Folder2, FolderAdd, Refresh2, SearchNormal1, Send2, UserOctagon } from '@/components/icons';
+import { Card, CloseCircle, Clock, DocumentText, DocumentUpload, Folder2, FolderAdd, Refresh2, SearchNormal1, UserOctagon } from '@/components/icons';
 import { groupResults, kindLabels, type SearchKind, type SearchResult } from '@/modules/search';
 import { moduleIcons } from '../module-icons';
 import { apiFetch } from './client-api';
-import { portalTarget } from './modal';
+import { lockBodyScroll, portalTarget } from './modal';
 import { gsap, prefersReducedMotion } from './motion';
 type Role = 'USER' | 'ADMIN' | 'SUPERADMIN';
 type Item = { key: string; title: string; subtitle: string; href: string; download?: boolean; kind: SearchKind | 'accion' | 'reciente'; tag: string; icon: ReactNode };
@@ -69,14 +69,12 @@ function SearchPalette({ role, open, onClose, onClosed }: { role: Role; open: bo
       if (prefersReducedMotion()) gsap.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.15 });
       else gsap.fromTo(el, { opacity: 0, y: -18, scale: 0.98 }, { opacity: 1, y: 0, scale: 1, duration: 0.42, ease: 'expo.out', clearProps: 'transform' });
       requestAnimationFrame(() => input.current?.focus({ preventScroll: true }));
-      const previous = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => { document.body.style.overflow = previous; };
+      return lockBodyScroll();
     }
     gsap.to(shade, { opacity: 0, duration: 0.18 });
     gsap.to(el, { opacity: 0, y: -10, scale: 0.98, duration: 0.18, ease: 'power2.in', onComplete: onClosed });
   }, [open, onClosed]);
-  // Search icon turns into "send" while typing (the reference component's icon swap).
+  // The search glyph stays the same while typing; only its entrance motion changes.
   useLayoutEffect(() => {
     if (iconBox.current && !prefersReducedMotion()) gsap.fromTo(iconBox.current.firstElementChild, { y: -14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.2 });
   }, [typing]);
@@ -139,7 +137,7 @@ function SearchPalette({ role, open, onClose, onClosed }: { role: Role; open: bo
       <div className="search-input">
         <input ref={input} id={`${listId}-input`} type="text" role="combobox" aria-expanded="true" aria-controls={listId} aria-autocomplete="list" aria-activedescendant={flat[active] ? `${listId}-${active}` : undefined}
           value={query} maxLength={100} autoComplete="off" spellCheck={false} placeholder="¿Qué buscas? Clientes, pólizas, archivos, recibos…" onChange={event => { setQuery(event.target.value); setActive(0); }}/>
-        <span ref={iconBox} className="search-input-icon" aria-hidden="true">{typing ? <Send2 key="send"/> : <SearchNormal1 key="search"/>}</span>
+        <span ref={iconBox} className="search-input-icon" aria-hidden="true"><SearchNormal1/></span>
       </div>
       <div ref={list} id={listId} role="listbox" aria-label="Resultados" className="search-results" aria-busy={loading}>
         {groups.map(group => <div key={group.label} role="group" aria-label={group.label}><p className="search-group-label">{group.label}</p>

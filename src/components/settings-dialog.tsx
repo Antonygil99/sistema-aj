@@ -1,7 +1,7 @@
 'use client';
 import {RenewalAlertSettings} from './renewal-alert-settings';
 import { useEffect, useId, type ReactNode } from 'react';
-import { Colorfilter, Monitor, Moon, Sun1 } from '@/components/icons';
+import { Setting2, Colorfilter, Monitor, Moon, Sun1 } from '@/components/icons';
 import { assistantModels, providerLabels, type NotificationSettings, type Theme } from '@/modules/preferences';
 import { Modal } from './ui/modal';
 import { usePreferences } from './ui/preferences';
@@ -52,7 +52,7 @@ export function SettingsDialog({ open, section, onClose, role = 'USER' }: { open
     return () => window.clearTimeout(timer);
   }, [open, section]);
   const views = Object.entries(preferences.views).map(([key, value]) => viewLabels[key]?.[value as string]).filter(Boolean);
-  return <Modal open={open} onClose={onClose} title="Preferencias" description="Ajusta el sistema a tu manera. Se guardan en tu cuenta y te siguen en cualquier dispositivo." size="md" className="settings-dialog">
+  return <Modal icon={Setting2} open={open} onClose={onClose} title="Preferencias" description="Ajusta el sistema a tu manera. Se guardan en tu cuenta y te siguen en cualquier dispositivo." size="md" className="settings-dialog">
     <Section id="apariencia" title="Apariencia">
       <fieldset className="theme-picker"><legend className="sr-only">Tema</legend>
         {themes.map(({ value, label, Icon }) => <label key={value} className="theme-option">

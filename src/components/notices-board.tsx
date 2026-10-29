@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CallCalling, CloseCircle, Send2, TickCircle, Warning2 } from '@/components/icons';
+import { CloseCircle, Send2, TickCircle, Warning2 } from '@/components/icons';
 import { noticeChannels, noticeKindLabels, type NoticeChannel, type NoticeKind, type NoticeView } from '@/modules/email/notices';
 import type { TemplateKind } from '@/modules/email/template-text';
 import type { ComposerRequest } from './email-composer';
@@ -78,7 +78,7 @@ export function NoticesBoard({ pending, resolved, scope, initialTab, canAct, tem
         {!notice.client.reachable ? <p className="notice-warning"><Warning2 aria-hidden="true"/>Sin correo registrado. {notice.client.phone ? <a href={`tel:${notice.client.phone}`}>Llamar al {notice.client.phone}</a> : <Link href={`/crm/clientes/${notice.client.id}#contactos`}>Agrega un correo o contacto</Link>}</p> : null}
         {canAct ? <div className="notice-actions">
           <button type="button" className="button" disabled={!notice.client.reachable || busy} onClick={() => sendEmail(notice)}><Send2 aria-hidden="true"/>Enviar correo</button>
-          <button type="button" className="button button-soft" disabled={busy} onClick={() => { setChannel('TELEFONO'); setNote(''); setNotifying(notice); }}><CallCalling aria-hidden="true"/>Ya le avisé</button>
+          <button type="button" className="button button-soft" disabled={busy} onClick={() => { setChannel('TELEFONO'); setNote(''); setNotifying(notice); }}><TickCircle aria-hidden="true"/>Ya le avisé</button>
           <button type="button" className="text-button" disabled={busy} onClick={() => void act(notice, { action: 'dismissed' })}><CloseCircle aria-hidden="true"/>Descartar</button>
         </div> : null}
       </li>)}</ul> : <EmptyState compact illustration="renovaciones" title={visible.length ? 'Nada de este tipo por ahora' : 'Todo al día'} message={visible.length ? 'Prueba con otro tipo de aviso.' : scope === 'mine' ? 'No hay avisos pendientes a tu cargo. Revisa «Todo el equipo» para ver los de los demás.' : 'No hay renovaciones, recibos ni siniestros que avisar hoy.'}/>}
@@ -87,7 +87,7 @@ export function NoticesBoard({ pending, resolved, scope, initialTab, canAct, tem
       </li>)}</ul></details> : null}
     </>}
     <Modal open={notifying !== null} onClose={() => setNotifying(null)} busy={busy} size="sm" title="Registrar aviso" description={notifying ? `${notifying.client.name} · ${noticeKindLabels[notifying.kind]}` : undefined}
-      footer={<><span className="modal-footer-spacer"/><button type="button" className="text-button" disabled={busy} onClick={() => setNotifying(null)}>Cancelar</button><button type="submit" form="notice-form" className="button" disabled={busy}>Guardar</button></>}>
+      footer={<><span className="modal-footer-spacer"/><button type="button" className="text-button" disabled={busy} onClick={() => setNotifying(null)}>Cancelar</button><button type="submit" form="notice-form" className="button" disabled={busy}><TickCircle aria-hidden="true"/>Guardar</button></>}>
       <form id="notice-form" className="resource-form" onSubmit={event => { event.preventDefault(); if (notifying) void act(notifying, { action: 'notified', channel, note: note.trim() || undefined }); }}>
         <fieldset className="form-field is-wide notice-channels"><legend className="form-label">¿Cómo le avisaste?</legend>
           {otherChannels.map(item => <label key={item} className="email-check"><input type="radio" name="notice-channel" checked={channel === item} data-autofocus={item === 'TELEFONO' || undefined} onChange={() => setChannel(item)}/><span>{noticeChannels[item]}</span></label>)}

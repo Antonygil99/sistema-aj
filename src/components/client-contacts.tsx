@@ -1,6 +1,6 @@
 'use client';
 import { useRef, useState } from 'react';
-import { Call, Edit2, Profile2User, Sms, Trash, UserAdd } from '@/components/icons';
+import { TickCircle, Call, Edit2, Profile2User, Sms, Trash, UserAdd } from '@/components/icons';
 import { ApiError, apiFetch } from './ui/client-api';
 import { useConfirm } from './ui/confirm';
 import { Modal } from './ui/modal';
@@ -69,7 +69,7 @@ export function ClientContacts({ clientId, initial, canEdit }: { clientId: strin
       {canEdit ? <div className="row-actions"><button type="button" className="icon-button" aria-label={`Editar ${contact.name}`} onClick={() => open(contact)}><Edit2 aria-hidden="true"/></button><button type="button" className="icon-button is-danger" aria-label={`Quitar ${contact.name}`} onClick={() => void remove(contact)}><Trash aria-hidden="true"/></button></div> : null}
     </li>)}</ul> : <p className="form-hint">Sin contactos adicionales.</p>}
     <Modal open={editing !== null} onClose={() => void close()} busy={busy} size="sm" title={editing === 'new' ? 'Nuevo contacto' : 'Editar contacto'} description="Registra al menos un correo o un teléfono."
-      footer={<><span className="modal-footer-spacer"/><button type="button" className="text-button" disabled={busy} onClick={() => void close()}>Cancelar</button><button type="submit" form="contact-form" className="button" disabled={busy || !draft.name.trim()}>Guardar</button></>}>
+      footer={<><span className="modal-footer-spacer"/><button type="button" className="text-button" disabled={busy} onClick={() => void close()}>Cancelar</button><button type="submit" form="contact-form" className="button" disabled={busy || !draft.name.trim()}><TickCircle aria-hidden="true"/>Guardar</button></>}>
       <form id="contact-form" ref={formRef} className="resource-form" onSubmit={event => { event.preventDefault(); void save(); }}>
         {field('name', 'text', { required: true, maxLength: 120, autoComplete: 'name' })}
         {field('role', 'text', { maxLength: 60, placeholder: 'RH, esposa, contador…' })}

@@ -22,7 +22,7 @@ export function DashboardOverview({ m, owner, me: viewer, teammates, showAssista
   const funnelMax = Math.max(1, ...m.funnel.map(stage => stage.count));
   const scope = owner === me ? 'Tus números' : owner ? `Números de ${teammates.find(item => item.email === owner)?.name ?? owner}` : 'Todo el equipo';
   return <div className="overview">
-    <section className="overview-heading"><div><div className="eyebrow">ESPACIO DE TRABAJO</div><h1>Un buen día para avanzar<span className="heading-dot">.</span></h1><p>Tu equipo, tus relaciones y cada siguiente paso.</p></div><Link className="button" href="/crm/prospectos"><Add aria-hidden="true"/>Ir a prospectos</Link></section>
+    <section className="overview-heading"><div><div className="eyebrow">ESPACIO DE TRABAJO</div><h1>Un buen día para avanzar<span className="heading-dot">.</span></h1><p>Tu equipo, tus relaciones y cada siguiente paso.</p></div><Link className="button" href="/crm/prospectos"><ArrowRight aria-hidden="true"/>Ir a prospectos</Link></section>
     <div className="overview-section-label"><h2>Tu operación en {m.period.label}</h2>
       <nav className="segmented" aria-label="Ver números de">
         <Link href="/?owner=all" aria-current={owner === null ? 'page' : undefined}>Todo el equipo</Link>

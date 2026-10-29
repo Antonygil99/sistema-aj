@@ -1,4 +1,6 @@
 'use client';
+import {Link2} from '@/components/icons';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from './ui/client-api';
@@ -25,7 +27,7 @@ export function ClientIntakePanel({clientId}:{clientId:string}){
     {error?<p className="notice" role="alert">{error}</p>:null}{notice?<p role="status">{notice}</p>:null}{busy&&!data?<p role="status">Consultando ficha…</p>:null}
     {loaded&&data?<><p><strong>{data.intake?stateLabels[data.intake.status]:'Sin ficha capturada'}</strong>{data.intake?` · Versión ${revision}`:''}</p><div className="wizard-actions">
       <button type="button" className="button" data-tour="intake-manual" disabled={busy} onClick={()=>setEditing(v=>!v)}>{editing?'Cerrar captura':answers?'Revisar o editar respuestas':'Capturar datos manualmente'}</button>
-      <button type="button" className="text-button" data-tour="intake-link" disabled={busy} onClick={()=>void run(async()=>{setShare(await apiFetch(endpoint+'/link',{method:'POST'}));await load();setNotice('Se creó un enlace nuevo. Los enlaces anteriores dejaron de funcionar.');})}>{data.intake?.linkActive?'Renovar enlace externo':'Crear enlace externo'}</button>
+      <button type="button" className="text-button" data-tour="intake-link" disabled={busy} onClick={()=>void run(async()=>{setShare(await apiFetch(endpoint+'/link',{method:'POST'}));await load();setNotice('Se creó un enlace nuevo. Los enlaces anteriores dejaron de funcionar.');})}><Link2 aria-hidden="true"/>{data.intake?.linkActive?'Renovar enlace externo':'Crear enlace externo'}</button>
       {data.intake?.linkActive?<button type="button" className="text-button" data-tour="intake-revoke" disabled={busy} onClick={()=>void run(async()=>{await apiFetch(endpoint+'/link',{method:'DELETE'});setShare(null);await load();setNotice('Acceso externo revocado. Las respuestas se conservan en el CRM.');})}>Revocar enlace</button>:null}
       <button type="button" className="text-button" data-tour="intake-refresh" disabled={busy} onClick={()=>void run(async()=>{await load();})}>Actualizar respuestas</button>
     </div>

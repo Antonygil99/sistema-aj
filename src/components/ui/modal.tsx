@@ -1,17 +1,21 @@
 'use client';
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { CloseCircle } from '@/components/icons';
+import { CloseCircle, type Icon } from '@/components/icons';
 import { gsap, growFrom, isMobile, prefersReducedMotion, shrinkTo } from './motion';
 import { useDrag } from './use-drag';
 type Props = {
   open: boolean; onClose: () => void; title: string; description?: string; children?: ReactNode; footer?: ReactNode;
-  size?: 'sm' | 'md' | 'lg'; busy?: boolean; tone?: 'default' | 'danger'; className?: string;
+  icon?: Icon; size?: 'sm' | 'md' | 'lg'; busy?: boolean; tone?: 'default' | 'danger'; className?: string;
 };
-const focusable = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+let scrollLocks=0;
+let originalOverflow='';
+// A stacked confirmation must not unlock its parent, nor leave the page locked when both close.
+export function lockBodyScroll(){if(scrollLocks++===0){originalOverflow=document.body.style.overflow;document.body.style.overflow='hidden';}let released=false;return()=>{if(released)return;released=true;if(--scrollLocks===0)document.body.style.overflow=originalOverflow;};}
+const focusable = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [contenteditable="true"], [tabindex]:not([tabindex="-1"])';
 export function portalTarget() { return typeof document === 'undefined' ? null : document.getElementById('workspace-portal') ?? document.body; }
 // Dialog on desktop, bottom sheet on phones. It grows out of the control that opened it and returns to it on close.
-export function Modal({ open, onClose, title, description, children, footer, size = 'md', busy = false, tone = 'default', className = '' }: Props) {
+export function Modal({ open, onClose, title, description, children, footer, size = 'md', busy = false, tone = 'default', icon:HeaderIcon, className = '' }: Props) {
   const [rendered, setRendered] = useState(open);
   const panel = useRef<HTMLDivElement>(null);
   const backdrop = useRef<HTMLDivElement>(null);
@@ -38,12 +42,10 @@ export function Modal({ open, onClose, title, description, children, footer, siz
       else growFrom(el, origin.current);
       const first = el.querySelector<HTMLElement>('[data-autofocus]') ?? el.querySelector<HTMLElement>(focusable);
       requestAnimationFrame(() => (first ?? el).focus({ preventScroll: true }));
-      const previous = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => { document.body.style.overflow = previous; };
+      return lockBodyScroll();
     }
     gsap.to(shade, { opacity: 0, duration: 0.22 });
-    const done = () => { setRendered(false); const target = trigger.current; if (target && document.contains(target)) target.focus({ preventScroll: true }); };
+    const done = () => { setRendered(false); requestAnimationFrame(()=>{const target=trigger.current;if(target&&document.contains(target)&&!target.closest('[data-modal-open="false"]'))target.focus({preventScroll:true});}); };
     if (sheet.current && !prefersReducedMotion()) gsap.to(el, { yPercent: 100, y: 0, duration: 0.26, ease: 'power2.in', onComplete: done });
     else { const rect = trigger.current && document.contains(trigger.current) ? trigger.current.getBoundingClientRect() : origin.current; shrinkTo(el, rect).eventCallback('onComplete', done); }
   }, [open, rendered]);
@@ -77,9 +79,9 @@ export function Modal({ open, onClose, title, description, children, footer, siz
   if (!rendered || !target) return null;
   return createPortal(<div className="modal-root">
     <div ref={backdrop} className="modal-backdrop" onClick={() => { if (!busy) onClose(); }}/>
-    <div ref={panel} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined} tabIndex={-1} className={`modal-panel modal-${size} modal-tone-${tone} ${className}`}>
+    <div ref={panel} data-modal-open={open} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined} tabIndex={-1} className={`modal-panel modal-${size} modal-tone-${tone} ${className}`}>
       <div className="modal-grip" {...drag}><span aria-hidden="true"/></div>
-      <header className="modal-header" {...drag}><div><h2 id={titleId}>{title}</h2>{description ? <p id={descriptionId}>{description}</p> : null}</div><button type="button" className="modal-close" aria-label="Cerrar" disabled={busy} onClick={onClose}><CloseCircle aria-hidden="true"/></button></header>
+      <header className="modal-header" {...drag}><div className="modal-heading">{HeaderIcon?<span className="modal-heading-icon" aria-hidden="true"><HeaderIcon/></span>:null}<div className="modal-heading-text"><h2 id={titleId}>{title}</h2>{description ? <p id={descriptionId}>{description}</p> : null}</div></div><button type="button" className="modal-close" aria-label="Cerrar" disabled={busy} onClick={onClose}><CloseCircle aria-hidden="true"/></button></header>
       {children ? <div className="modal-body">{children}</div> : null}
       {footer ? <footer className="modal-footer">{footer}</footer> : null}
     </div>

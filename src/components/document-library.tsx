@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Add, Archive, ArrowRight3, ArrowRotateLeft, Category, DocumentDownload, DocumentText, DocumentUpload, Edit2, Folder2, FolderOpen, More, RowVertical, Send2, Trash } from '@/components/icons';
+import { TickCircle, Add, Archive, ArrowRight3, ArrowRotateLeft, Category, DocumentDownload, DocumentText, DocumentUpload, Edit2, Folder2, FolderOpen, More, RowVertical, Send2, Trash } from '@/components/icons';
 import {DocumentDelivery} from './document-delivery';
 import type { ComposerRequest } from './email-composer';
 import { folderColorOf, folderColors, folderPath, reachableFolders, type FolderColor } from '@/modules/documentos/folder-view';
@@ -305,7 +305,7 @@ export function DocumentLibrary({ initial, initialTotal, initialFolders, options
       </>}
     </div>, portal) : null}
     <Modal open={folderModal !== null} onClose={() => setFolderModal(null)} busy={busy} size="sm" title={folderModal === 'new' ? 'Nueva carpeta' : 'Renombrar carpeta'} description={folderModal === 'new' ? `Dentro de ${currentLabel}` : folderModal?.name}
-      footer={<><span className="modal-footer-spacer"/><button type="button" className="text-button" disabled={busy} onClick={() => setFolderModal(null)}>Cancelar</button><button type="submit" form="folder-form" className="button" disabled={busy || !folderName.trim()}>Guardar</button></>}>
+      footer={<><span className="modal-footer-spacer"/><button type="button" className="text-button" disabled={busy} onClick={() => setFolderModal(null)}>Cancelar</button><button type="submit" form="folder-form" className="button" disabled={busy || !folderName.trim()}><TickCircle aria-hidden="true"/>Guardar</button></>}>
       <form id="folder-form" className="resource-form" onSubmit={event => { event.preventDefault(); void saveFolder(); }}><div className="form-field is-wide"><label><span className="form-label">Nombre de la carpeta</span><input data-autofocus value={folderName} required maxLength={100} onChange={event => setFolderName(event.target.value)}/></label></div></form>
     </Modal>
     <Modal open={archivedOpen} onClose={() => setArchivedOpen(false)} size="sm" title="Carpetas archivadas" description={`En ${clientName ? `el expediente de ${clientName}` : 'Archivos del equipo'}. Al restaurarlas vuelven con todo su contenido.`}

@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Calendar, Danger, MessageText, TickCircle } from '@/components/icons';
+import { Add, Calendar, Danger, MessageText, TickCircle } from '@/components/icons';
 import { checklist, completedChecks, followUpSchedule, followUps, stages, type ChecklistField, type DeliveryCard, type FollowUpKind } from '@/modules/polizas/delivery';
 import { formatDate } from '@/modules/resources/config';
 import { apiFetch, ApiError } from './ui/client-api';
@@ -94,11 +94,11 @@ export function DeliveryBoard({ initial, canEdit, me, initialOwner, openId }: { 
         <span className="delivery-card-meta">{card.next ? <span className={card.next.overdue ? 'is-late' : ''}>{card.next.overdue ? <Danger aria-hidden="true"/> : <Calendar aria-hidden="true"/>}{card.next.label.replace('Seguimiento de uso · ', 'Seguimiento ')} · {shortDate(card.next.dueDate)}</span> : card.deliveredAt ? <span><TickCircle aria-hidden="true"/>Entregada el {shortDate(card.deliveredAt)}</span> : <span>Sin entregar</span>}</span>
       </button>)}{!items.length ? <p className="delivery-empty">Sin pólizas aquí</p> : null}</div>
     </section>; })}</div>
-    : <EmptyState illustration="polizas" title={owner ? 'Sin pólizas activas para este responsable' : 'Aún no hay pólizas activas'} message={owner ? 'Cambia el filtro para ver las del resto del equipo.' : 'Cuando registres una póliza, aparecerá aquí lista para su entrega activa.'} action={owner ? <button type="button" className="button button-soft" onClick={() => setOwner(null)}>Ver todas</button> : <Link className="button" href="/crm/clientes/nuevo">Nuevo expediente</Link>}/>}
+    : <EmptyState illustration="polizas" title={owner ? 'Sin pólizas activas para este responsable' : 'Aún no hay pólizas activas'} message={owner ? 'Cambia el filtro para ver las del resto del equipo.' : 'Cuando registres una póliza, aparecerá aquí lista para su entrega activa.'} action={owner ? <button type="button" className="button button-soft" onClick={() => setOwner(null)}>Ver todas</button> : <Link className="button" href="/crm/clientes/nuevo"><Add aria-hidden="true"/>Nuevo expediente</Link>}/>}
     <Modal open={open} onClose={() => void requestClose()} busy={saving} size="lg" className="delivery-modal"
       title={selected ? `Entrega activa · ${selected.number}` : 'Entrega activa'}
       description={selected ? `${selected.client.name} · ${selected.catalogProduct?.name ?? selected.product} · Responsable: ${teammateLabel(team, selected.ownerEmail)}` : undefined}
-      footer={<>{selected ? <Link className="text-button" href={`/crm/clientes/${encodeURIComponent(selected.client.id)}`}>Ver expediente</Link> : null}<span className="modal-footer-spacer"/><button type="button" className="text-button" disabled={saving} onClick={() => void requestClose()}>{canEdit ? 'Cancelar' : 'Cerrar'}</button>{canEdit ? <button type="button" className="button" disabled={saving} onClick={() => void save()}>{saving ? 'Guardando…' : 'Guardar'}</button> : null}</>}>
+      footer={<>{selected ? <Link className="text-button" href={`/crm/clientes/${encodeURIComponent(selected.client.id)}`}>Ver expediente</Link> : null}<span className="modal-footer-spacer"/><button type="button" className="text-button" disabled={saving} onClick={() => void requestClose()}>{canEdit ? 'Cancelar' : 'Cerrar'}</button>{canEdit ? <button type="button" className="button" disabled={saving} onClick={() => void save()}><TickCircle aria-hidden="true"/>{saving ? 'Guardando…' : 'Guardar'}</button> : null}</>}>
       {selected && draft && stage ? <div className="delivery-form">
         <blockquote className="delivery-guide"><MessageText aria-hidden="true"/><span><small>Mensaje guía · {stage.label}</small>{stage.message}</span></blockquote>
         <section><h3>1. Entrega</h3>

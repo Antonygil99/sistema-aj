@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { DocumentText, Eye, Send2 } from '@/components/icons';
+import { DocumentText, Edit2, Eye, Send2, Sms } from '@/components/icons';
 import { MAX_ATTACHMENTS, type Recipient } from '@/modules/email/rules';
 import { clientEmail, type ClientEmailKind } from '@/modules/email/templates';
 import {RichEmailEditor} from './rich-email-editor';
@@ -101,10 +101,10 @@ export function EmailComposer({ request, senderName, onClose, onSent }: { reques
       toast({ kind: 'error', title: 'No se envió el correo', message: error instanceof Error ? error.message : undefined });
     } finally { setBusy(false); }
   }
-  return <Modal open={request !== null} onClose={() => void close()} busy={busy} size="lg" className="email-composer" title={titles[kind]}
+  return <Modal icon={Sms} open={request !== null} onClose={() => void close()} busy={busy} size="lg" className="email-composer" title={titles[kind]}
     description={options ? `${options.client.name} · las respuestas te llegarán a ti` : request?.clientName}
     footer={<>
-      <button type="button" className="text-button" onClick={() => setPreview(value => !value)} disabled={!options} aria-pressed={preview}><Eye aria-hidden="true"/>{preview ? 'Editar' : 'Vista previa'}</button>
+      <button type="button" className="text-button" onClick={() => setPreview(value => !value)} disabled={!options} aria-pressed={preview}>{preview?<Edit2 aria-hidden="true"/>:<Eye aria-hidden="true"/>}{preview ? 'Editar' : 'Vista previa'}</button>
       <span className="modal-footer-spacer"/>
       <button type="button" className="text-button" disabled={busy} onClick={() => void close()}>Cancelar</button>
       <button type="submit" form="email-composer-form" className="button" disabled={busy || loading || !options || !options.configured}><Send2 aria-hidden="true"/>{busy ? 'Enviando…' : 'Enviar'}</button>

@@ -7,6 +7,10 @@ export type Release = { id: string; date: string; title: string; summary: string
 // Editorial history, backed by the repository's commits. Add new releases here when shipping a feature;
 // do not derive user-facing promises from commit messages or a third-party approval state at runtime.
 export const releases: Release[] = [
+  {id:'2026-10-29-ui',date:'2026-10-29',title:'Acciones claras y diálogos del CRM',summary:'Iconos congruentes y una presentación compartida para formularios y confirmaciones.',changes:[
+    {id:'action-icons',title:'Cada acción con su icono',body:'Editar utiliza el lápiz, consultar el ojo, crear el signo más y el editor de correo muestra viñetas reales para las listas. Se alinearon acciones de guardado, navegación, cuenta y buscador.',area:'Interfaz',kind:'improvement',href:'/crm/prospectos'},
+    {id:'shared-dialogs',title:'Ventanas más claras',body:'Cabeceras con contexto, campos y botones uniformes, fondo separado y confirmaciones destructivas diferenciadas. En móvil se adaptan a la pantalla; los formularios largos se desplazan conservando sus acciones.',area:'Interfaz',kind:'improvement',href:'/crm/prospectos'},
+  ]},
   {id:'2026-10-29-email',date:'2026-10-29',title:'Correos con formato y plantillas personales',summary:'Variables visuales, tiempos por asesor y envío individual revisado.',changes:[
     {id:'email-catalog',title:'Mis plantillas, con variables en chips',body:'Crea plantillas propias o parte de los textos sugeridos. Elige una predeterminada por tipo y utiliza formato, listas y enlaces HTTPS. Las ediciones simultáneas se comprueban antes de guardar.',area:'Correos',kind:'feature',href:'/avisos?tab=plantillas',tour:'funcion:correos',minRole:'ADMIN'},
     {id:'email-editor-clean',title:'Un editor más limpio',body:'Los datos se insertan desde un menú, con etiquetas discretas dentro del texto. La barra inferior reúne el formato con iconos y las opciones secundarias quedan en los tres puntos.',area:'Correos',kind:'improvement',href:'/avisos?tab=plantillas',tour:'funcion:correos',minRole:'ADMIN'},

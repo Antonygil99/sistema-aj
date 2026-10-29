@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useId,useLayoutEffect,useRef,useState} from 'react';
-import {Add,ArrowDown2,Eraser,Link2,More,TextBold,TextItalic,TextalignLeft} from '@/components/icons';
+import {Add,ArrowDown2,Eraser,Link2,More,TextBold,TextItalic} from '@/components/icons';
+import {BulletListIcon} from './action-icons';
 import {renderRichText,safeEmailLink} from '@/modules/email/rich-text';
 import {placeholderLabels,type Placeholder} from '@/modules/email/template-text';
 import './email-editor.css';
@@ -48,7 +49,7 @@ export function RichEmailEditor({value,onChange,label,variables=[],disabled=fals
      <button type="button" aria-label="Negrita" title="Negrita" aria-pressed={format.bold} disabled={disabled} onMouseDown={e=>e.preventDefault()} onClick={()=>command('bold')}><TextBold aria-hidden="true"/></button>
      <button type="button" aria-label="Cursiva" title="Cursiva" aria-pressed={format.italic} disabled={disabled} onMouseDown={e=>e.preventDefault()} onClick={()=>command('italic')}><TextItalic aria-hidden="true"/></button>
      <span className="email-toolbar-divider"/>
-     <button type="button" aria-label="Lista" title="Lista" aria-pressed={format.list} disabled={disabled} onMouseDown={e=>e.preventDefault()} onClick={()=>command('insertUnorderedList')}><TextalignLeft aria-hidden="true"/></button>
+     <button type="button" aria-label="Lista" title="Lista" aria-pressed={format.list} disabled={disabled} onMouseDown={e=>e.preventDefault()} onClick={()=>command('insertUnorderedList')}><BulletListIcon aria-hidden="true"/></button>
      <button type="button" aria-label="Enlace" title="Insertar enlace" disabled={disabled} aria-expanded={panel==='link'} onMouseDown={e=>e.preventDefault()} onClick={e=>open('link',e.currentTarget)}><Link2 aria-hidden="true"/></button>
      <button type="button" aria-label="Más formato" title="Más formato" disabled={disabled} aria-expanded={panel==='more'} onMouseDown={e=>e.preventDefault()} onClick={e=>open('more',e.currentTarget)}><More aria-hidden="true"/></button>
     </div>{insert}
