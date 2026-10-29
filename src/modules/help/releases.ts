@@ -9,6 +9,7 @@ export type Release = { id: string; date: string; title: string; summary: string
 export const releases: Release[] = [
   {id:'2026-10-29-delivery',date:'2026-10-29',title:'Entregas revisadas y comparación técnica',summary:'Clasificación de adjuntos y datos técnicos de renovación bajo revisión humana.',changes:[
     {id:'reviewed-delivery',title:'Revisar antes de entregar',body:'Clasifica carátulas y recibos de cada póliza antes de adjuntarlos. El envío exige verificar identidad y autorización de los destinatarios; los demás archivos quedan internos.',area:'Documentos',kind:'improvement',href:'/crm/documentos',minRole:'ADMIN'},
+    {id:'renewal-follow-up',title:'Renovación con próxima tarea',body:'Registra solicitud, propuesta recibida, revisión, comunicación y seguimiento. Reprograma una sola actividad del responsable y consulta el historial. Registrar la nueva vigencia cierra el seguimiento sin alterar recibos históricos.',area:'Renovaciones',kind:'improvement',href:'/crm/polizas',tour:'funcion:renovacion-preparada',minRole:'ADMIN'},
     {id:'technical-renewal',title:'Comparativo con condiciones técnicas',body:'Añade deducible, coaseguro, suma asegurada y cambios relevantes, con referencia a los documentos. Los datos pendientes no se deducen del precio.',area:'Renovaciones',kind:'improvement',href:'/crm/polizas',tour:'funcion:renovacion-preparada',minRole:'ADMIN'},
   ]},
   {id:'2026-10-29-brokers',date:'2026-10-29',title:'Atención propia y preparación de renovaciones',summary:'Canales privados, captura revisada y recursos para el equipo.',changes:[

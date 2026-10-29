@@ -1,7 +1,7 @@
 import 'server-only';
 import { getDb } from '@/lib/db';
 import { ResourceError } from '@/modules/resources/rules';
-import { recordEvent } from '@/modules/events';
+import { recordEvent, eventData } from '@/modules/events';
 import type { Actor } from '@/lib/api';
 import { confirmationInput, policyDay, renewalInput, scheduleInput, scheduleIssues } from './finance';
 import { mexicoDay } from '@/modules/email/notices';
@@ -66,6 +66,13 @@ export async function renewPolicy(id: string, input: unknown, actor: Actor) {
     const pending = await tx.renewal.findMany({ where: { policyId: id, archivedAt: null, status: { in: ['PENDING','CONTACTED'] } }, select: { id: true } });
     if (pending.length) await tx.renewal.updateMany({ where: { id: { in: pending.map(row => row.id) } }, data: { status: 'RENEWED' } });
     else await tx.renewal.create({ data: { policyId: id, dueDate, status: 'RENEWED', notes: 'Nueva vigencia vinculada desde el expediente.' } });
+    const preparation=await tx.renewalPreparation.findUnique({where:{policyId:id}});
+    if(preparation){
+      const oldData=preparation.data&&typeof preparation.data==='object'&&!Array.isArray(preparation.data)?preparation.data as Prisma.InputJsonObject:{};
+      await tx.renewalPreparation.update({where:{policyId:id},data:{status:'RENEWED',updatedBy:actor.id??'integration',data:{...oldData,status:'RENEWED'}}});
+      await tx.crmEvent.create({data:eventData(actor,'updated','renovaciones',id,'Nueva vigencia registrada',{from:preparation.status,to:'RENEWED',nextPolicyId:next.id})});
+    }
+    await tx.activity.updateMany({where:{policyId:id,kind:'RENOVACION_'+id,archivedAt:null},data:{status:'DONE'}});
     return next;
   });
   await recordEvent(actor,'created','renovaciones',renewed.id,'Nueva vigencia conservando el historial',{previousPolicyId:id});

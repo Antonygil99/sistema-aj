@@ -5,6 +5,8 @@ export class ApiError extends Error {
   constructor(public readonly code: string, public readonly status: number, message: string, public readonly issues: Issue[] = []) { super(message); }
 }
 export const errorMessages: Record<string, string> = {
+  RENEWAL_STAGE_INVALID:'Guarda primero la etapa anterior o reabre la preparación para revisarla.',
+  RENEWAL_REVIEW_REQUIRED:'Cambió el contenido revisado. Guarda como Por preparar y revisa de nuevo antes de comunicar.',
   DOCUMENT_DELIVERY_SCOPE:'Solo se autoriza la entrega de carátulas o recibos vinculados directamente a una póliza del expediente.',
   EMAIL_IDENTITY_REQUIRED:'Confirma identidad y autorización del destinatario antes de entregar documentos.',
   INVALID_CHANNEL_OWNER:'El responsable debe tener una cuenta administradora activa.',
