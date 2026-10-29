@@ -3,7 +3,7 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Category, DocumentText, MagicStar, More, NotificationBing, UserOctagon, type Icon } from '@/components/icons';
+import { Book1, Category, DocumentFilter, Link2, MagicStar, More, Note, NotificationBing, TaskSquare, UserOctagon, type Icon } from '@/components/icons';
 import { GoogleCalendarBrandIcon, WhatsAppBrandIcon } from './brand-icons';
 import { moduleIcons } from './module-icons';
 import { portalTarget } from './ui/modal';
@@ -27,19 +27,19 @@ const secondary: { label: string; items: Destination[] }[] = [
     { href: '/crm/renovaciones', label: 'Renovaciones', icon: moduleIcons.renovaciones },
     { href: '/crm/siniestros', label: 'Siniestros', icon: moduleIcons.siniestros },
     { href: '/crm/actividades', label: 'Actividades', icon: moduleIcons.actividades },
-    { href: '/tramites', label: 'Trámites', icon: DocumentText, minimum: 'ADMIN' },
+    { href: '/tramites', label: 'Trámites', icon: TaskSquare, minimum: 'ADMIN' },
     { href: '/avisos', label: 'Avisos a clientes', icon: NotificationBing },
   ] },
   { label: 'Herramientas', items: [
-    { href: '/recursos', label: 'Recursos', icon: DocumentText },
+    { href: '/recursos', label: 'Recursos', icon: Book1 },
     { href: '/crm/productos', label: 'Productos', icon: moduleIcons.productos },
     { href: '/asistentes', label: 'Asistentes', icon: MagicStar, minimum: 'SUPERADMIN' },
-    { href: '/conexiones', label: 'Conexiones', icon: MagicStar },
-    { href: '/novedades', label: 'Novedades', icon: MagicStar },
+    { href: '/conexiones', label: 'Conexiones', icon: Link2 },
+    { href: '/novedades', label: 'Novedades', icon: Note },
   ] },
   { label: 'Administración', items: [
     { href: '/usuarios', label: 'Usuarios y accesos', icon: UserOctagon, minimum: 'SUPERADMIN' },
-    { href: '/logs', label: 'Registro de actividad', icon: DocumentText, minimum: 'SUPERADMIN' },
+    { href: '/logs', label: 'Registro de actividad', icon: DocumentFilter, minimum: 'SUPERADMIN' },
   ] },
 ];
 // Rendered with pathname as its key: navigation always closes the flyout, including browser back/forward.
