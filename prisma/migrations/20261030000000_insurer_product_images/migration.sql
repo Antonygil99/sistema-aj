@@ -1,0 +1,1 @@
+ALTER TABLE "Insurer" ADD COLUMN "useProductImage" BOOLEAN NOT NULL DEFAULT true;

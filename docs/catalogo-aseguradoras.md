@@ -12,3 +12,7 @@ Actualización del 29/10/2026.
 - Prueba SQL con sesiones humanas y rollback: varios ramos/administradores en un perfil, filtro por compañía, versiones, rechazo a un responsable USER y edición USER, conservación del productId de la póliza y cambio de administrador del producto. Navegador con datos simulados: tarjetas, menú, clic derecho, edición, nueva aseguradora/producto, selección de administradores, móvil y retorno del foco. No se enviaron correos ni se subieron imágenes reales en las pruebas.
 
 La migración complementaria `20261029235930_product_company_names` permite nombres iguales de producto en diferentes compañías o ramos. La combinación compañía, ramo y nombre permanece única; no se cambian los nombres de los registros históricos.
+
+## Reutilización de imágenes existentes
+
+Cuando el perfil no tiene imagen propia y useProductImage está activo (valor inicial), la tarjeta y el editor muestran la imagen válida del producto activo más recientemente actualizado de esa misma compañía. El endpoint continúa autenticado y genera un enlace temporal; no se exponen claves del bucket. Los archivos de productos permanecen intactos y no se copian ni se borran. Una imagen subida al perfil tiene prioridad. Quitar la imagen desactiva la reutilización, para que no reaparezca al guardar. La migración `20261030000000_insurer_product_images` añade solo este indicador. Comprobado con SQL en transacción revertida: prioridad, selección por compañía, exclusión de archivados, eliminación explícita y ausencia de claves privadas en el catálogo.

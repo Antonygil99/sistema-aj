@@ -1051,6 +1051,7 @@ model Insurer {
  description String?
  imageKey String? @unique
  imageType String?
+ useProductImage Boolean @default(true)
  products Product[]
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt

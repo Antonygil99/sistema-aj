@@ -22,7 +22,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   let imageKey=old.imageKey,imageType=old.imageType;
   if(file instanceof File){if(!IMAGE_TYPES.has(file.type))throw new FileError('FILE_TYPE_INVALID',415);const bytes=new Uint8Array(await file.arrayBuffer()),checked=validateFile(file.name,file.type,bytes);uploaded=`aj/insurers/${randomUUID()}.${checked.extension}`;await getR2().put(uploaded,bytes,checked.mimeType);imageKey=uploaded;imageType=checked.mimeType;}
   else if(d.removeImage==='1'){imageKey=null;imageType=null;}
-  const changed=await db.insurer.updateMany({where:{id,updatedAt:new Date(d.expectedUpdatedAt)},data:{description:d.description||null,imageKey,imageType}});
+  const changed=await db.insurer.updateMany({where:{id,updatedAt:new Date(d.expectedUpdatedAt)},data:{description:d.description||null,imageKey,imageType,...(file instanceof File||d.removeImage==='1'?{useProductImage:false}:{})}});
   if(!changed.count)throw Object.assign(new Error('RECORD_CHANGED'),{code:'RECORD_CHANGED',status:409});
   uploaded=null;
   if(old.imageKey&&old.imageKey!==imageKey&&isInsurerImageKey(old.imageKey))await cleanup(old.imageKey);

@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import {createResource,updateResource,listResource} from '../src/modules/resources/server';
+import {insurerImageSource} from '../src/modules/aseguradoras/server';
 import {PATCH as patchInsurer} from '../src/app/api/insurers/[id]/route';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
@@ -175,6 +176,11 @@ try{await db.$transaction(async tx=>{
  await tx.accessGrant.update({where:{email:j.email},data:{role:'ADMIN'}});
  await updateResource('productos',first.id,{name:String(first.name),insurer:company,line:'LIFE',ownerEmail:j.email,expectedUpdatedAt:(first.updatedAt as Date).toISOString()});
  assert.equal((await tx.product.findUniqueOrThrow({where:{id:first.id}})).ownerEmail,j.email,'responsible belongs to each product, not its insurer');
+ const originalImage=`aj/products/${randomUUID()}.png`,companyImage=`aj/insurers/${randomUUID()}.png`;
+ await tx.product.update({where:{id:first.id},data:{imageKey:originalImage,imageType:'image/png'}});assert.equal((await insurerImageSource(tx,row.id))?.key,originalImage);
+ await tx.insurer.update({where:{id:row.id},data:{imageKey:companyImage,imageType:'image/png'}});assert.equal((await insurerImageSource(tx,row.id))?.key,companyImage);
+ await tx.insurer.update({where:{id:row.id},data:{imageKey:null,imageType:null,useProductImage:false}});assert.equal(await insurerImageSource(tx,row.id),null);assert.equal((await tx.product.findUniqueOrThrow({where:{id:first.id}})).imageKey,originalImage,'removing company image preserves product original');
+
  }
  passed=true;throw Error(rollback);
 },{timeout:240000});}catch(e){if(!(e instanceof Error)||e.message!==rollback)throw e;}finally{state.ajDb=oldDb;globalThis.fetch=oldFetch;keys.forEach((k,i)=>{if(env[i]===undefined)delete process.env[k];else process.env[k]=env[i];});await db.$disconnect();}
