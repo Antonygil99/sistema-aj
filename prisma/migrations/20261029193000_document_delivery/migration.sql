@@ -1,0 +1,1 @@
+ALTER TABLE "Document" ADD COLUMN "deliveryKind" TEXT NOT NULL DEFAULT 'INTERNAL', ADD COLUMN "deliveryReviewed" BOOLEAN NOT NULL DEFAULT false, ADD COLUMN "deliveryReviewedBy" TEXT;

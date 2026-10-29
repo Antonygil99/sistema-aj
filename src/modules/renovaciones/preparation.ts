@@ -4,6 +4,7 @@ export const preparationSchema=z.object({
   status:z.enum(['PREPARING','READY','COMMUNICATED']),number:z.string().trim().max(250),
   premium:z.string().regex(/^(\d{1,9}(\.\d{1,2})?)?$/),currency:z.enum(['MXN','USD','UDI']),
   startDate:z.union([z.literal(''),z.iso.date()]),endDate:z.union([z.literal(''),z.iso.date()]),
+  deductible:z.string().trim().max(1000).default(''),coinsurance:z.string().trim().max(1000).default(''),insuredAmount:z.string().trim().max(1000).default(''),coverageChanges:z.string().trim().max(2500).default(''),
   paymentNotes:z.string().trim().max(2500),summary:z.string().trim().max(5000),
   oldDocumentId:z.string().max(100),newDocumentId:z.string().max(100),
   channel:z.enum(['','EMAIL','WHATSAPP','PHONE','OTHER']),communicationNote:z.string().trim().max(500),reviewed:z.boolean(),

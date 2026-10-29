@@ -13,7 +13,7 @@ export async function folderScope(folderId: string | null, clientId: string | nu
   if (clientId && !await getDb().client.findUnique({ where: { id: clientId }, select: { id: true } })) throw new FileError('RELATED_RECORD_NOT_FOUND',404);
   return null;
 }
-export const documentSelect = { id: true, name: true, mimeType: true, folderId: true, createdAt: true, updatedAt: true, client: { select: { name: true } }, policy: { select: { number: true } }, claim: { select: { reference: true } } } as const;
+export const documentSelect = { deliveryKind:true, deliveryReviewed:true, id: true, name: true, mimeType: true, folderId: true, createdAt: true, updatedAt: true, client: { select: { name: true } }, policy: { select: { number: true } }, claim: { select: { reference: true } } } as const;
 export function scopeWhere(clientId: string | null) {
   return clientId ? { OR: [{ clientId }, { policy: { clientId } }, { claim: { policy: { clientId } } }] } : {};
 }

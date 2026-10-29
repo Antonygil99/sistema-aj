@@ -13,6 +13,7 @@ export const composeInput = z.object({
   to: z.array(z.email().max(254)).min(1, 'Elige al menos un destinatario.').max(MAX_RECIPIENTS),
   subject: z.string().trim().min(1, 'Escribe el asunto.').max(200),
   message: z.string().trim().min(1, 'Escribe el mensaje.').max(10000).refine(text => !BLANK.test(text), 'Completa el texto entre corchetes antes de enviar.'),
+  deliveryConfirmation:z.object({verified:z.literal(true),reference:z.string().trim().min(5).max(250)}).strict().optional(),
   documentIds: z.array(id).max(MAX_ATTACHMENTS, `Adjunta hasta ${MAX_ATTACHMENTS} archivos.`).default([]).transform(ids => [...new Set(ids)]),
 }).strict();
 export type ComposeInput = z.infer<typeof composeInput>;

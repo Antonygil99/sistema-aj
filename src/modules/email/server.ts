@@ -18,9 +18,7 @@ export const appUrl = () => (process.env.BETTER_AUTH_URL || 'https://crm.seguros
 const privacyUrl = () => process.env.AJ_PRIVACY_URL?.trim() || null;
 const failure = (error: unknown) => error instanceof EmailError ? error.code : 'EMAIL_UNAVAILABLE';
 const isDuplicate = (error: unknown) => (error as { code?: string })?.code === 'P2002';
-// Documents a client email may attach: the client's own (directly or through its policies and claims) and the
-// team's general files, never another client's.
-const attachableWhere = (clientId: string) => ({ archivedAt: null, OR: [{ clientId }, { policy: { clientId } }, { claim: { policy: { clientId } } }, { clientId: null, policyId: null, claimId: null }] });
+import {deliverableWhere} from '@/modules/documentos/delivery';
 
 export type EmailHistoryItem = { id: string; kind: string; subject: string; to: string[]; status: EmailStatus; sentByName: string; attachments: string[]; createdAt: string; sentAt: string | null };
 export async function emailHistory(clientId: string, take = 20): Promise<EmailHistoryItem[]> {
@@ -34,7 +32,7 @@ export async function emailOptions(clientId: string, { kind, noticeId, actor }: 
   const client = await db.client.findUnique({ where: { id: clientId }, select: { id: true, name: true, email: true, contacts: { orderBy: { name: 'asc' }, select: { name: true, email: true, role: true } } } });
   if (!client) throw new EmailError('CLIENT_NOT_FOUND', 404);
   const [documents, welcome] = await Promise.all([
-    db.document.findMany({ where: { archivedAt: null, OR: [{ clientId }, { policy: { clientId } }, { claim: { policy: { clientId } } }] }, orderBy: { createdAt: 'desc' }, take: 100, select: { id: true, name: true, createdAt: true, policy: { select: { number: true } } } }),
+    db.document.findMany({ where: deliverableWhere(clientId), orderBy: { createdAt: 'desc' }, take: 100, select: { id: true, name: true, createdAt: true, policy: { select: { number: true } } } }),
     db.emailMessage.findFirst({ where: { clientId, kind: 'BIENVENIDA', status: { in: ['SENT', 'DELIVERED'] } }, orderBy: { createdAt: 'desc' }, select: { createdAt: true } }),
   ]);
   const notice = noticeId ? await noticeDraftValues(noticeId, client.id) : null;
@@ -70,6 +68,8 @@ async function attachmentsFor(documents: { name: string; storageKey: string }[])
 }
 // A person reviewed and clicked Send: the email goes out under their name and replies reach their own inbox.
 export async function sendClientEmail(actor: Actor, input: ComposeInput) {
+  if(!actor.id)throw new EmailError('FORBIDDEN',403);
+  if(input.documentIds.length&&(!input.deliveryConfirmation?.verified||!input.deliveryConfirmation.reference.trim()))throw new EmailError('EMAIL_IDENTITY_REQUIRED',422);
   const db = getDb();
   const dedupeKey = `compose:${input.requestId}`;
   const previous = await db.emailMessage.findUnique({ where: { dedupeKey } });
@@ -81,7 +81,7 @@ export async function sendClientEmail(actor: Actor, input: ComposeInput) {
   if (!client) throw new EmailError('CLIENT_NOT_FOUND', 404);
   const { to, rejected } = checkRecipients(input.to, allowedRecipients(client, client.contacts));
   if (rejected.length || !to.length) throw new EmailError('EMAIL_RECIPIENT_NOT_ALLOWED', 422);
-  const found = input.documentIds.length ? await db.document.findMany({ where: { id: { in: input.documentIds }, ...attachableWhere(client.id) }, select: { id: true, name: true, storageKey: true } }) : [];
+  const found = input.documentIds.length ? await db.document.findMany({ where: { id: { in: input.documentIds }, ...deliverableWhere(client.id) }, select: { id: true, name: true, storageKey: true } }) : [];
   const documents = input.documentIds.map(id => found.find(doc => doc.id === id)).filter(doc => doc !== undefined);
   if (documents.length !== input.documentIds.length || documents.some(doc => !isManagedKey(doc.storageKey))) throw new EmailError('EMAIL_DOCUMENT_NOT_ALLOWED', 422);
   // From Avisos: the notice must still be waiting for this client.
@@ -94,7 +94,7 @@ export async function sendClientEmail(actor: Actor, input: ComposeInput) {
     const resendId = await resend.send({ from: sender(config.from, `${actor.name} · ${BRAND}`), to, subject: rendered.subject, html: rendered.html, text: rendered.text, replyTo: actor.email, idempotencyKey: `email-${row.id}`, attachments: files, tags: [{ name: 'kind', value: input.kind }] });
     const saved = await db.emailMessage.update({ where: { id: row.id }, data: { status: 'SENT', resendId, sentAt: new Date() } });
     if (input.noticeId) await markNoticeSent(actor, input.noticeId, client.id, row.id);
-    await recordEvent(actor, 'emailed', 'clientes', client.id, client.name, { kind: input.kind, subject: rendered.subject, recipients: to.length, attachments: documents.length });
+    await recordEvent(actor, 'emailed', 'clientes', client.id, client.name, { kind: input.kind, subject: rendered.subject, recipients: to.length, attachments: documents.length, ...(documents.length?{deliveryConfirmation:input.deliveryConfirmation,documentIds:documents.map(doc=>doc.id)}:{}) });
     return saved;
   } catch (error) {
     await db.emailMessage.update({ where: { id: row.id }, data: { status: 'FAILED', error: failure(error) } }).catch(() => undefined);

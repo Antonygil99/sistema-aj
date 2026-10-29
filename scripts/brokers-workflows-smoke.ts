@@ -14,6 +14,9 @@ import {GET as getConversation,PATCH as closeConversation} from '../src/app/api/
 import {POST as replyRoute} from '../src/app/api/whatsapp/conversations/[id]/reply/route';
 import {GET as channelSettings} from '../src/app/api/whatsapp/channels/route';
 import {POST as saveResource} from '../src/app/api/resource-links/route';
+import {PATCH as classifyDelivery} from '../src/app/api/documents/[id]/delivery/route';
+import {deliverableWhere} from '../src/modules/documentos/delivery';
+import {sendClientEmail} from '../src/modules/email/server';
 import {publicResourceLinks} from '../src/modules/resource-links/server';
 const db=new PrismaClient({adapter:new PrismaPg({connectionString:migrationUrl(process.env)!,connectionTimeoutMillis:15000})});
 const state=globalThis as unknown as {ajDb:PrismaClient},oldDb=state.ajDb,oldFetch=globalThis.fetch;
@@ -89,6 +92,21 @@ try{await db.$transaction(async tx=>{
  assert.equal((await saveResource(await request(a,'/api/resource-links',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(publicInput)}))).status,400,'no publicar sin revisión expresa');
  assert.equal((await saveResource(await request(a,'/api/resource-links',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...publicInput,publicReviewed:true})}))).status,200);
  const publicPage=JSON.stringify(await publicResourceLinks());assert.ok(publicPage.includes(publicInput.title));assert.equal(publicPage.includes(resource.title),false,'catálogo anónimo sin herramientas internas');
+ // Classification and forced-send checks share actual SQL, with no call to storage or Resend.
+ const classify=async(doc:typeof old,kind:string)=>classifyDelivery(await request(a,`/api/documents/${doc.id}/delivery`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({expectedUpdatedAt:doc.updatedAt.toISOString(),deliveryKind:kind,reviewed:true})}),{params:Promise.resolve({id:doc.id})});
+ assert.equal((await classify(next,'POLICY_COVER')).status,422,'a client-level file is not an approved policy document');
+ assert.equal((await classify(old,'POLICY_COVER')).status,200);
+ assert.equal((await classify(old,'INTERNAL')).status,409,'classification rejects a stale revision');
+ assert.deepEqual((await tx.document.findMany({where:deliverableWhere(client.id),select:{id:true}})).map(d=>d.id),[old.id]);
+ assert.equal(await tx.document.count({where:deliverableWhere(other.id)}),0);
+ const body={requestId:randomUUID(),kind:'DOCUMENTOS' as const,clientId:client.id,to:['fixture@example.invalid'],subject:'Fixture',message:'Fixture',documentIds:[foreign.id]};
+ await assert.rejects(sendClientEmail(a,body),{code:'EMAIL_IDENTITY_REQUIRED'});
+ await tx.client.update({where:{id:client.id},data:{email:'fixture@example.invalid'}});
+ await assert.rejects(sendClientEmail(a,{...body,deliveryConfirmation:{verified:true,reference:'Fixture call reference'}}),{code:'EMAIL_DOCUMENT_NOT_ALLOWED'});
+ await assert.rejects(sendClientEmail({...a,id:null},body),{code:'FORBIDDEN'});
+ const refreshed=await tx.document.findUniqueOrThrow({where:{id:old.id}});
+ assert.equal((await classify(refreshed,'INTERNAL')).status,200);
+ assert.equal(await tx.document.count({where:deliverableWhere(client.id)}),0,'revoking delivery removes the document from selectable attachments');
  passed=true;throw Error(rollback);
 },{timeout:120000});}catch(e){if(!(e instanceof Error)||e.message!==rollback)throw e;}finally{state.ajDb=oldDb;globalThis.fetch=oldFetch;keys.forEach((k,i)=>{if(env[i]===undefined)delete process.env[k];else process.env[k]=env[i];});await db.$disconnect();}
 assert.ok(passed);

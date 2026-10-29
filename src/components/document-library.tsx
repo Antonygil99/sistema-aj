@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Add, Archive, ArrowRight3, ArrowRotateLeft, Category, DocumentDownload, DocumentText, DocumentUpload, Edit2, Folder2, FolderOpen, More, RowVertical, Send2, Trash } from '@/components/icons';
+import {DocumentDelivery} from './document-delivery';
 import type { ComposerRequest } from './email-composer';
 import { folderColorOf, folderColors, folderPath, reachableFolders, type FolderColor } from '@/modules/documentos/folder-view';
 import { ApiError, apiFetch } from './ui/client-api';
@@ -15,7 +16,7 @@ import { riseIn } from './ui/motion';
 import { useToast } from './ui/toast';
 import { useUploads } from './ui/upload-manager';
 import { usePreferences } from './ui/preferences';
-export type DocumentRow = { id: string; name: string; mimeType: string; folderId: string | null; createdAt: string; updatedAt: string; client: { name: string } | null; policy: { number: string } | null; claim: { reference: string } | null };
+export type DocumentRow = { deliveryKind?:string; deliveryReviewed?:boolean; id: string; name: string; mimeType: string; folderId: string | null; createdAt: string; updatedAt: string; client: { name: string } | null; policy: { number: string } | null; claim: { reference: string } | null };
 export type FolderRow = { id: string; name: string; parentId: string | null; clientId: string | null; color: string | null; updatedAt: string };
 export type DocumentOption = { id: string; label: string; kind: 'clientId' | 'policyId' | 'claimId' };
 type Listing = { data: DocumentRow[]; folders: FolderRow[]; total: number };
@@ -229,8 +230,9 @@ export function DocumentLibrary({ initial, initialTotal, initialFolders, options
     upload(Array.from(event.dataTransfer.files), target);
   }
   const fileActions = (row: DocumentRow) => <div className="file-actions">
+    {canUpload?<DocumentDelivery document={row} onSaved={()=>void load(folderId,skip,activeQuery)}/>:null}
     {configured ? <a className="icon-button" href={`/api/documents/${row.id}/download`} referrerPolicy="no-referrer" aria-label={`Descargar ${row.name}`}><DocumentDownload aria-hidden="true"/></a> : null}
-    {canUpload && configured ? <button type="button" className="icon-button" aria-label={`Enviar ${row.name} por correo`} onClick={() => sendByEmail([{ id: row.id, name: row.name }])}><Send2 aria-hidden="true"/></button> : null}
+    {canUpload && configured && row.deliveryReviewed ? <button type="button" className="icon-button" aria-label={`Enviar ${row.name} por correo`} onClick={() => sendByEmail([{ id: row.id, name: row.name }])}><Send2 aria-hidden="true"/></button> : null}
     {canUpload ? <button type="button" className="icon-button" aria-label={`Mover ${row.name}`} disabled={busy} onClick={() => { setMoving(row); setDestination(row.folderId ?? ''); }}><FolderOpen aria-hidden="true"/></button> : null}
     {canUpload ? <button type="button" className="icon-button" aria-label={`Archivar ${row.name}`} disabled={busy} onClick={() => void archive(row)}><Archive aria-hidden="true"/></button> : null}
     {canDelete ? <button type="button" className="icon-button is-danger" aria-label={`Eliminar ${row.name}`} disabled={busy} onClick={() => void destroy(row)}><Trash aria-hidden="true"/></button> : null}

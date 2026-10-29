@@ -31,6 +31,7 @@ export function EmailComposer({ request, senderName, onClose, onSent }: { reques
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [documentIds, setDocumentIds] = useState<string[]>([]);
+  const [verified,setVerified]=useState(false),[verification,setVerification]=useState('');
   const [preview, setPreview] = useState(false);
   const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
@@ -46,7 +47,7 @@ export function EmailComposer({ request, senderName, onClose, onSent }: { reques
     if (request) {
       setRequestId(newRequestId());
       setClientId(request.clientId); setLoadFor(request.clientId); setOptions(null);
-      setTo([]); setErrors({}); setDirty(false); setPreview(false); setSubject(''); setMessage('');
+      setVerified(false);setVerification('');setTo([]); setErrors({}); setDirty(false); setPreview(false); setSubject(''); setMessage('');
       setDocumentIds((request.documents ?? []).map(doc => doc.id));
     }
   }
@@ -57,7 +58,7 @@ export function EmailComposer({ request, senderName, onClose, onSent }: { reques
     apiFetch<{ data: Options }>(`/api/emails/options?${query}`)
       .then(({ data }) => {
         if (!active) return;
-        setOptions(data);
+        setOptions(data);setDocumentIds(ids=>ids.filter(id=>data.documents.some(doc=>doc.id===id)));
         setTo(data.recipients.filter(recipient => recipient.label === 'Cliente').map(recipient => recipient.email));
         const draft = request?.draft ?? data.draft;
         setSubject(draft.subject); setMessage(draft.message);
@@ -66,12 +67,7 @@ export function EmailComposer({ request, senderName, onClose, onSent }: { reques
       .finally(() => { if (active) setLoadFor(null); });
     return () => { active = false; };
   }, [loadFor, kind, request?.noticeId, request?.draft, toast]);
-  // Files chosen before opening that are not the client's own (team files) are listed first.
-  const files = useMemo(() => {
-    const own = options?.documents ?? [];
-    const extra = (request?.documents ?? []).filter(doc => !own.some(item => item.id === doc.id)).map(doc => ({ ...doc, detail: 'Archivo del equipo' }));
-    return [...extra, ...own];
-  }, [options, request]);
+  const files=options?.documents??[];
   const selectedNames = files.filter(file => documentIds.includes(file.id)).map(file => file.name);
   const previewHtml = useMemo(() => preview ? clientEmail({ subject, message, senderName, attachments: selectedNames }).html : '', [preview, subject, message, senderName, selectedNames]);
   async function close() {
@@ -87,11 +83,12 @@ export function EmailComposer({ request, senderName, onClose, onSent }: { reques
     if (!subject.trim()) next.subject = 'Escribe el asunto.';
     if (!message.trim()) next.message = 'Escribe el mensaje.';
     else if (BLANK.test(message)) next.message = 'Completa el texto entre corchetes antes de enviar.';
+    if(documentIds.length&&(!verified||verification.trim().length<5))next.to='Confirma identidad y autorización de todos los destinatarios y registra la referencia.';
     setErrors(next);
     if (Object.keys(next).length) { formRef.current?.querySelector<HTMLElement>(next.client ? '.relation-picker input' : next.to ? '.email-recipients input' : '[aria-invalid="true"]')?.focus(); return; }
     setBusy(true);
     try {
-      await apiFetch('/api/emails', { method: 'POST', json: { requestId, kind, clientId, to, subject, message, documentIds, ...(request?.noticeId ? { noticeId: request.noticeId } : {}) }, labels: { to: 'Para', subject: 'Asunto', message: 'Mensaje', documentIds: 'Adjuntos' } });
+      await apiFetch('/api/emails', { method: 'POST', json: { requestId, kind, clientId, to, subject, message, documentIds, ...(documentIds.length?{deliveryConfirmation:{verified,reference:verification}}:{}), ...(request?.noticeId ? { noticeId: request.noticeId } : {}) }, labels: { to: 'Para', subject: 'Asunto', message: 'Mensaje', documentIds: 'Adjuntos' } });
       toast({ kind: 'success', title: sentTitles[kind], message: `Para ${to.join(', ')}` });
       onSent?.(kind);
       onClose();
@@ -113,7 +110,7 @@ export function EmailComposer({ request, senderName, onClose, onSent }: { reques
     <form id="email-composer-form" ref={formRef} className="resource-form" onSubmit={event => { event.preventDefault(); void send(); }} onChange={() => setDirty(true)}>
       {!request?.clientId ? <div className={`form-field is-wide${errors.client ? ' is-invalid' : ''}`}>
         <span className="form-label">Cliente</span>
-        <RelationPicker relation="clientes" value={clientId ?? ''} initialLabel="" label="Cliente" required onChange={id => { setClientId(id || null); setOptions(null); setLoadFor(id || null); }}/>
+        <RelationPicker relation="clientes" value={clientId ?? ''} initialLabel="" label="Cliente" required onChange={id => { setVerified(false);setVerification('');setDocumentIds([]);setClientId(id || null); setOptions(null); setLoadFor(id || null); }}/>
         {errors.client ? <small className="field-error">{errors.client}</small> : null}
       </div> : null}
       {options && !options.configured ? <p className="notice is-wide" role="alert">El envío de correos no está configurado en el servidor.</p> : null}
@@ -123,7 +120,7 @@ export function EmailComposer({ request, senderName, onClose, onSent }: { reques
         <fieldset className={`form-field is-wide email-recipients${errors.to ? ' is-invalid' : ''}`} aria-describedby={errors.to ? `${ids.to}-error` : undefined}>
           <legend className="form-label">Para</legend>
           {options.recipients.length ? options.recipients.map(recipient => <label key={recipient.email} className="email-check">
-            <input type="checkbox" checked={to.includes(recipient.email)} onChange={() => { setTo(current => toggle(current, recipient.email)); setDirty(true); }}/>
+            <input type="checkbox" checked={to.includes(recipient.email)} onChange={() => { setVerified(false);setTo(current => toggle(current, recipient.email)); setDirty(true); }}/>
             <span><strong>{recipient.name}</strong> <small>{recipient.label} · {recipient.email}</small></span>
           </label>) : <p className="form-hint">Este cliente no tiene correo ni contactos con correo. <Link href={`/crm/clientes/${options.client.id}#contactos`}>Agrégalos en su expediente</Link>.</p>}
           {errors.to ? <small id={`${ids.to}-error`} className="field-error">{errors.to}</small> : null}
@@ -139,11 +136,12 @@ export function EmailComposer({ request, senderName, onClose, onSent }: { reques
         <fieldset className="form-field is-wide email-files">
           <legend className="form-label">Adjuntos <span className="optional">{documentIds.length}/{MAX_ATTACHMENTS}</span></legend>
           {files.length ? <div className="email-file-list">{files.map(file => <label key={file.id} className="email-check">
-            <input type="checkbox" checked={documentIds.includes(file.id)} disabled={!documentIds.includes(file.id) && documentIds.length >= MAX_ATTACHMENTS} onChange={() => { setDocumentIds(current => toggle(current, file.id)); setDirty(true); }}/>
+            <input type="checkbox" checked={documentIds.includes(file.id)} disabled={!documentIds.includes(file.id) && documentIds.length >= MAX_ATTACHMENTS} onChange={() => { setVerified(false);setDocumentIds(current => toggle(current, file.id)); setDirty(true); }}/>
             <DocumentText aria-hidden="true"/><span><strong>{file.name}</strong> <small>{file.detail}</small></span>
           </label>)}</div> : <p className="form-hint">Este expediente aún no tiene archivos. Súbelos en sus documentos y vuelve aquí.</p>}
           {kind === 'BIENVENIDA' && files.length ? <small className="form-hint">Elige la póliza y los recibos que quieres que tenga a la mano.</small> : null}
         </fieldset>
+        {documentIds.length>0?<div className="form-field is-wide"><label className="email-check"><input type="checkbox" checked={verified} onChange={e=>setVerified(e.target.checked)}/>Verifiqué la identidad y la titularidad o autorización de todos los destinatarios para recibir estos documentos de sus pólizas.</label><label>Referencia de verificación (sin datos sensibles)<input maxLength={250} value={verification} onChange={e=>setVerification(e.target.value)} placeholder="Ej.: llamada verificada del día y folio interno"/></label></div>:null}
         {kind === 'BIENVENIDA' && options.welcomeSentAt ? <p className="form-hint is-wide">Ya se le envió una bienvenida el {new Date(options.welcomeSentAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Mexico_City' })}.</p> : null}
       </> : null}
     </form>

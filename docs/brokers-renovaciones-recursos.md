@@ -66,3 +66,13 @@ Verificaciones:
 - La lectura de carátulas se prueba con un proveedor simulado y un PDF sintético. Antes de usar documentos de clientes, validar una lectura real con la credencial del proveedor configurado. No se enviaron documentos reales a IA en las pruebas de esta entrega.
 
 Las nuevas funciones tienen tarjetas ilustradas, recorridos y una entrada en Novedades. El login se conserva.
+
+## Siguiente corte del diagnóstico: entrega documental y comparativo técnico
+
+- Los documentos existentes y nuevos quedan internos por defecto. En Documentos, **Revisar entrega** permite clasificarlos como carátula o recibo, exclusivamente si están vinculados directamente a una póliza del expediente, con revisión humana del contenido completo. Identificaciones, datos médicos, credenciales, documentos generales y otros archivos no se habilitan por nombre.
+- El redactor y el servidor comparten el filtro de adjuntos. Solo permite carátulas/recibos aprobados, activos y del cliente seleccionado; no acepta archivos generales ni de siniestros. El asesor confirma identidad y titularidad/autorización de TODOS los destinatarios y registra una referencia sin datos sensibles en cada envío con adjuntos. Es una verificación humana documentada, no validación biométrica ni una autorización automática por tener un correo registrado.
+- La clasificación usa control de versión y queda auditada. Revocar la entrega elimina el archivo de la selección futura; no recupera adjuntos ya entregados por email. No se habilitaron enlaces públicos ni un portal externo de descarga. La descarga interna del equipo conserva sus permisos vigentes.
+- Renovaciones incorpora deducible, coaseguro, suma asegurada y cambios relevantes, de captura manual con fuente/página y comparación anterior/nueva en el resumen. Los campos vacíos se muestran como pendientes; no hay deducción automática de coberturas ni aprobación de la aseguradora.
+- Drive: Tony confirmó cuentas personales de Gmail; falta recibir las carpetas. No se inicia una migración ni se sustituye R2. Se preparará OAuth individual y selección limitada cuando estén disponibles.
+- Pendiente del diagnóstico: alertas configurables y etapas extendidas de renovación; piloto real con Ale/Joel; ampliar trámites más allá de domicilio/RFC MetLife; conciliación real de recibos; integración efectiva de Drive; números reales y agentes supervisados. No se habilita automatización externa por publicar estos controles.
+- La migración aditiva `20261029193000_document_delivery` solo añade clasificación, revisión y responsable de revisión a Document. Las pruebas SQL de `brokers:smoke` comprueban selección por póliza/cliente, clasificación, conflictos, revocación y rechazo de envío forzado sin mensajes externos; todas sus muestras se descartan.

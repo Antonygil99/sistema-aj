@@ -259,6 +259,9 @@ model Claim {
   @@index([policyId, status])
 }
 model Document {
+  deliveryKind String @default("INTERNAL")
+  deliveryReviewed Boolean @default(false)
+  deliveryReviewedBy String?
   procedureAttachments ProcedureAttachment[]
   paymentEvidence Payment[] @relation("PaymentEvidence")
   id         String @id @default(cuid())

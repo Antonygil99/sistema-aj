@@ -5,6 +5,8 @@ export class ApiError extends Error {
   constructor(public readonly code: string, public readonly status: number, message: string, public readonly issues: Issue[] = []) { super(message); }
 }
 export const errorMessages: Record<string, string> = {
+  DOCUMENT_DELIVERY_SCOPE:'Solo se autoriza la entrega de carátulas o recibos vinculados directamente a una póliza del expediente.',
+  EMAIL_IDENTITY_REQUIRED:'Confirma identidad y autorización del destinatario antes de entregar documentos.',
   INVALID_CHANNEL_OWNER:'El responsable debe tener una cuenta administradora activa.',
   POLICY_PDF_UNREADABLE:'No se pudo leer el PDF. Revisa que no esté dañado o protegido.',
   POLICY_PDF_PAGE_LIMIT:'Usa una carátula de hasta 10 páginas.',
