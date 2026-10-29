@@ -1,3 +1,4 @@
+import type {NoticeSchedule} from '../preferences';
 // Client notices (Avisos): which renewals, receipts and open claims need a person to reach the client today, and
 // when a notice no longer applies. Pure (Mexico City calendar days, fixed UTC-6) and tested in tests/email.test.ts.
 export const RENEWAL_MILESTONES = [30, 20, 10] as const;
@@ -22,21 +23,22 @@ type PolicyRow = { id: string; clientId: string; endDate: Date; ownerEmail: stri
 type PaymentRow = { id: string; policyId: string; clientId: string; dueDate: Date; ownerEmail: string | null };
 type ClaimRow = { id: string; policyId: string; clientId: string; createdAt: Date; ownerEmail: string | null };
 // Rows come already filtered to what is still open (active policies, unpaid receipts, open claims, not archived).
-export function noticeCandidates({ today, policies, payments, claims }: { today: string; policies: PolicyRow[]; payments: PaymentRow[]; claims: ClaimRow[] }): NoticeCandidate[] {
+export function noticeCandidates({ today, policies, payments, claims,timingForOwner }: { today: string; policies: PolicyRow[]; payments: PaymentRow[]; claims: ClaimRow[];timingForOwner?:(email:string|null)=>NoticeSchedule }): NoticeCandidate[] {
   const list: NoticeCandidate[] = [];
   for (const policy of policies) {
     if (policy.renewed) continue;
-    const milestone = milestoneFor(daysBetween(today, storedDay(policy.endDate)), RENEWAL_MILESTONES);
+    const milestone = milestoneFor(daysBetween(today, storedDay(policy.endDate)), timingForOwner?.(policy.ownerEmail).renewal??RENEWAL_MILESTONES);
     if (milestone !== null) list.push({ kind: 'RENOVACION', milestone, dedupeKey: `RENOVACION:${policy.id}:${milestone}`, recordId: policy.id, clientId: policy.clientId, policyId: policy.id, paymentId: null, claimId: null, ownerEmail: policy.ownerEmail, dueDate: policy.endDate });
   }
   for (const payment of payments) {
-    const milestone = milestoneFor(daysBetween(today, storedDay(payment.dueDate)), PAYMENT_MILESTONES, PAYMENT_GRACE_DAYS);
+    const milestone = milestoneFor(daysBetween(today, storedDay(payment.dueDate)), timingForOwner?.(payment.ownerEmail).payment??PAYMENT_MILESTONES, PAYMENT_GRACE_DAYS);
     if (milestone !== null) list.push({ kind: 'PAGO', milestone, dedupeKey: `PAGO:${payment.id}:${milestone}`, recordId: payment.id, clientId: payment.clientId, policyId: payment.policyId, paymentId: payment.id, claimId: null, ownerEmail: payment.ownerEmail, dueDate: payment.dueDate });
   }
   for (const claim of claims) {
     // One follow-up per full week open: week 1 after 7 days, week 2 after 14…
-    const week = Math.floor(daysBetween(mexicoDay(claim.createdAt), today) / CLAIM_EVERY_DAYS);
-    if (week >= 1) list.push({ kind: 'SINIESTRO', milestone: week, dedupeKey: `SINIESTRO:${claim.id}:${week}`, recordId: claim.id, clientId: claim.clientId, policyId: claim.policyId, paymentId: null, claimId: claim.id, ownerEmail: claim.ownerEmail, dueDate: claim.createdAt });
+    const interval=timingForOwner?.(claim.ownerEmail).claimEveryDays??CLAIM_EVERY_DAYS;
+    const week = Math.floor(daysBetween(mexicoDay(claim.createdAt), today) / interval);
+    if (week >= 1) list.push({ kind: 'SINIESTRO', milestone: week, dedupeKey: interval===7?`SINIESTRO:${claim.id}:${week}`:`SINIESTRO:${claim.id}:interval:${interval}:${week}`, recordId: claim.id, clientId: claim.clientId, policyId: claim.policyId, paymentId: null, claimId: claim.id, ownerEmail: claim.ownerEmail, dueDate: claim.createdAt });
   }
   return list;
 }
@@ -46,8 +48,8 @@ export function staleNotices<T extends { id: string; dedupeKey: string; kind: st
   return pending.filter(notice => !current.has(notice.dedupeKey));
 }
 export const noticeKindLabels: Record<NoticeKind, string> = { RENOVACION: 'Renovación', PAGO: 'Pago', SINIESTRO: 'Siniestro' };
-export function noticeTiming(kind: string, milestone: number, daysLeft: number) {
-  if (kind === 'SINIESTRO') return milestone === 1 ? 'Abierto hace 1 semana' : `Abierto hace ${milestone} semanas`;
+export function noticeTiming(kind: string, milestone: number, daysLeft: number,claimInterval=7) {
+  if (kind === 'SINIESTRO') return claimInterval===7?(milestone===1?'Abierto hace 1 semana':`Abierto hace ${milestone} semanas`):`Abierto hace ${Math.max(0,-daysLeft)} días`;
   if (daysLeft === 0) return 'Vence hoy';
   if (daysLeft < 0) return daysLeft === -1 ? 'Venció ayer' : `Venció hace ${-daysLeft} días`;
   return daysLeft === 1 ? 'Vence mañana' : `Vence en ${daysLeft} días`;

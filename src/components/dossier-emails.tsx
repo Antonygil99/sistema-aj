@@ -28,7 +28,7 @@ export function DossierEmails({ clientId, clientName, senderName, initial, canSe
     <div className="contact-toolbar"><h2 id="correos-titulo">Correos</h2>
       {canSend ? <div className="file-actions">
         <button type="button" className="button button-soft" onClick={() => setRequest({ kind: 'BIENVENIDA', clientId, clientName })}><DirectSend aria-hidden="true"/>{welcomed ? 'Reenviar bienvenida' : 'Enviar bienvenida'}</button>
-        <button type="button" className="button" onClick={() => setRequest({ kind: 'DOCUMENTOS', clientId, clientName })}><Send2 aria-hidden="true"/>Enviar documentos</button>
+        <button type="button" className="button" onClick={() => setRequest({ kind: 'DOCUMENTOS', clientId, clientName })}><Send2 aria-hidden="true"/>Escribir correo</button>
       </div> : null}
     </div>
     <p className="lead-small">Lo que le escribe el equipo desde el CRM. Nada se envía sin que alguien lo revise y dé clic en Enviar; las respuestas llegan al correo de quien lo envió.</p>

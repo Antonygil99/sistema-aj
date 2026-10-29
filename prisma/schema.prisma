@@ -1025,3 +1025,17 @@ model ClientDriveLink {
  @@unique([clientId,fileId])
  @@index([clientId,rootFolderId])
 }
+
+model BrokerEmailTemplate {
+ id String @id @default(cuid())
+ ownerEmail String
+ name String
+ kind String
+ subject String
+ body String
+ defaultKind String?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([ownerEmail,defaultKind])
+ @@index([ownerEmail,name])
+}

@@ -12,6 +12,8 @@ import { readPreferences, type NotificationSettings } from '@/modules/preference
 import { agendaReminders, allowedRecipients, checkRecipients, MAX_ATTACHMENT_BYTES, nextStatus, reminderPlan, teamRecipients, type EmailStatus } from './rules';
 import { agendaReminder, BRAND, claimNotice, clientEmail, prospectNotice, type Rendered } from './templates';
 import type { ComposeInput, ContactInput } from './schema';
+import {personalTemplate,brokerTemplates} from './catalog';
+import {formatDay,formatMoney,daysBetween,mexicoDay,storedDay} from './notices';
 import { draftFor, type TemplateKind } from './template-text';
 import { markNoticeSent, noticeDraftValues, savedTemplate } from './notices-server';
 export const appUrl = () => (process.env.BETTER_AUTH_URL || 'https://crm.segurosaleyjoel.com').replace(/\/$/, '');
@@ -27,7 +29,7 @@ export async function emailHistory(clientId: string, take = 20): Promise<EmailHi
 }
 // Everything the composer needs for one client: who can receive, what can be attached, whether a welcome went out
 // and the suggested text (the team's template filled with the client's, and the notice's, data).
-export async function emailOptions(clientId: string, { kind, noticeId, actor }: { kind: TemplateKind; noticeId?: string | null; actor: Actor }) {
+export async function emailOptions(clientId: string, { kind, noticeId, actor,templateId,policyId,paymentId }: { kind: TemplateKind; noticeId?: string | null; actor: Actor;templateId?:string|null;policyId?:string|null;paymentId?:string|null }) {
   const db = getDb();
   const client = await db.client.findUnique({ where: { id: clientId }, select: { id: true, name: true, email: true, contacts: { orderBy: { name: 'asc' }, select: { name: true, email: true, role: true } } } });
   if (!client) throw new EmailError('CLIENT_NOT_FOUND', 404);
@@ -37,8 +39,18 @@ export async function emailOptions(clientId: string, { kind, noticeId, actor }: 
   ]);
   const notice = noticeId ? await noticeDraftValues(noticeId, client.id) : null;
   const draftKind = notice?.kind ?? kind;
-  const draft = draftFor(draftKind, await savedTemplate(draftKind), { cliente: client.name, asesor: actor.name, ...notice?.values });
+  if(noticeId&&(policyId||paymentId))throw new EmailError('EMAIL_CONTEXT_INVALID',422);
+  const policies=await db.policy.findMany({where:{clientId,archivedAt:null},select:{id:true,number:true,product:true,insurer:true,endDate:true},take:100,orderBy:{endDate:'desc'}});
+  const policy=policyId?policies.find(p=>p.id===policyId):null;if(policyId&&!policy)throw new EmailError('EMAIL_CONTEXT_INVALID',422);
+  const payments=policy?await db.payment.findMany({where:{policyId:policy.id,archivedAt:null},select:{id:true,amount:true,currency:true,dueDate:true},take:120,orderBy:{dueDate:'asc'}}):[];
+  const payment=paymentId?payments.find(p=>p.id===paymentId):null;if(paymentId&&!payment)throw new EmailError('EMAIL_CONTEXT_INVALID',422);
+  const due=payment?.dueDate??policy?.endDate;
+  const values={cliente:client.name,asesor:actor.name,...(policy?{poliza:policy.number,producto:policy.product,aseguradora:policy.insurer}:{}),...(due?{vence:formatDay(storedDay(due)),dias:String(Math.max(0,daysBetween(mexicoDay(new Date()),storedDay(due))))}:{}),...(payment?{monto:formatMoney(payment.amount.toFixed(2),payment.currency)}:{}),...notice?.values};
+  const personal=await personalTemplate(actor,draftKind,templateId),catalog=await brokerTemplates(actor);
+  const draft = draftFor(draftKind, personal??await savedTemplate(draftKind), values);
+
   return {
+    templates:catalog.map(t=>({id:t.id,name:t.name,kind:t.kind})),templateId:personal?.id??null,values,policies:policies.map(p=>({id:p.id,number:p.number})),payments:payments.map(p=>({id:p.id,label:formatMoney(p.amount.toFixed(2),p.currency)+' · '+formatDay(storedDay(p.dueDate))})),
     client: { id: client.id, name: client.name, email: client.email },
     kind: draftKind, draft,
     recipients: allowedRecipients(client, client.contacts),
@@ -70,6 +82,7 @@ async function attachmentsFor(documents: { name: string; storageKey: string }[])
 export async function sendClientEmail(actor: Actor, input: ComposeInput) {
   if(!actor.id)throw new EmailError('FORBIDDEN',403);
   if(input.documentIds.length&&(!input.deliveryConfirmation?.verified||!input.deliveryConfirmation.reference.trim()))throw new EmailError('EMAIL_IDENTITY_REQUIRED',422);
+  if(/\{[^{}]+\}/.test(input.subject+' '+input.message))throw new EmailError('EMAIL_VARIABLES_PENDING',422);
   const db = getDb();
   const dedupeKey = `compose:${input.requestId}`;
   const previous = await db.emailMessage.findUnique({ where: { dedupeKey } });

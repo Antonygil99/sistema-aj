@@ -7,6 +7,12 @@ export type Release = { id: string; date: string; title: string; summary: string
 // Editorial history, backed by the repository's commits. Add new releases here when shipping a feature;
 // do not derive user-facing promises from commit messages or a third-party approval state at runtime.
 export const releases: Release[] = [
+  {id:'2026-10-29-email',date:'2026-10-29',title:'Correos con formato y plantillas personales',summary:'Variables visuales, tiempos por asesor y envío individual revisado.',changes:[
+    {id:'email-catalog',title:'Mis plantillas, con variables en chips',body:'Crea plantillas propias o parte de los textos sugeridos. Elige una predeterminada por tipo y utiliza formato, listas y enlaces HTTPS. Las ediciones simultáneas se comprueban antes de guardar.',area:'Correos',kind:'feature',href:'/avisos?tab=plantillas',tour:'funcion:correos',minRole:'ADMIN'},
+    {id:'email-schedule',title:'Mis tiempos de aviso',body:'Configura anticipación de renovaciones y recibos, y frecuencia de siniestros, para las pólizas a tu cargo. Se reevaluarán pendientes sin reenviar los ya atendidos; el envío al cliente sigue siendo manual.',area:'Avisos',kind:'improvement',href:'/avisos?tab=plantillas',minRole:'ADMIN'},
+    {id:'manual-mail',title:'Escribir a un cliente desde su expediente',body:'Elige una plantilla y los datos de póliza o recibo, revisa la vista previa y envía. Las variables sin resolver bloquean el envío y los adjuntos conservan su revisión documental.',area:'Clientes',kind:'improvement',href:'/crm/clientes'},
+  ]},
+
   {id:'2026-10-29-drive',date:'2026-10-29',title:'El expediente se conecta con Drive',summary:'Referencias privadas y anticipación personal de renovaciones.',changes:[
     {id:'drive-references',title:'Originales en Drive, referencias en AJ',body:'Cada asesor autoriza su cuenta y explora la carpeta elegida. Vincula archivos al expediente, sin copias a R2 ni cambios de permisos. La primera versión consulta metadatos y abre el original en Google.',area:'Documentos',kind:'feature',href:'/drive',tour:'funcion:drive',minRole:'ADMIN'},
     {id:'renewal-lead-days',title:'Anticipación del resumen interno',body:'Configura hasta cinco anticipaciones entre 1 y 180 días en Preferencias → Notificaciones. Se reutiliza el resumen diario del equipo y no cambia los avisos al cliente.',area:'Renovaciones',kind:'improvement',href:'/crm/polizas',minRole:'ADMIN'},

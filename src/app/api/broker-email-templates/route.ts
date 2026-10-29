@@ -1,0 +1,5 @@
+import {authenticate,apiError} from '@/lib/api';import {brokerTemplates,saveBrokerTemplate,deleteBrokerTemplate} from '@/modules/email/catalog';import {z} from 'zod';
+const headers={'Cache-Control':'private, no-store'};
+export async function GET(request:Request){const a=await authenticate(request,'ADMIN');if(a.denied)return a.denied;try{return Response.json({rows:await brokerTemplates(a.actor)},{headers});}catch(e){return apiError(e);}}
+export async function POST(request:Request){const a=await authenticate(request,'ADMIN');if(a.denied)return a.denied;try{return Response.json(await saveBrokerTemplate(a.actor,await request.json()),{headers});}catch(e){return apiError(e);}}
+export async function DELETE(request:Request){const a=await authenticate(request,'ADMIN');if(a.denied)return a.denied;try{const d=z.object({id:z.string().max(100),expectedUpdatedAt:z.iso.datetime()}).strict().parse(await request.json());await deleteBrokerTemplate(a.actor,d.id,d.expectedUpdatedAt);return Response.json({ok:true},{headers});}catch(e){return apiError(e);}}

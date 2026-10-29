@@ -20,15 +20,15 @@ export const templateInfo: Record<TemplateKind, { label: string; hint: string; p
     defaults: { subject: 'Documentos de tu póliza', body: 'Hola {cliente}:\n\nTe compartimos los documentos adjuntos. Si algo no está claro, responde a este correo y lo revisamos contigo.\n\nSaludos,' },
   },
   RENOVACION: {
-    label: 'Renovación', hint: 'Avisos a 30, 20 y 10 días del fin de vigencia.', placeholders: ['cliente', 'asesor', 'poliza', 'producto', 'aseguradora', 'vence', 'dias'],
+    label: 'Renovación', hint: 'Avisos antes del fin de vigencia según tus tiempos personales.', placeholders: ['cliente', 'asesor', 'poliza', 'producto', 'aseguradora', 'vence', 'dias'],
     defaults: { subject: 'Tu póliza {poliza} vence el {vence}', body: 'Hola {cliente}:\n\nTu póliza {producto} con {aseguradora} ({poliza}) vence el {vence}. Queremos revisarla contigo antes de esa fecha para que la renovación salga a tiempo.\n\n¿Te parece si agendamos una llamada? Responde a este correo y te buscamos.\n\nSaludos,' },
   },
   PAGO: {
-    label: 'Pago', hint: 'Avisos a 20 y 10 días del vencimiento de un recibo y el mismo día.', placeholders: ['cliente', 'asesor', 'poliza', 'producto', 'aseguradora', 'vence', 'dias', 'monto'],
+    label: 'Pago', hint: 'Avisos antes del vencimiento de un recibo según tus tiempos personales.', placeholders: ['cliente', 'asesor', 'poliza', 'producto', 'aseguradora', 'vence', 'dias', 'monto'],
     defaults: { subject: 'Recordatorio de pago de tu póliza {poliza}', body: 'Hola {cliente}:\n\nTe recordamos que el recibo de tu póliza {poliza} por {monto} vence el {vence}. Si ya lo pagaste, ignora este mensaje y gracias.\n\nSi necesitas los datos para pagar, responde a este correo.\n\nSaludos,' },
   },
   SINIESTRO: {
-    label: 'Seguimiento de siniestro', hint: 'Cada semana mientras el siniestro siga abierto.', placeholders: ['cliente', 'asesor', 'poliza', 'referencia'],
+    label: 'Seguimiento de siniestro', hint: 'Seguimiento periódico mientras el siniestro siga abierto, según tus tiempos personales.', placeholders: ['cliente', 'asesor', 'poliza', 'referencia'],
     defaults: { subject: 'Seguimiento de tu siniestro {referencia}', body: 'Hola {cliente}:\n\nQueremos contarte cómo va tu siniestro {referencia} de la póliza {poliza}: [escribe aquí el estado actual].\n\nSi tienes documentos o dudas, responde a este correo.\n\nSaludos,' },
   },
 };

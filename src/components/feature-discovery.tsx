@@ -13,6 +13,7 @@ export function IntakeDiscovery() {
   return <FeatureDiscovery feature="intake"/>;
 }
 const discoveries={
+  email:{id:'correos-personales',tour:'funcion:correos',title:'Tus correos, con tu estilo',body:'Crea plantillas, inserta variables como chips y revisa el mensaje con los datos de tu cliente antes de enviarlo.',anchor:'2026-10-29-email',art:'email-templates'},
   drive:{id:'drive-referencias',tour:'funcion:drive',title:'El expediente apunta a Drive',body:'Conecta tu cuenta, explora la carpeta del equipo y vincula referencias sin copiar originales ni cambiar sus permisos.',anchor:'2026-10-29-drive',art:'drive-references'},
   brokers:{id:'brokers-privados',tour:'funcion:brokers',title:'Tu bandeja, tu atención',body:'Solo ves los canales asignados a tu cuenta. Cada broker conserva sus conversaciones y el superadmin prepara la configuración.',anchor:'2026-10-29-brokers',art:'broker-inboxes'},
   renewal:{id:'renovacion-preparada',tour:'funcion:renovacion-preparada',title:'Primero prepara, después comunica',body:'Compara primas de dos vigencias, vincula las carátulas y revisa el resumen antes de contactar al cliente.',anchor:'2026-10-29-brokers',art:'renewal-comparison'},

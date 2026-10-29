@@ -1,3 +1,4 @@
+import {readPreferences,defaultNoticeSchedule} from '@/modules/preferences';
 import 'server-only';
 import { getDb } from '@/lib/db';
 import type { Actor } from '@/lib/api';
@@ -19,11 +20,14 @@ export async function refreshNotices(now = new Date()) {
   const today = mexicoDay(now);
   const openClient = { archivedAt: null };
   const [policies, payments, claims] = await Promise.all([
-    db.policy.findMany({ where: { status: 'ACTIVE', archivedAt: null, client: openClient, endDate: { gte: midnight(today), lte: midnight(shift(today, 30)) } }, select: { id: true, clientId: true, endDate: true, ownerEmail: true, renewals: { where: { status: 'RENEWED', archivedAt: null }, select: { id: true }, take: 1 } } }),
-    db.payment.findMany({ where: { status: { not: 'PAID' }, archivedAt: null, dueDate: { gte: midnight(shift(today, -PAYMENT_GRACE_DAYS)), lte: midnight(shift(today, 20)) }, policy: { archivedAt: null, status: { not: 'CANCELLED' }, client: openClient } }, select: { id: true, policyId: true, dueDate: true, policy: { select: { clientId: true, ownerEmail: true } } } }),
+    db.policy.findMany({ where: { status: 'ACTIVE', archivedAt: null, client: openClient,nextPolicy:null,renewalPreparation:{isNot:{status:{in:['RENEWED','NOT_RENEWED']}}}, endDate: { gte: midnight(today), lte: midnight(shift(today, 180)) } }, select: { id: true, clientId: true, endDate: true, ownerEmail: true, renewals: { where: { status: 'RENEWED', archivedAt: null }, select: { id: true }, take: 1 } } }),
+    db.payment.findMany({ where: { status: { not: 'PAID' }, archivedAt: null, dueDate: { gte: midnight(shift(today, -PAYMENT_GRACE_DAYS)), lte: midnight(shift(today, 180)) }, policy: { archivedAt: null, status: { not: 'CANCELLED' }, client: openClient } }, select: { id: true, policyId: true, dueDate: true, policy: { select: { clientId: true, ownerEmail: true } } } }),
     db.claim.findMany({ where: { status: { not: 'CLOSED' }, archivedAt: null, policy: { client: openClient } }, select: { id: true, policyId: true, createdAt: true, policy: { select: { clientId: true, ownerEmail: true } } } }),
   ]);
+  const ownerEmails=[...new Set([...policies.map(p=>p.ownerEmail),...payments.map(p=>p.policy.ownerEmail),...claims.map(p=>p.policy.ownerEmail)].flatMap(e=>e?[e.toLowerCase()]:[]))];
+  const preferences=await db.userPreference.findMany({where:{email:{in:ownerEmails}},select:{email:true,data:true}});const schedules=new Map(preferences.map(p=>[p.email.toLowerCase(),readPreferences(p.data).noticeSchedule]));
   const candidates = noticeCandidates({
+    timingForOwner:email=>email?schedules.get(email.toLowerCase())??defaultNoticeSchedule:defaultNoticeSchedule,
     today,
     policies: policies.map(policy => ({ id: policy.id, clientId: policy.clientId, endDate: policy.endDate, ownerEmail: lower(policy.ownerEmail), renewed: policy.renewals.length > 0 })),
     payments: payments.map(payment => ({ id: payment.id, policyId: payment.policyId, clientId: payment.policy.clientId, dueDate: payment.dueDate, ownerEmail: lower(payment.policy.ownerEmail) })),
@@ -65,7 +69,7 @@ export async function listNotices({ scope, email, resolved = false, now = new Da
     const daysLeft = daysBetween(today, dueDay);
     const source = policy?.sourceData && typeof policy.sourceData === 'object' ? policy.sourceData as Record<string, unknown> : null;
     return {
-      id: notice.id, kind: notice.kind as NoticeKind, milestone: notice.milestone, status: notice.status, timing: noticeTiming(notice.kind, notice.milestone, daysLeft), daysLeft, dueDay,
+      id: notice.id, kind: notice.kind as NoticeKind, milestone: notice.milestone, status: notice.status, timing: noticeTiming(notice.kind, notice.milestone, daysLeft,Number(/:interval:(\d+):/.exec(notice.dedupeKey)?.[1]??7)), daysLeft, dueDay,
       client: { id: notice.client.id, name: notice.client.name, reachable: Boolean(notice.client.email?.trim()) || notice.client.contacts.length > 0, phone: notice.client.phone },
       policy: policy ? { id: policy.id, number: policy.number, product: policy.product, insurer: policy.insurer } : null,
       payment: payment ? { id: payment.id, amount: formatMoney(payment.amount.toFixed(2), payment.currency) } : null,

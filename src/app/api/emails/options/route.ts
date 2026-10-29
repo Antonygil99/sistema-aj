@@ -13,6 +13,6 @@ export async function GET(request: Request) {
     const clientId = z.string().min(1).max(100).parse(params.get('clientId'));
     const kind = z.enum(templateKinds).default('DOCUMENTOS').parse(params.get('kind') ?? undefined);
     const noticeId = z.string().min(1).max(100).nullable().parse(params.get('noticeId'));
-    return NextResponse.json({ data: await emailOptions(clientId, { kind, noticeId, actor: auth.actor }) }, { headers: { 'Cache-Control': 'private, no-store' } });
+    return NextResponse.json({ data: await emailOptions(clientId, { kind, noticeId, actor: auth.actor,templateId:z.string().max(100).nullable().parse(params.get('templateId')),policyId:z.string().max(100).nullable().parse(params.get('policyId')),paymentId:z.string().max(100).nullable().parse(params.get('paymentId')) }) }, { headers: { 'Cache-Control': 'private, no-store' } });
   } catch (error) { return apiError(error); }
 }

@@ -73,6 +73,13 @@ export const tours: Tour[] = [
     {targets:['.wa-toolbar'],title:'Comprueba el estado',body:'Consultar el número confirma acceso de lectura en Meta. El envío se valida con una respuesta revisada; los números reales esperan su autorización correspondiente.'},
     {targets:['.wa-columns'],title:'Atención humana',body:'Lee, responde y marca resuelta la conversación. Los asistentes no responden automáticamente y los envíos ambiguos no se reintentan.'},
   ]},
+  {id:'funcion:correos',kind:'feature',title:'Plantillas y correo individual',summary:'Formato, variables y tiempos por asesor.',route:'/avisos?tab=plantillas',minRole:'ADMIN',steps:[
+    {title:'Un borrador antes de enviar',body:'Las plantillas son personales y los avisos se preparan para revisión. El recorrido no crea plantillas ni envía correos.',illustration:'resources'},
+    {targets:['.notice-schedule-settings'],title:'Elige tus tiempos',body:'Ajusta anticipación de renovación, recibos y seguimiento de siniestros para tus pólizas. Los registros sin responsable usan los valores del sistema.'},
+    {targets:['.template-list'],title:'Crea o copia una plantilla',body:'Usa Nueva plantilla o empieza desde un ejemplo. Puedes elegir una predeterminada por tipo de correo.'},
+    {targets:['.rich-email-field'],title:'Inserta variables y da formato',body:'Pulsa un chip para insertarlo en el cursor. Usa negrita, cursiva, listas y enlaces HTTPS. La vista previa usa datos ficticios.'},
+    {targets:['.template-form'],title:'Envía desde el expediente',body:'Abre Correos → Escribir correo, elige tu plantilla y, si hace falta, póliza o recibo. Revisa el destinatario y las variables antes de pulsar Enviar.'},
+  ]},
   {id:'funcion:drive',kind:'feature',title:'Referencias de Google Drive',summary:'Conexión individual, carpeta compartida y vínculos de expediente.',route:'/drive',minRole:'ADMIN',steps:[
     {title:'Los originales permanecen en Drive',body:'El CRM consulta nombres y metadatos bajo tu autorización de Google. No copia archivos ni modifica permisos. El recorrido no conecta cuentas ni guarda referencias.',illustration:'resources'},
     {targets:['[data-feature="drive-connect"]'],title:'Autoriza tu cuenta',body:'Guarda la carpeta del equipo y autoriza Google con la misma cuenta que usas en AJ. Cada broker completa su propia autorización.'},
@@ -180,10 +187,10 @@ export const tours: Tour[] = [
     { targets: ['.wizard-actions'], title: 'Avanza o regresa', body: 'Puedes volver a cualquier paso antes de guardar. Los recibos deben sumar exactamente la prima total.' },
   ] },
   { id: 'modulo:avisos-clientes', kind: 'module', title: 'Avisos a clientes', summary: 'Renovaciones, recibos y siniestros que conviene avisar hoy, y los textos de correo del equipo.', route: '/avisos', steps: [
-    { title: 'Avisos a clientes', body: 'Cada mañana aparecen las renovaciones a 30, 20 y 10 días, los recibos a 20 y 10 días y el día que vencen, y los siniestros abiertos cada semana. Nada se envía solo.' },
+    { title: 'Avisos a clientes', body: 'Aquí aparecen renovaciones, recibos y seguimientos de siniestros según los tiempos del responsable de cada póliza. Ajusta los tuyos en Plantillas. Nada se envía solo.' },
     { targets: ['.notice-kinds'], title: 'Filtra por tipo', body: 'Renovaciones, pagos o siniestros. «A mi cargo» incluye los avisos sin responsable.' },
     { targets: ['.notice-actions', '.notices .empty-state'], title: 'Resuelve cada aviso', body: 'Envía el correo sugerido (lo revisas antes), registra que ya le avisaste por llamada o WhatsApp, o descártalo. Siempre puedes deshacer.' },
-    { targets: ['.notices-tabs'], title: 'Plantillas de correo', body: 'Ajusta el texto de la bienvenida, documentos, renovación, pago y siniestro con datos como {cliente} o {vence}. Quien envía aún puede editarlo.' },
+    { targets: ['.notices-tabs'], title: 'Plantillas de correo', body: 'Crea tus propias plantillas, inserta datos como chips y ajusta tus tiempos de aviso. Antes de enviar puedes editar y revisar el mensaje de cada cliente.' },
   ] },
   { id: 'modulo:asistentes', kind: 'module', title: 'Asistentes', summary: 'Ocho asistentes expertos que consultan el CRM y proponen acciones que tú confirmas.', route: '/asistentes', minRole: 'SUPERADMIN', steps: [
     { title: 'Asistentes de la Ruta AJ', body: 'Cada asistente es experto en una parte del proceso: primer contacto, cotización, entrega, renovaciones y pagos, siniestros, contenidos, análisis y aprendizaje interno.' },

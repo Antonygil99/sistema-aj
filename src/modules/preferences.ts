@@ -25,8 +25,11 @@ export type AssistantModel = (typeof assistantModels)[number]['id'];
 // meetings and the morning summary.
 export type NotificationSettings = { team: boolean; toasts: boolean; payments: boolean; renewals: boolean; followUps: boolean; emailProspects: boolean; emailClaims: boolean; emailAgenda: boolean; emailDigest: boolean; clearedAt: string | null; clearedReminders: string | null };
 export const notificationSwitches = ['team', 'toasts', 'payments', 'renewals', 'followUps', 'emailProspects', 'emailClaims', 'emailAgenda', 'emailDigest'] as const;
-export type Preferences = { renewalDays:number[]; views: { [K in ViewKey]?: ViewValue<K> }; tours: { enabled: boolean; seen: string[] }; theme: Theme; notifications: NotificationSettings; assistantModel: AssistantModel };
+export type NoticeSchedule={renewal:number[];payment:number[];claimEveryDays:number};
+export const defaultNoticeSchedule:NoticeSchedule={renewal:[30,20,10],payment:[20,10,0],claimEveryDays:7};
+export type Preferences = {noticeSchedule:NoticeSchedule; renewalDays:number[]; views: { [K in ViewKey]?: ViewValue<K> }; tours: { enabled: boolean; seen: string[] }; theme: Theme; notifications: NotificationSettings; assistantModel: AssistantModel };
 export type PreferencesPatch = {
+  noticeSchedule?:NoticeSchedule;
   renewalDays?:number[];
   views?: Preferences['views'];
   resetViews?: true;
@@ -36,7 +39,7 @@ export type PreferencesPatch = {
   assistantModel?: AssistantModel;
 };
 const defaultNotifications: NotificationSettings = { team: true, toasts: true, payments: true, renewals: true, followUps: true, emailProspects: true, emailClaims: true, emailAgenda: true, emailDigest: true, clearedAt: null, clearedReminders: null };
-export const defaultPreferences: Preferences = { renewalDays:[60,45,30], views: {}, tours: { enabled: false, seen: [] }, theme: 'light', notifications: defaultNotifications, assistantModel: 'claude-haiku-5-5' };
+export const defaultPreferences: Preferences = {noticeSchedule:defaultNoticeSchedule, renewalDays:[60,45,30], views: {}, tours: { enabled: false, seen: [] }, theme: 'light', notifications: defaultNotifications, assistantModel: 'claude-haiku-5-5' };
 export const MAX_SEEN = 100;
 export const TOUR_ID = /^[a-z0-9:-]{1,60}$/;
 export const REMINDER_KEY = /^[0-9:-]{1,60}$/;
@@ -62,6 +65,7 @@ export function readPreferences(stored: unknown): Preferences {
   if (isTimestamp(rawNotifications.clearedAt)) notifications.clearedAt = rawNotifications.clearedAt;
   if (typeof rawNotifications.clearedReminders === 'string' && REMINDER_KEY.test(rawNotifications.clearedReminders)) notifications.clearedReminders = rawNotifications.clearedReminders;
   return {
+    noticeSchedule:validNoticeSchedule(value.noticeSchedule)?{renewal:[...value.noticeSchedule.renewal].sort((a,b)=>b-a),payment:[...value.noticeSchedule.payment].sort((a,b)=>b-a),claimEveryDays:value.noticeSchedule.claimEveryDays}:defaultNoticeSchedule,
     renewalDays:validRenewalDays(value.renewalDays)?[...value.renewalDays].sort((a,b)=>b-a):[60,45,30],
     views: views as Preferences['views'],
     tours: { enabled: tours.enabled === true, seen: [...new Set(seen)].slice(-MAX_SEEN) },
@@ -72,6 +76,7 @@ export function readPreferences(stored: unknown): Preferences {
 }
 export function mergePreferences(current: Preferences, patch: PreferencesPatch): Preferences {
   return {
+    noticeSchedule:patch.noticeSchedule??current.noticeSchedule,
     renewalDays:patch.renewalDays?[...patch.renewalDays].sort((a,b)=>b-a):current.renewalDays,
     views: patch.resetViews ? { ...patch.views } : { ...current.views, ...patch.views },
     tours: {
@@ -85,3 +90,5 @@ export function mergePreferences(current: Preferences, patch: PreferencesPatch):
 }
 
 export function validRenewalDays(value:unknown):value is number[]{return Array.isArray(value)&&value.length>=1&&value.length<=5&&value.every(n=>Number.isInteger(n)&&n>=1&&n<=180)&&new Set(value).size===value.length;}
+
+export function validNoticeSchedule(value:unknown):value is NoticeSchedule{const d=record(value),valid=(v:unknown,min:number)=>Array.isArray(v)&&v.length>=1&&v.length<=5&&v.every(n=>Number.isInteger(n)&&n>=min&&n<=180)&&new Set(v).size===v.length;return valid(d.renewal,1)&&valid(d.payment,0)&&Number.isInteger(d.claimEveryDays)&&Number(d.claimEveryDays)>=1&&Number(d.claimEveryDays)<=90;}

@@ -18,7 +18,7 @@ export default async function Avisos({ searchParams }: { searchParams: Promise<{
   const owners = Object.fromEntries((ownerEmails.length ? await getDb().authUser.findMany({ where: { email: { in: ownerEmails } }, select: { email: true, name: true } }) : []).map(owner => [owner.email.toLowerCase(), owner.name]));
   await recordPageView(user, 'avisos', 'avisos', 'Avisos a clientes');
   return <><div className="eyebrow">SEGUIMIENTO</div><h1>Avisos a clientes</h1>
-    <p className="lead-small">Renovaciones a 30, 20 y 10 días, recibos a 20 y 10 días y el día que vencen, y siniestros abiertos cada semana. Nada sale solo: envía el correo sugerido, registra que avisaste por otro medio o descártalo.</p>
+    <p className="lead-small">Avisos según los tiempos configurados por el asesor responsable. Puedes ajustarlos desde Plantillas. Nada sale solo: envía el correo sugerido, registra que avisaste por otro medio o descártalo.</p>
     <NoticesBoard pending={pending} resolved={resolved} scope={scope} initialTab={params.tab === 'plantillas' && canAct ? 'plantillas' : 'avisos'} canAct={canAct} templates={templates} senderName={user.name} owners={owners}/>
   </>;
 }

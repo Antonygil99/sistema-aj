@@ -15,6 +15,8 @@ import {GET as getConversation,PATCH as closeConversation} from '../src/app/api/
 import {POST as replyRoute} from '../src/app/api/whatsapp/conversations/[id]/reply/route';
 import {GET as channelSettings} from '../src/app/api/whatsapp/channels/route';
 import {POST as saveResource} from '../src/app/api/resource-links/route';
+import {saveBrokerTemplate,brokerTemplates,personalTemplate,deleteBrokerTemplate} from '../src/modules/email/catalog';
+import {emailOptions} from '../src/modules/email/server';
 import {GET as driveOverview,POST as driveConfigure,DELETE as driveDisconnect} from '../src/app/api/drive/route';
 import {GET as driveCallback} from '../src/app/api/drive/connected/route';
 import {GET as driveFiles} from '../src/app/api/drive/files/route';
@@ -139,6 +141,17 @@ try{await db.$transaction(async tx=>{
  assert.equal((await driveFiles(await request(a,'/api/drive/files'))).status,409,'no provider request before human authorization');
  assert.equal((await driveDisconnect(await request(a,'/api/drive',{method:'DELETE'}))).status,200);
  assert.equal((await tx.driveConnection.findUniqueOrThrow({where:{userId:j.id}})).enabled,true,'disconnect only affects the actor');
+ const template={name:'Fixture welcome',kind:'BIENVENIDA',subject:'Hola {cliente}',body:'**Bienvenido** {cliente}',isDefault:true};
+ const t=await saveBrokerTemplate(a,template);assert.equal((await brokerTemplates(a)).length,1);assert.equal((await brokerTemplates(j)).length,0);
+ await assert.rejects(personalTemplate(j,'BIENVENIDA',t.id),{code:'TEMPLATE_NOT_FOUND'});
+ await assert.rejects(saveBrokerTemplate(j,{...template,id:t.id,expectedUpdatedAt:t.updatedAt.toISOString()}),{code:'TEMPLATE_NOT_FOUND'});
+ const t2=await saveBrokerTemplate(a,{...template,name:'Fixture second'});assert.equal((await personalTemplate(a,'BIENVENIDA'))?.id,t2.id);
+ await assert.rejects(saveBrokerTemplate(a,{...template,id:t.id,expectedUpdatedAt:t.updatedAt.toISOString()}),{code:'RECORD_CHANGED'});
+ const options=await emailOptions(client.id,{kind:'BIENVENIDA',actor:a});assert.ok(options.draft.message.includes(client.name));assert.equal(options.templateId,t2.id);
+ const foreignPolicy=await tx.policy.create({data:{number:'FOREIGN-'+marker,clientId:other.id,insurer:'Fixture',product:'Fixture',premium:1,startDate:new Date('2026-01-01'),endDate:new Date('2027-01-01')}});
+ await assert.rejects(emailOptions(client.id,{kind:'DOCUMENTOS',actor:a,policyId:foreignPolicy.id}),{code:'EMAIL_CONTEXT_INVALID'});
+ await assert.rejects(sendClientEmail(a,{...body,requestId:randomUUID(),documentIds:[],message:'Hola {cliente}'}),{code:'EMAIL_VARIABLES_PENDING'});
+ await deleteBrokerTemplate(a,t2.id,t2.updatedAt.toISOString());assert.equal(await personalTemplate(a,'BIENVENIDA'),null);
  passed=true;throw Error(rollback);
 },{timeout:120000});}catch(e){if(!(e instanceof Error)||e.message!==rollback)throw e;}finally{state.ajDb=oldDb;globalThis.fetch=oldFetch;keys.forEach((k,i)=>{if(env[i]===undefined)delete process.env[k];else process.env[k]=env[i];});await db.$disconnect();}
 assert.ok(passed);

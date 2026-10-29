@@ -1,3 +1,4 @@
+import {renderRichText,plainRichText} from './rich-text';
 // Email templates. Pure and free of zod and server code: the composer uses clientEmail() for its live preview and
 // the server renders the same HTML it sends. Every value from the CRM is escaped. Tested in tests/email.test.ts.
 import { draftFor, type TemplateKind } from './template-text';
@@ -7,10 +8,6 @@ export type AgendaKind = 'AGENDA_1D' | 'AGENDA_DIA' | 'AGENDA_10M';
 export type Rendered = { subject: string; html: string; text: string };
 export function escapeHtml(value: string) {
   return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
-// Plain text written in the composer: blank lines split paragraphs, single line breaks are kept.
-function paragraphs(text: string) {
-  return text.trim().split(/\n{2,}/).map(block => `<p style="margin:0 0 14px">${escapeHtml(block).replace(/\n/g, '<br>')}</p>`).join('');
 }
 const safeUrl = (url: string | null | undefined) => url && /^https:\/\/[^\s"'<>]+$/.test(url) ? url : null;
 function layout({ preheader, body, footer }: { preheader: string; body: string; footer: string }) {
@@ -42,11 +39,11 @@ export function clientEmail({ subject, message, senderName, attachments, privacy
   const files = attachments.length ? `<p style="margin:18px 0 6px;color:#5d6a63;font-size:13px">Adjuntos</p><ul style="margin:0 0 14px;padding-left:20px;font-size:14px">${attachments.map(name => `<li>${escapeHtml(name)}</li>`).join('')}</ul>` : '';
   const privacy = safeUrl(privacyUrl);
   const html = layout({
-    preheader: message.replace(/\s+/g, ' ').slice(0, 120),
-    body: `${paragraphs(message)}${files}<p style="margin:18px 0 0">${signature.map(escapeHtml).join('<br>')}</p>`,
+    preheader: plainRichText(message).replace(/\s+/g, ' ').slice(0, 120),
+    body: `${renderRichText(message)}${files}<p style="margin:18px 0 0">${signature.map(escapeHtml).join('<br>')}</p>`,
     footer: `Puedes responder a este correo para escribirle directamente a ${escapeHtml(senderName.trim() || 'tu asesor')}.${privacy ? ` Consulta nuestro <a href="${escapeHtml(privacy)}" style="color:#3f6b54">aviso de privacidad</a>.` : ''}`,
   });
-  const text = [message.trim(), attachments.length ? `Adjuntos:\n${attachments.map(name => `- ${name}`).join('\n')}` : '', signature.join('\n'), privacy ? `Aviso de privacidad: ${privacy}` : ''].filter(Boolean).join('\n\n');
+  const text = [plainRichText(message).trim(), attachments.length ? `Adjuntos:\n${attachments.map(name => `- ${name}`).join('\n')}` : '', signature.join('\n'), privacy ? `Aviso de privacidad: ${privacy}` : ''].filter(Boolean).join('\n\n');
   return { subject: subject.trim(), html, text };
 }
 

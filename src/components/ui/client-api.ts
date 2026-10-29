@@ -5,6 +5,7 @@ export class ApiError extends Error {
   constructor(public readonly code: string, public readonly status: number, message: string, public readonly issues: Issue[] = []) { super(message); }
 }
 export const errorMessages: Record<string, string> = {
+  TEMPLATE_NOT_FOUND:'La plantilla no pertenece a tu cuenta o ya fue eliminada.',TEMPLATE_LIMIT:'Puedes guardar hasta 100 plantillas personales.',EMAIL_CONTEXT_INVALID:'La póliza o el recibo no corresponde a este expediente o aviso.',EMAIL_VARIABLES_PENDING:'Completa las variables del mensaje antes de enviarlo.',
   SOURCE_IN_USE:'El archivo o referencia se conserva porque está vinculado a una preparación de renovación. Revisa esa preparación antes de desvincularla.',
   DRIVE_FOLDER_URL:'Usa el enlace HTTPS de una carpeta en drive.google.com.',DRIVE_NOT_CONNECTED:'Guarda la carpeta y autoriza tu cuenta de Google Drive.',DRIVE_RECONNECT:'Renueva la autorización de Google Drive desde Conexiones.',DRIVE_ACCESS_DENIED:'Tu cuenta de Google no puede consultar ese archivo o carpeta. Revisa también que Google Drive API esté habilitada.',DRIVE_OUTSIDE_FOLDER:'El elemento no pertenece a la carpeta vinculada o es un acceso directo.',DRIVE_FOLDER_INVALID:'Selecciona una carpeta válida de Google Drive.',DRIVE_UNAVAILABLE:'No se pudo consultar Drive. Reintenta sin cambiar los permisos.',
   RENEWAL_STAGE_INVALID:'Guarda primero la etapa anterior o reabre la preparación para revisarla.',

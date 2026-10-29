@@ -3,6 +3,7 @@ import { MAX_SEEN, REMINDER_KEY, TOUR_ID, modelIds, themeOptions, viewOptions, t
 // Strict validation of PATCH /api/preferences bodies: unknown keys or values are rejected. Server and tests only,
 // so zod never reaches the browser bundle.
 export const preferencesPatch: z.ZodType<PreferencesPatch> = z.object({
+  noticeSchedule:z.object({renewal:z.array(z.number().int().min(1).max(180)).min(1).max(5).refine(v=>new Set(v).size===v.length),payment:z.array(z.number().int().min(0).max(180)).min(1).max(5).refine(v=>new Set(v).size===v.length),claimEveryDays:z.number().int().min(1).max(90)}).strict().optional(),
   renewalDays:z.array(z.number().int().min(1).max(180)).min(1).max(5).refine(v=>new Set(v).size===v.length,'No repitas días de anticipación.').optional(),
   views: z.object({ clientes: z.enum(viewOptions.clientes), documentos: z.enum(viewOptions.documentos), prospectos: z.enum(viewOptions.prospectos) }).partial().strict().optional(),
   resetViews: z.literal(true).optional(),
