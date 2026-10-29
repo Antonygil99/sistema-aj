@@ -10,6 +10,7 @@ export const placeholderLabels = {
   vence: 'Fecha de vencimiento', dias: 'Días que faltan', monto: 'Importe del recibo', referencia: 'Referencia del siniestro',
 } as const;
 export type Placeholder = keyof typeof placeholderLabels;
+export const placeholderShortLabels:Record<Placeholder,string>={cliente:'Cliente',asesor:'Asesor',poliza:'Póliza',producto:'Producto',aseguradora:'Aseguradora',vence:'Vencimiento',dias:'Días',monto:'Importe',referencia:'Referencia'};
 export const templateInfo: Record<TemplateKind, { label: string; hint: string; placeholders: Placeholder[]; defaults: TemplateText }> = {
   BIENVENIDA: {
     label: 'Bienvenida', hint: 'Al dar de alta a un cliente; puede llevar su póliza y recibos.', placeholders: ['cliente', 'asesor'],

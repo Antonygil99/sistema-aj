@@ -77,7 +77,7 @@ export const tours: Tour[] = [
     {title:'Un borrador antes de enviar',body:'Las plantillas son personales y los avisos se preparan para revisión. El recorrido no crea plantillas ni envía correos.',illustration:'resources'},
     {targets:['.notice-schedule-settings'],title:'Elige tus tiempos',body:'Ajusta anticipación de renovación, recibos y seguimiento de siniestros para tus pólizas. Los registros sin responsable usan los valores del sistema.'},
     {targets:['.template-list'],title:'Crea o copia una plantilla',body:'Usa Nueva plantilla o empieza desde un ejemplo. Puedes elegir una predeterminada por tipo de correo.'},
-    {targets:['.rich-email-field'],title:'Inserta variables y da formato',body:'Pulsa un chip para insertarlo en el cursor. Usa negrita, cursiva, listas y enlaces HTTPS. La vista previa usa datos ficticios.'},
+    {targets:['.email-editor-footer','.rich-email-field'],title:'Texto limpio y datos a un clic',body:'Abre «Insertar dato» y elige qué añadir donde estás escribiendo. La barra inferior da formato al texto seleccionado; en los tres puntos puedes quitarlo. La vista previa usa datos ficticios.'},
     {targets:['.template-form'],title:'Envía desde el expediente',body:'Abre Correos → Escribir correo, elige tu plantilla y, si hace falta, póliza o recibo. Revisa el destinatario y las variables antes de pulsar Enviar.'},
   ]},
   {id:'funcion:drive',kind:'feature',title:'Referencias de Google Drive',summary:'Conexión individual, carpeta compartida y vínculos de expediente.',route:'/drive',minRole:'ADMIN',steps:[

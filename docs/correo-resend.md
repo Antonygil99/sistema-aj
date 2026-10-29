@@ -89,3 +89,7 @@ El plan gratuito de Resend permite 100 correos al día y 3,000 al mes; cada dest
 - No activa campañas, envío automático al cliente, nuevos cron ni medios de pago. Se conservan destinatarios registrados, control de adjuntos y verificación humana de identidad/autorización al entregar documentos.
 - Pruebas con SQL/sesiones temporales: catálogo aislado por asesor, edición ajena denegada, predeterminada única, revisión de versiones, datos de póliza de otro cliente rechazados y variables pendientes bloqueadas; todo con rollback. Navegador con componentes reales: chips/selección/formato, creación de plantilla y envío manual individual con API simulada. No se enviaron correos reales.
 - Migración aditiva `20261029230000_broker_email_templates`; ninguna plantilla compartida o correo histórico se elimina por migrarla.
+
+### Ajuste visual del editor
+
+Las filas de variables siempre visibles se sustituyeron por «Insertar dato» en un desplegable contextual por campo. Los datos ya insertados usan etiquetas cortas, con el nombre completo al pasar el cursor. La barra de formato está integrada al pie del mensaje con Iconsax, estado de selección y «Quitar formato» en los tres puntos. El menú conserva el cursor, se cierra al insertar, con Escape o al pulsar fuera; permite navegación con Tab. Los identificadores guardados (`{cliente}`, etc.), textos existentes y reglas de envío permanecen compatibles. Revisado con los componentes reales en escritorio y móvil, creación de plantilla y envío simulado; sin correos reales.
