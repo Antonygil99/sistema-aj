@@ -39,5 +39,5 @@ export function safePatch(module:McpModule,data:Record<string,unknown>) {
   if(JSON.stringify(data).length>12000)throw new McpError('INPUT_TOO_LARGE',413);
   return data;
 }
-export function resourceHref(module:McpModule,id?:string) { return module==='documentos'||module==='carpetas'?'/crm/documentos':module==='clientes'&&id?`/crm/clientes/${encodeURIComponent(id)}`:`/crm/${module}${id?'?q='+encodeURIComponent(id):''}`; }
+export function resourceHref(module:McpModule,id?:string) { return module==='documentos'||module==='carpetas'?'/crm/documentos':module==='clientes'&&id?`/crm/clientes/${encodeURIComponent(id)}`:`/crm/${module}${id?'?open='+encodeURIComponent(id):''}`; }
 export function jsonData(value:unknown) { return JSON.parse(JSON.stringify(value)); }

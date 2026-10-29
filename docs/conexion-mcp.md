@@ -99,3 +99,7 @@ Referencias: [autenticación de aplicaciones de ChatGPT](https://developers.open
 ## Siguiente prueba en el equipo
 
 Conectar una cuenta real desde ChatGPT y otra desde Claude; comprobar consulta, tarjeta, propuesta, revisión humana, carga y revocación. Probar también una importación y una ficha con datos de prueba. Si el chat conserva el catálogo anterior, actualizar o volver a conectar para descubrir las herramientas nuevas. Después pueden ampliarse acciones de trámites o agenda mediante herramientas específicas y las mismas restricciones. No se debe añadir una herramienta genérica de SQL, HTTP arbitrario o ejecución de código.
+
+## Verificación de propuestas y bandejas privadas (29 de octubre de 2026)
+
+Después de confirmar, usar `aj_proposal_status` y comprobar el registro con `aj_detail`. Las tarjetas distinguen lo pendiente de lo aplicado y permiten consultar los datos guardados. Los enlaces abren el registro mediante `?open=ID`. Las consultas de WhatsApp de los asistentes del CRM respetan la propiedad del canal; no leen eventos crudos globales. Ver [entrega de brokers](brokers-renovaciones-recursos.md). El bucle OAuth de Android no se declara resuelto por estos cambios.

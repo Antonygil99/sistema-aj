@@ -13,6 +13,10 @@ export function IntakeDiscovery() {
   return <FeatureDiscovery feature="intake"/>;
 }
 const discoveries={
+  brokers:{id:'brokers-privados',tour:'funcion:brokers',title:'Tu bandeja, tu atención',body:'Solo ves los canales asignados a tu cuenta. Cada broker conserva sus conversaciones y el superadmin prepara la configuración.',anchor:'2026-10-29-brokers',art:'broker-inboxes'},
+  renewal:{id:'renovacion-preparada',tour:'funcion:renovacion-preparada',title:'Primero prepara, después comunica',body:'Compara primas de dos vigencias, vincula las carátulas y revisa el resumen antes de contactar al cliente.',anchor:'2026-10-29-brokers',art:'renewal-comparison'},
+  policy:{id:'caratula-revisada',tour:'funcion:caratula',title:'De la carátula al formulario',body:'La IA propone datos con evidencia. Tú revisas el número completo, la moneda y las fechas antes de incorporarlos.',anchor:'2026-10-29-brokers',art:'policy-extraction'},
+  resources:{id:'recursos-equipo',tour:'funcion:recursos',title:'Tus recursos, en un solo lugar',body:'Organiza pagos, calculadoras y comparativas. Mantén herramientas internas o publica enlaces revisados para tus clientes.',anchor:'2026-10-29-brokers',art:'resource-library'},
   intake:{id:'ficha-cliente',tour:'funcion:ficha-cliente',title:'La ficha la puede llenar tu cliente',body:'Comparte un formulario por WhatsApp y recibe sus datos aquí. Tú revisas qué incorporar al expediente.',anchor:'2026-10-27-fichas',art:'client-intake'},
   procedures:{id:'tramites',tour:'funcion:tramites',title:'Un cambio de póliza, con cada paso en orden',body:'Reutiliza la ficha del cliente, prepara la solicitud y revisa sus documentos hasta recibir el endoso.',anchor:'2026-10-27-tramites',art:'policy-procedure'},
   mcp:{id:'conexiones',tour:'funcion:conexiones',title:'Tu espacio AJ también conversa contigo',body:'Conecta ChatGPT o Claude, consulta expedientes y revisa las propuestas de tu asistente antes de aplicarlas.',anchor:'2026-10-28-conexiones',art:'crm-connections'},

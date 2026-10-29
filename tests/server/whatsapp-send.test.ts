@@ -11,12 +11,13 @@ test('WhatsApp sends: recipient isolation, idempotency, service window and ambig
   const originalEnv = keys.map(key => process.env[key]);
   const globalDb = globalThis as typeof globalThis & { ajDb?: PrismaClient };
   const previousDb = globalDb.ajDb;
-  const actor = { id: 'fixture-admin', name: 'Equipo de prueba', email: null, role: 'ADMIN' as const };
+  const actor = { id: 'fixture-admin', name: 'Equipo de prueba', email: 'fixture@example.invalid', role: 'ADMIN' as const };
   const rows: Record<string, unknown>[] = [];
   const conversation = { id: 'fixture-conversation', phoneNumberId: '123456789', contactId: '529991234567', lastInboundAt: new Date() };
   let calls = 0, mode = 'ok';
   const fake = {
-    whatsAppConversation: { findUnique: async () => conversation, updateMany: async () => ({ count: 1 }) },
+    whatsAppChannel:{findMany:async()=>[{id:'channel-fixture',name:'Fixture',ownerEmail:actor.email,phoneNumberId:conversation.phoneNumberId,credentialSlot:'GENERAL',enabled:true}]},
+    whatsAppConversation: { findFirst: async () => conversation,findUnique: async () => conversation, updateMany: async () => ({ count: 1 }) },
     whatsAppMessage: {
       findUnique: async ({ where }: { where: Record<string, unknown> }) => rows.find(row => Object.entries(where).every(([key, value]) => row[key] === value)) ?? null,
       count: async () => rows.filter(row => ['SENDING', 'UNKNOWN'].includes(String(row.status))).length,

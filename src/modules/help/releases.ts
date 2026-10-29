@@ -7,6 +7,14 @@ export type Release = { id: string; date: string; title: string; summary: string
 // Editorial history, backed by the repository's commits. Add new releases here when shipping a feature;
 // do not derive user-facing promises from commit messages or a third-party approval state at runtime.
 export const releases: Release[] = [
+  {id:'2026-10-29-brokers',date:'2026-10-29',title:'Atención propia y preparación de renovaciones',summary:'Canales privados, captura revisada y recursos para el equipo.',changes:[
+    {id:'broker-private-inbox',title:'Una bandeja por broker',body:'Los canales asignados determinan las conversaciones que puedes consultar y responder. Configurar responsables no concede acceso global al contenido.',area:'WhatsApp',kind:'feature',href:'/whatsapp',tour:'funcion:brokers'},
+    {id:'renewal-preparation',title:'Comparar antes de comunicar',body:'Prepara dos carátulas, primas comparables y un resumen editable. Los avisos son internos; la comunicación al cliente sigue bajo revisión humana.',area:'Renovaciones',kind:'feature',href:'/crm/polizas',tour:'funcion:renovacion-preparada',minRole:'ADMIN'},
+    {id:'policy-extraction',title:'Captura desde carátulas',body:'Con tu proveedor de IA configurado, lee PDF o imágenes y revisa datos y evidencia antes de llenar el formulario. El documento se adjunta al guardar.',area:'Pólizas',kind:'feature',href:'/crm/clientes/nuevo',tour:'funcion:caratula',minRole:'ADMIN'},
+    {id:'complete-policy-number',title:'Número completo y moneda original',body:'La lectura conserva prefijos, ceros y separadores. Los datos inciertos quedan pendientes y UDI requiere revisión especializada.',area:'Pólizas',kind:'improvement',href:'/crm/polizas'},
+    {id:'resource-library',title:'Recursos del equipo y para clientes',body:'Organiza enlaces por categoría y aseguradora. Solo los recursos públicos y revisados aparecen en el catálogo compartible.',area:'Recursos',kind:'feature',href:'/recursos',tour:'funcion:recursos'},
+    {id:'proposal-lifecycle',title:'Propuesto no significa guardado',body:'Las tarjetas distinguen revisión pendiente, aplicación y verificación del registro. El chat consulta el estado sin volver a preparar el cambio.',area:'Conexiones',kind:'improvement',href:'/conexiones',tour:'funcion:conexiones'},
+  ]},
   {id:'2026-10-28-mcp-permissions',date:'2026-10-28',title:'Permisos de cambios desde tu chat',summary:'La conexión puede solicitar autorización adicional al preparar una acción.',changes:[
     {id:'mcp-incremental-access',title:'Ampliar una conexión de consulta',body:'Actualiza las herramientas del complemento y pide al chat solicitar permiso para preparar cambios. El CRM muestra los permisos adicionales para autorizarlos. Las cuentas administradoras conservan su rol y cada propuesta sigue confirmándose en el CRM.',area:'Conexiones',kind:'fix',href:'/conexiones',tour:'funcion:conexiones',minRole:'ADMIN'},
   ]},

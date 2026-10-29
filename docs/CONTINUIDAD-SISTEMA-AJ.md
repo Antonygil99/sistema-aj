@@ -1,6 +1,12 @@
 # Sistema AJ — continuidad del proyecto
 
-Actualizado: 28 de octubre de 2026. Documento para continuar el trabajo con Claude o cualquier desarrollador. No contiene credenciales ni correos privados de las cuentas autorizadas.
+Actualizado: 29 de octubre de 2026. Documento para continuar el trabajo con Claude o cualquier desarrollador. No contiene credenciales ni correos privados de las cuentas autorizadas.
+
+## Entrega vigente: los seis puntos de brokers y operación
+
+La implementación y sus límites están en [brokers-renovaciones-recursos.md](brokers-renovaciones-recursos.md). Incluye canales privados por propietario (también en el servidor), configuración de canales sin acceso global al contenido, preparación revisada de renovaciones, captura desde carátulas con proveedor de IA configurado, número de póliza como texto completo, recursos internos/públicos y estado explícito de propuestas MCP. La migración aditiva `20261029180000_broker_channels_and_workflows` añade tres tablas sin borrar el historial.
+
+La [revisión de la reunión](reuniones/2026-10-28-necesidades-brokers.md) conserva el análisis previo y los minutos de referencia. Sus apartados de «estado actual» describen la situación anterior a esta implementación. La asignación confirmada es: cada broker solo ve su bandeja. No se habilitó una excepción de lectura global del superadmin. Los números reales, sus permisos de Meta y credenciales siguen requiriendo configuración efectiva. La comparación no emite pólizas ni envía mensajes; el lector de carátulas no guarda sin revisión humana. El bucle de MCP en Android no se considera resuelto.
 
 ## Última ampliación: importaciones y fichas por MCP
 

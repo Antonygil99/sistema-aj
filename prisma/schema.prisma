@@ -147,6 +147,7 @@ model ClientIntakeRevision {
   @@unique([intakeId, revision])
 }
 model Policy {
+  renewalPreparation RenewalPreparation?
   procedures InsuranceProcedure[]
   id          String @id @default(cuid())
   number      String
@@ -438,6 +439,46 @@ model WebhookEvent {
   createdAt   DateTime @default(now())
   @@index([processedAt, createdAt])
 }
+// Channel metadata only. Tokens stay in server environment variables.
+model RenewalPreparation {
+  id String @id @default(cuid())
+  policyId String @unique
+  policy Policy @relation(fields: [policyId], references: [id], onDelete: Restrict)
+  data Json
+  status String @default("PREPARING")
+  updatedBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CrmResourceLink {
+  id String @id @default(cuid())
+  title String
+  category String
+  insurer String?
+  url String
+  audience String @default("INTERNAL")
+  description String @default("")
+  active Boolean @default(true)
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([audience, active])
+}
+
+model WhatsAppChannel {
+  id String @id @default(cuid())
+  name String
+  ownerEmail String
+  phoneNumberId String? @unique
+  wabaId String?
+  credentialSlot String @unique
+  enabled Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([ownerEmail, enabled])
+}
+
 // Each business number keeps its own contacts and history. Credentials never live here.
 model WhatsAppConversation {
   id              String @id @default(cuid())

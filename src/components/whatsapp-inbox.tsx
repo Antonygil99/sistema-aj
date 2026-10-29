@@ -8,7 +8,7 @@ import { displayWhatsAppContact } from '@/modules/whatsapp/recipient';
 
 type Message = { id: string; direction: string; kind: string; body: string; status: string; sentAt: string; senderName: string | null; failureCode?: string | null };
 type Conversation = { id: string; displayName: string; contactId: string; phoneNumberId: string; lastInboundAt: string | null; lastMessageAt: string; closed: boolean; messages?: Message[] };
-type Inbox = { rows: Conversation[]; total: number; open: number; sendingConfigured: boolean };
+type Inbox = { rows: Conversation[]; total: number; open: number; sendingConfigured: boolean; channels?:{id:string;name:string;configured:boolean;linked:boolean}[] };
 type Thread = { conversation: Conversation; rows: Message[]; hasMore: boolean; canSend: boolean };
 const labels: Record<string, string> = { RECEIVED: 'Recibido', SENDING: 'Enviando', UNKNOWN: 'Confirmación pendiente', ACCEPTED: 'Aceptado por Meta', sent: 'Enviado', delivered: 'Entregado', read: 'Leído', failed: 'No enviado' };
 const media: Record<string, string> = { image: 'Imagen recibida', audio: 'Audio recibido', video: 'Video recibido', document: 'Documento recibido', sticker: 'Sticker recibido', location: 'Ubicación recibida', contacts: 'Contacto recibido', interactive: 'Respuesta interactiva recibida', reaction: 'Reacción recibida', unsupported: 'Mensaje no compatible' };
@@ -111,6 +111,7 @@ export function WhatsAppInbox({ canWrite }: { canWrite: boolean }) {
   return <section className="wa-workspace" aria-label="Bandeja de WhatsApp">
     <div className="wa-summary"><div><span>Conversaciones</span><strong>{inbox?.total ?? '—'}</strong></div><div><span>Por atender</span><strong>{inbox?.open ?? '—'}</strong></div><div><span>Envío manual</span><strong>{inbox ? inbox.sendingConfigured ? 'Configurado' : 'Pendiente' : '—'}</strong></div><div><span>Atención</span><strong>Humana</strong></div></div>
     <div className="wa-toolbar"><p>Actualización cada 15 segundos · acceso privado del equipo</p><div className="wa-toolbar-actions">{canWrite ? <button type="button" className="button button-soft" disabled={busy} onClick={() => void checkConnection()}>Comprobar conexión</button> : null}<button type="button" className="button button-soft" disabled={busy} onClick={() => void refresh()}><Refresh2 aria-hidden="true"/>{busy ? 'Actualizando…' : 'Actualizar recibidos'}</button></div></div>
+    <p>{!inbox?'Consultando tus canales…':inbox.channels?.length?inbox.channels.map(c=>`${c.name}: ${!c.linked?'pendiente de vincular en Meta':c.configured?'credencial configurada':'pendiente de credencial'}`).join(' · '):'No tienes un canal asignado. El superadmin debe preparar tu canal antes de mostrar conversaciones.'}</p>
     {error ? <p className="wa-alert" role="alert">{error}</p> : null}{notice ? <p className="wa-notice" role="status">{notice}</p> : null}
     <div className={`wa-columns${selected ? ' wa-selected' : ''}`}>
       <section className="wa-list" aria-label="Conversaciones"><label className="wa-search">Buscar contacto<input value={query} onChange={event => { setQuery(event.target.value); setSkip(0); }} placeholder="Nombre o número" type="search" maxLength={100}/></label>

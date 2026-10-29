@@ -18,17 +18,16 @@ try {
   assert.equal(ready, true, 'local server starts'); stage = 'database'; await db.connect(); await db.query('BEGIN READ ONLY'); stage = 'inbox';
   const anon = await request('/api/whatsapp/conversations', {}, false); assert.ok([401,503].includes(anon.status));
   assert.ok([401,503].includes((await request('/api/whatsapp/connection', {}, false)).status));
-  const connection = await request('/api/whatsapp/connection'); assert.equal(connection.status, 200); assert.equal((await connection.json()).code, 'WA_SEND_NOT_CONFIGURED');
+  const connection = await request('/api/whatsapp/connection'); assert.equal(connection.status, 503); assert.equal((await connection.json()).error, 'WA_SEND_NOT_CONFIGURED');
   const response = await request('/api/whatsapp/conversations'); assert.equal(response.status, 200);
-  const inbox = await response.json(); const count = (await db.query('SELECT count(*)::int AS n FROM "WhatsAppConversation"')).rows[0].n;
-  assert.equal(inbox.total, count); assert.ok(inbox.rows.length <= 30);
+  const inbox = await response.json();
+  assert.equal(inbox.total, 0);assert.equal(inbox.open,0);assert.deepEqual(inbox.rows,[],'una integración sin propietario no obtiene bandejas');
   assert.equal((await request('/api/whatsapp/conversations?skip=-1')).status, 400);
-  const conversation = inbox.rows[0];
+  const conversation = (await db.query('SELECT id FROM "WhatsAppConversation" LIMIT 1')).rows[0];
   stage = 'thread';
   if (conversation) {
-    const thread = await request(`/api/whatsapp/conversations/${conversation.id}`); assert.equal(thread.status, 200);
-    const data = await thread.json(); assert.ok(data.rows.length <= 50); assert.ok(data.rows.every((row: { conversationId: string }) => row.conversationId === conversation.id));
-    assert.equal((await request(`/api/whatsapp/conversations/${conversation.id}?cursor=unknown`)).status, 400);
+    const thread = await request(`/api/whatsapp/conversations/${conversation.id}`); assert.equal(thread.status, 404);
+    assert.equal((await request(`/api/whatsapp/conversations/${conversation.id}?cursor=unknown`)).status, 404);
     assert.equal((await request(`/api/whatsapp/conversations/${conversation.id}/reply`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ body: 'never sent', requestId: 'invalid' }) })).status, 400);
     assert.ok([401,503].includes((await request(`/api/whatsapp/conversations/${conversation.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ closed: true }) }, false)).status));
   }
@@ -40,6 +39,6 @@ try {
   const after = (await db.query('SELECT count(*)::int AS n FROM "WebhookEvent"')).rows[0].n; assert.equal(before, after);
   const duplicates = (await db.query('SELECT count(*)::int AS n FROM (SELECT "metaId" FROM "WhatsAppMessage" WHERE "metaId" IS NOT NULL GROUP BY "metaId" HAVING count(*) > 1) d')).rows[0].n; assert.equal(duplicates, 0);
   await db.query('ROLLBACK');
-  console.log('WHATSAPP_INBOX_VERIFIED: protected reads match database; pagination, validation, verification challenge and signature rejection pass; no real message sent or business data changed.');
+  console.log('WHATSAPP_INBOX_VERIFIED: unowned integration sees no conversations/counts, direct thread isolation, validation, verification challenge and signature rejection pass; no real message sent or business data changed. Human broker sessions: npm run brokers:smoke.');
 } catch (error) { console.error('WHATSAPP_SMOKE_CHECK_FAILED', stage, error instanceof assert.AssertionError ? error.message : 'CONNECTION_OR_REQUEST_UNAVAILABLE'); process.exitCode = 1; }
 finally { await db.end().catch(() => {}); server.kill(); }

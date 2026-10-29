@@ -109,7 +109,7 @@ export const resources: Record<ResourceSlug, ResourceConfig> = {
     emptyTitle: 'Sin pólizas registradas', emptyMessage: 'Registra la cobertura de cada cliente con su vigencia y prima.', searchHint: 'Número, aseguradora, cliente, vehículo o placas',
     statuses: { ACTIVE: 'Activa', EXPIRED: 'Vencida', CANCELLED: 'Cancelada' }, statusTones: { ACTIVE: 'green', EXPIRED: 'sand', CANCELLED: 'red' },
     fields: [
-      { name: 'number', label: 'Número de póliza', type: 'text', required: true, maxLength: 250 },
+      { name: 'number', label: 'Número completo de póliza (incluye prefijo y ceros)', type: 'text', required: true, maxLength: 250 },
       { name: 'clientId', label: 'Cliente', type: 'relation', relation: 'clientes', required: true },
       { name: 'productId', label: 'Producto del catálogo', type: 'relation', relation: 'productos', hint: 'Completa aseguradora, producto y responsable.' },
       { name: 'insurer', label: 'Aseguradora', type: 'text', required: true, maxLength: 250 },

@@ -26,6 +26,7 @@
     "crm:smoke": "tsx scripts/crm-smoke.ts",
     "whatsapp:sync": "node --conditions=react-server --import tsx scripts/whatsapp-sync.ts",
     "whatsapp:smoke": "tsx scripts/whatsapp-smoke.ts",
+    "brokers:smoke": "node --import ./scripts/server-test-loader.mjs --import tsx scripts/brokers-workflows-smoke.ts",
     "theme": "node scripts/theme-tokens.mjs",
     "icons": "node scripts/build-icons.mjs",
     "mcp:widget": "node scripts/build-mcp-widget.mjs",

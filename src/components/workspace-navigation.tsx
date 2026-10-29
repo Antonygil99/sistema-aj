@@ -31,6 +31,7 @@ const secondary: { label: string; items: Destination[] }[] = [
     { href: '/avisos', label: 'Avisos a clientes', icon: NotificationBing },
   ] },
   { label: 'Herramientas', items: [
+    { href: '/recursos', label: 'Recursos', icon: DocumentText },
     { href: '/crm/productos', label: 'Productos', icon: moduleIcons.productos },
     { href: '/asistentes', label: 'Asistentes', icon: MagicStar, minimum: 'SUPERADMIN' },
     { href: '/conexiones', label: 'Conexiones', icon: MagicStar },

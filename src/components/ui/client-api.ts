@@ -5,6 +5,11 @@ export class ApiError extends Error {
   constructor(public readonly code: string, public readonly status: number, message: string, public readonly issues: Issue[] = []) { super(message); }
 }
 export const errorMessages: Record<string, string> = {
+  INVALID_CHANNEL_OWNER:'El responsable debe tener una cuenta administradora activa.',
+  POLICY_PDF_UNREADABLE:'No se pudo leer el PDF. Revisa que no esté dañado o protegido.',
+  POLICY_PDF_PAGE_LIMIT:'Usa una carátula de hasta 10 páginas.',
+  POLICY_EXTRACTION_UNAVAILABLE:'No se completó la lectura con IA. No se guardaron datos; puedes capturarlos manualmente.',
+  RENEWAL_NOT_READY:'Primero guarda y revisa la renovación como lista para comunicar.',
   PROCEDURE_SCOPE: 'La póliza debe pertenecer a este expediente.',
   PROCEDURE_POLICY_UNSUPPORTED: 'El piloto requiere una póliza MetLife del catálogo de Gastos Médicos. Confirma además que sea individual.',
   PROCEDURE_STATE: 'Esta acción no corresponde a la etapa actual. Actualiza el trámite y revisa su estado.',

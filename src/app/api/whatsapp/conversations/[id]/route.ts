@@ -3,6 +3,7 @@ import { getDb } from '@/lib/db';
 import { z } from 'zod';
 import { deliveryState, type DeliveryStatus } from '@/modules/whatsapp/parse';
 import { recordEvent } from '@/modules/events';
+import { ownConversation, conversationScope, ownChannel, channelCredentials } from '@/modules/whatsapp/channels';
 export const runtime = 'nodejs';
 type Context = { params: Promise<{ id: string }> };
 export async function GET(request: Request, context: Context) {
@@ -10,7 +11,7 @@ export async function GET(request: Request, context: Context) {
   try {
     const { id } = await context.params;
     const { before } = z.object({ before: z.string().datetime().optional() }).parse(Object.fromEntries(new URL(request.url).searchParams));
-    const conversation = await getDb().whatsAppConversation.findUnique({ where: { id } });
+    const conversation = await ownConversation(id,auth.actor);
     if (!conversation) return Response.json({ error: 'WA_NOT_FOUND' }, { status: 404 });
     // Cursor is a message id, not just a date: equal timestamps cannot skip messages.
     const cursorId = new URL(request.url).searchParams.get('cursor');
@@ -28,7 +29,7 @@ export async function GET(request: Request, context: Context) {
       return receipt ? { ...row, status: deliveryState(row.status, receipt.status as DeliveryStatus['status']), deliveredAt: receipt.deliveredAt ?? row.deliveredAt, readAt: receipt.readAt ?? row.readAt } : row;
     });
     return Response.json({ conversation, rows: visible, hasMore: rows.length > 50,
-      canSend: conversation.phoneNumberId === process.env.WHATSAPP_PHONE_NUMBER_ID }, { headers: { 'Cache-Control': 'private, no-store' } });
+      canSend: Boolean(channelCredentials(await ownChannel(auth.actor,conversation.phoneNumberId))) }, { headers: { 'Cache-Control': 'private, no-store' } });
   } catch (error) { return apiError(error); }
 }
 export async function PATCH(request: Request, context: Context) {
@@ -36,7 +37,7 @@ export async function PATCH(request: Request, context: Context) {
   try {
     const { closed } = z.object({ closed: z.boolean() }).strict().parse(await request.json());
     const { id } = await context.params;
-    const result = await getDb().whatsAppConversation.updateMany({ where: { id }, data: { closed } });
+    const result = await getDb().whatsAppConversation.updateMany({ where: { id,...await conversationScope(auth.actor) }, data: { closed } });
     if (result.count) await recordEvent(auth.actor, 'updated', 'whatsapp', id, closed ? 'Conversación resuelta' : 'Conversación reabierta');
     return result.count ? Response.json({ saved: true }) : Response.json({ error: 'WA_NOT_FOUND' }, { status: 404 });
   } catch (error) { return apiError(error); }

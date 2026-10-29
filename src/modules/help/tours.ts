@@ -2,7 +2,7 @@ import { modules, type ModuleSlug } from '../catalog';
 import { resources, isResourceSlug } from '../resources/config';
 // Guided tours for the Help Center. Pure (unit tested in tests/tours.test.ts): the browser resolves each
 // step's first visible target and skips steps whose element is not on screen (role, view or empty list).
-export type TourStep = { targets?: string[]; title: string; body: string; illustration?: 'intake' | 'procedures' | 'mcp' | 'imports' | 'mcpForms' };
+export type TourStep = { targets?: string[]; title: string; body: string; illustration?: 'intake' | 'procedures' | 'mcp' | 'imports' | 'mcpForms' | 'brokers' | 'renewal' | 'policy' | 'resources' };
 export type Tour = { id: string; kind: 'component' | 'module' | 'feature'; title: string; summary: string; route?: string; context?: 'client' | 'procedure'; prepare?: 'intake' | 'procedures'; minRole?: 'ADMIN' | 'SUPERADMIN'; listed?: boolean; steps: TourStep[] };
 type Role = 'USER' | 'ADMIN' | 'SUPERADMIN';
 const rank: Record<Role, number> = { USER: 0, ADMIN: 1, SUPERADMIN: 2 };
@@ -68,6 +68,25 @@ function moduleTour(slug: ModuleSlug): Tour {
   return { ...base, steps: [intro(tips[slug] ?? entry.description), ...tableSteps(slug)] };
 }
 export const tours: Tour[] = [
+  {id:'funcion:brokers',kind:'feature',title:'Mi bandeja privada',summary:'Canales propios y preparación de la conexión.',route:'/whatsapp',steps:[
+    {title:'Tu bandeja pertenece a tu cuenta',body:'Solo aparecen conversaciones de tus canales asignados. Un número pendiente de asociación conserva su historial y no se muestra a otros brokers.',illustration:'brokers'},
+    {targets:['.wa-toolbar'],title:'Comprueba el estado',body:'Consultar el número confirma acceso de lectura en Meta. El envío se valida con una respuesta revisada; los números reales esperan su autorización correspondiente.'},
+    {targets:['.wa-columns'],title:'Atención humana',body:'Lee, responde y marca resuelta la conversación. Los asistentes no responden automáticamente y los envíos ambiguos no se reintentan.'},
+  ]},
+  {id:'funcion:renovacion-preparada',kind:'feature',title:'Preparar una renovación',summary:'Aviso interno, comparación y revisión antes de comunicar.',route:'/crm/polizas',minRole:'ADMIN',steps:[
+    {title:'El aviso llega primero al broker',body:'Prepara la documentación y compara importes antes de contactar al cliente. Este recorrido no guarda datos ni envía mensajes.',illustration:'renewal'},
+    {targets:['.finance-panel > summary'],title:'Abre la póliza',body:'En Recibos, pagos y renovación, abre Preparar renovación y selecciona ambas carátulas dentro del expediente.'},
+    {targets:['[data-feature="renovacion-preparada"]'],title:'Revisa la propuesta',body:'Compara primas totales en la misma moneda. Marca lista después de comprobar documentos; comunicar sigue siendo una acción humana.'},
+  ]},
+  {id:'funcion:caratula',kind:'feature',title:'Leer una carátula',summary:'Extraer, revisar y conservar el documento de origen.',route:'/crm/clientes/nuevo',minRole:'ADMIN',steps:[
+    {title:'La lectura prepara datos',body:'En el paso de póliza abre Completar desde una carátula. Requiere tu proveedor de IA configurado y autorización para procesar el archivo.',illustration:'policy'},
+    {targets:['[data-feature="caratula"]'],title:'Revisa la evidencia',body:'Carga un PDF de hasta 10 páginas o una imagen, máximo 4 MB. Revisa cada campo y su evidencia; la información incierta queda por capturar.'},
+    {targets:['.wizard-actions'],title:'Confirma el formulario',body:'Conserva prefijos y ceros, confirma moneda y fechas y revisa recibos por separado. Al guardar se adjunta la carátula; la lectura no crea pólizas.'},
+  ]},
+  {id:'funcion:recursos',kind:'feature',title:'Organizar recursos',summary:'Herramientas internas y enlaces compartibles.',route:'/recursos',steps:[
+    {title:'Un lugar para tus herramientas',body:'Encuentra enlaces de pago, calculadoras, comparativas y guías por nombre o aseguradora.',illustration:'resources'},
+    {targets:['[data-feature="recursos"]'],title:'Elige la audiencia',body:'Los administradores crean recursos internos por defecto. Publicar para clientes requiere revisión expresa; abrir un enlace de pago no confirma un cobro.'},
+  ]},
   {id:'funcion:importaciones',kind:'feature',title:'Importar contactos con revisión',summary:'Relacionar columnas, detectar coincidencias y guardar las filas elegidas.',route:'/importaciones',minRole:'ADMIN',steps:[
     {title:'Tu cartera entra con orden',body:'Importa hasta 500 prospectos o clientes desde Excel o CSV. También puedes revisar tablas preparadas por el chat a partir de imágenes o PDF. Este recorrido explica los pasos; no guarda registros.',illustration:'imports'},
     {targets:['[data-tour="import-source"]'],title:'Elige el archivo',body:'Arrastra un archivo .xlsx, CSV o TSV de hasta 4 MB. Debe incluir encabezados. El archivo se procesa para preparar la tabla; no se publica ni se guarda en la biblioteca.'},

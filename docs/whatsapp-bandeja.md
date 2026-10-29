@@ -1,6 +1,6 @@
 # Bandeja de WhatsApp
 
-Acceso: `/whatsapp` (sesión Google y acceso del equipo requeridos). USER consulta; ADMIN y SUPERADMIN pueden responder, sincronizar eventos y marcar conversaciones resueltas. Una respuesta nueva reabre la conversación. Estos permisos siguen el alcance de equipo del CRM: no hay aislamiento por broker todavía.
+Acceso: `/whatsapp` (sesión Google y acceso del equipo requeridos). USER consulta; ADMIN y SUPERADMIN pueden responder, sincronizar eventos y marcar conversaciones resueltas. Una respuesta nueva reabre la conversación. La bandeja está aislada por propietario del canal, incluidos contadores, búsquedas e hilos directos. Administrar canales no concede supervisión del contenido. Ver [brokers-renovaciones-recursos.md](brokers-renovaciones-recursos.md).
 
 ## Flujo
 
@@ -35,7 +35,7 @@ La bandeja consulta cada 15 segundos mientras la pestaña está visible. Lista p
 
 ## Pendientes explícitos
 
-Se mantiene atención humana por decisión del usuario. No hay respuestas automáticas, llamadas a modelos ni borradores generados por IA en esta bandeja. Los asistentes existentes siguen separados y necesitan proveedor configurado. Faltan autorización/coexistencia de cada broker, credenciales por cuenta, asignaciones y permisos por broker, vincular expedientes, medios descargables, plantillas aprobadas, recibos/renovaciones automáticos y conciliación de envíos ambiguos.
+Se mantiene atención humana por decisión del usuario. No hay respuestas automáticas, llamadas a modelos ni borradores generados por IA en esta bandeja. Los asistentes existentes siguen separados y necesitan proveedor configurado. Faltan autorización/coexistencia de cada broker, vinculación y credenciales efectivas por cuenta (la estructura de canales y los permisos privados ya están implementados), vincular expedientes, medios descargables, plantillas aprobadas, recibos/renovaciones automáticos y conciliación de envíos ambiguos.
 
 El webhook de ecos de la app del teléfono y el historial de coexistencia se ignoran para evitar que se traten como mensajes entrantes o que una IA se responda a sí misma. Deberán integrarse con dirección y permisos explícitos cuando Meta apruebe el flujo.
 

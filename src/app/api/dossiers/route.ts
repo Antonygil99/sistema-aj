@@ -19,12 +19,13 @@ export async function POST(request: Request) {
         if (!converted.count) throw new ResourceError('ALREADY_CONVERTED', 409);
       }
       await tx.documentFolder.createMany({ data: ['Identificación','Pólizas','Pagos','Siniestros'].map(name => ({ name, clientId: client.id })) });
-      if (input.policy) { const { payments, ...policy } = input.policy; await tx.policy.create({ data: { ...policy, ownerEmail: await responsible(tx, policy.productId, policy.ownerEmail) ?? prospect?.ownerEmail ?? undefined, clientId: client.id, startDate: new Date(policy.startDate), endDate: new Date(policy.endDate), payments: { create: payments.map(p => ({ ...p, currency: policy.currency, dueDate: new Date(p.dueDate) })) } } }); }
-      return { id: client.id, name: client.name, prospect };
+      let policyId:string|null=null;
+      if (input.policy) { const { payments, ...policy } = input.policy; const savedPolicy=await tx.policy.create({ data: { ...policy, ownerEmail: await responsible(tx, policy.productId, policy.ownerEmail) ?? prospect?.ownerEmail ?? undefined, clientId: client.id, startDate: new Date(policy.startDate), endDate: new Date(policy.endDate), payments: { create: payments.map(p => ({ ...p, currency: policy.currency, dueDate: new Date(p.dueDate) })) } } }); policyId=savedPolicy.id; }
+      return { id: client.id, name: client.name, prospect,policyId };
     });
     await recordEvent(auth.actor, 'created', 'expedientes', data.id, data.name);
     if (data.prospect) await recordEvent(auth.actor, 'updated', 'prospectos', data.prospect.id, `${data.prospect.name} → cliente`);
-    return NextResponse.json({ data: { id: data.id } }, { status: 201 });
+    return NextResponse.json({ data: { id: data.id,policyId:data.policyId } }, { status: 201 });
   } catch (error) { return apiError(error); }
 }
 

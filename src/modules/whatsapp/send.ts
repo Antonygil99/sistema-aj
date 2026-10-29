@@ -5,15 +5,17 @@ import { recordEvent } from '@/modules/events';
 import { canReply } from './parse';
 import { metaFailure, failureKey, storedFailure, messageFailure } from './errors';
 import { mexicoAllowlistAlternative } from './recipient';
+import { ownConversation, ownChannel, channelCredentials } from './channels';
 export class WhatsAppError extends Error { constructor(public code: string, public status: number) { super(code); } }
 export function whatsappSending() {
   return Boolean(process.env.WHATSAPP_ACCESS_TOKEN?.trim() && /^\d+$/.test(process.env.WHATSAPP_PHONE_NUMBER_ID ?? '') && /^v\d+\.0$/.test(process.env.WHATSAPP_API_VERSION ?? ''));
 }
 export async function replyWhatsApp(conversationId: string, body: string, requestId: string, actor: Actor) {
   const db = getDb();
-  const conversation = await db.whatsAppConversation.findUnique({ where: { id: conversationId } });
+  const conversation = await ownConversation(conversationId,actor);
   if (!conversation) throw new WhatsAppError('WA_NOT_FOUND', 404);
-  if (!whatsappSending() || conversation.phoneNumberId !== process.env.WHATSAPP_PHONE_NUMBER_ID) throw new WhatsAppError('WA_SEND_NOT_CONFIGURED', 503);
+  const credentials=channelCredentials(await ownChannel(actor,conversation.phoneNumberId));
+  if (!credentials) throw new WhatsAppError('WA_SEND_NOT_CONFIGURED', 503);
   const previous = await db.whatsAppMessage.findUnique({ where: { requestId } });
   if (previous) {
     if (previous.conversationId !== conversationId || previous.body !== body || previous.senderId !== actor.id) throw new WhatsAppError('WA_REQUEST_CONFLICT', 409);
@@ -35,8 +37,8 @@ export async function replyWhatsApp(conversationId: string, body: string, reques
   const phoneNumberId = conversation.phoneNumberId;
   async function sendRequest(to: string) {
     try {
-      return await fetch(`https://graph.facebook.com/${process.env.WHATSAPP_API_VERSION}/${phoneNumberId}/messages`, {
-      method: 'POST', headers: { Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN!.trim()}`, 'Content-Type': 'application/json' },
+      return await fetch(`https://graph.facebook.com/${credentials!.version}/${phoneNumberId}/messages`, {
+      method: 'POST', headers: { Authorization: `Bearer ${credentials!.token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ messaging_product: 'whatsapp', recipient_type: 'individual', to, type: 'text', text: { preview_url: false, body } }),
       signal: AbortSignal.timeout(15000),
       });
