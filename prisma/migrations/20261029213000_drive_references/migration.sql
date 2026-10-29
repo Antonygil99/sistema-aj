@@ -1,0 +1,4 @@
+CREATE TABLE "DriveConnection" ("id" TEXT NOT NULL PRIMARY KEY,"userId" TEXT NOT NULL UNIQUE,"folderId" TEXT,"resourceKey" TEXT,"folderName" TEXT,"enabled" BOOLEAN NOT NULL DEFAULT false,"connectNonce" TEXT,"connectExpiresAt" TIMESTAMP(3),"updatedAt" TIMESTAMP(3) NOT NULL);
+CREATE TABLE "ClientDriveLink" ("id" TEXT NOT NULL PRIMARY KEY,"clientId" TEXT NOT NULL,"rootFolderId" TEXT NOT NULL,"fileId" TEXT NOT NULL,"resourceKey" TEXT,"name" TEXT NOT NULL,"mimeType" TEXT NOT NULL,"createdBy" TEXT NOT NULL,"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "ClientDriveLink_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE RESTRICT ON UPDATE CASCADE);
+CREATE UNIQUE INDEX "ClientDriveLink_clientId_fileId_key" ON "ClientDriveLink"("clientId","fileId");
+CREATE INDEX "ClientDriveLink_clientId_rootFolderId_idx" ON "ClientDriveLink"("clientId","rootFolderId");

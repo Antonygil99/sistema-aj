@@ -7,6 +7,11 @@ export type Release = { id: string; date: string; title: string; summary: string
 // Editorial history, backed by the repository's commits. Add new releases here when shipping a feature;
 // do not derive user-facing promises from commit messages or a third-party approval state at runtime.
 export const releases: Release[] = [
+  {id:'2026-10-29-drive',date:'2026-10-29',title:'El expediente se conecta con Drive',summary:'Referencias privadas y anticipación personal de renovaciones.',changes:[
+    {id:'drive-references',title:'Originales en Drive, referencias en AJ',body:'Cada asesor autoriza su cuenta y explora la carpeta elegida. Vincula archivos al expediente, sin copias a R2 ni cambios de permisos. La primera versión consulta metadatos y abre el original en Google.',area:'Documentos',kind:'feature',href:'/drive',tour:'funcion:drive',minRole:'ADMIN'},
+    {id:'renewal-lead-days',title:'Anticipación del resumen interno',body:'Configura hasta cinco anticipaciones entre 1 y 180 días en Preferencias → Notificaciones. Se reutiliza el resumen diario del equipo y no cambia los avisos al cliente.',area:'Renovaciones',kind:'improvement',href:'/crm/polizas',minRole:'ADMIN'},
+  ]},
+
   {id:'2026-10-29-delivery',date:'2026-10-29',title:'Entregas revisadas y comparación técnica',summary:'Clasificación de adjuntos y datos técnicos de renovación bajo revisión humana.',changes:[
     {id:'reviewed-delivery',title:'Revisar antes de entregar',body:'Clasifica carátulas y recibos de cada póliza antes de adjuntarlos. El envío exige verificar identidad y autorización de los destinatarios; los demás archivos quedan internos.',area:'Documentos',kind:'improvement',href:'/crm/documentos',minRole:'ADMIN'},
     {id:'renewal-follow-up',title:'Renovación con próxima tarea',body:'Registra solicitud, propuesta recibida, revisión, comunicación y seguimiento. Reprograma una sola actividad del responsable y consulta el historial. Registrar la nueva vigencia cierra el seguimiento sin alterar recibos históricos.',area:'Renovaciones',kind:'improvement',href:'/crm/polizas',tour:'funcion:renovacion-preparada',minRole:'ADMIN'},

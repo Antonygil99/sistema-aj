@@ -73,6 +73,11 @@ export const tours: Tour[] = [
     {targets:['.wa-toolbar'],title:'Comprueba el estado',body:'Consultar el número confirma acceso de lectura en Meta. El envío se valida con una respuesta revisada; los números reales esperan su autorización correspondiente.'},
     {targets:['.wa-columns'],title:'Atención humana',body:'Lee, responde y marca resuelta la conversación. Los asistentes no responden automáticamente y los envíos ambiguos no se reintentan.'},
   ]},
+  {id:'funcion:drive',kind:'feature',title:'Referencias de Google Drive',summary:'Conexión individual, carpeta compartida y vínculos de expediente.',route:'/drive',minRole:'ADMIN',steps:[
+    {title:'Los originales permanecen en Drive',body:'El CRM consulta nombres y metadatos bajo tu autorización de Google. No copia archivos ni modifica permisos. El recorrido no conecta cuentas ni guarda referencias.',illustration:'resources'},
+    {targets:['[data-feature="drive-connect"]'],title:'Autoriza tu cuenta',body:'Guarda la carpeta del equipo y autoriza Google con la misma cuenta que usas en AJ. Cada broker completa su propia autorización.'},
+    {targets:['[data-feature="drive-browser"]'],title:'Vincula al expediente correcto',body:'Explora la raíz o sus subcarpetas, elige el cliente y vincula un archivo o carpeta. Google sigue controlando quién puede abrirlo. Vincular no autoriza entregarlo al cliente.'},
+  ]},
   {id:'funcion:renovacion-preparada',kind:'feature',title:'Preparar una renovación',summary:'Aviso interno, comparación y revisión antes de comunicar.',route:'/crm/polizas',minRole:'ADMIN',steps:[
     {title:'El aviso llega primero al broker',body:'Prepara la documentación y compara importes antes de contactar al cliente. Este recorrido no guarda datos ni envía mensajes.',illustration:'renewal'},
     {targets:['.finance-panel > summary'],title:'Abre la póliza',body:'En Recibos, pagos y renovación, abre Preparar renovación y selecciona ambas carátulas dentro del expediente.'},
@@ -206,7 +211,8 @@ export function tourForPath(pathname: string): Tour | null {
   if (pathname === '/avisos') return tourById('modulo:avisos-clientes');
   if (pathname === '/asistentes') return tourById('modulo:asistentes');
   if (pathname === '/novedades') return tourById('modulo:novedades');
-  if (pathname === '/conexiones') return tourById('funcion:conexiones');
+  if (pathname === '/drive') return tourById('funcion:drive');
+    if (pathname === '/conexiones') return tourById('funcion:conexiones');
   if (pathname === '/importaciones'||/^\/importaciones\/[^/]+$/.test(pathname)) return tourById('funcion:importaciones');
   if (pathname === '/whatsapp') return tourById('modulo:whatsapp');
   if (pathname === '/tramites'||/^\/tramites\/[^/]+$/.test(pathname)) return tourById('funcion:tramites');

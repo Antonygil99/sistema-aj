@@ -87,6 +87,7 @@ model Prospect {
   @@index([referredByClientId])
 }
 model Client {
+  driveLinks ClientDriveLink[]
   id        String @id @default(cuid())
   name      String
   email     String?
@@ -997,4 +998,30 @@ model CrmImportRow {
   status String @default("PENDING")
   resultId String?
   @@unique([batchId, rowNumber])
+}
+
+model DriveConnection {
+ id String @id @default(cuid())
+ userId String @unique
+ folderId String?
+ resourceKey String?
+ folderName String?
+ enabled Boolean @default(false)
+ connectNonce String?
+ connectExpiresAt DateTime?
+ updatedAt DateTime @updatedAt
+}
+model ClientDriveLink {
+ id String @id @default(cuid())
+ clientId String
+ client Client @relation(fields:[clientId],references:[id],onDelete:Restrict)
+ rootFolderId String
+ fileId String
+ resourceKey String?
+ name String
+ mimeType String
+ createdBy String
+ createdAt DateTime @default(now())
+ @@unique([clientId,fileId])
+ @@index([clientId,rootFolderId])
 }

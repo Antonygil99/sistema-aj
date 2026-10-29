@@ -1,7 +1,7 @@
 import 'server-only';
 import { getDb } from '@/lib/db';
 import { resendConfig } from '@/integrations/resend/server';
-import { daysBetween, formatDay, formatMoney, mexicoDay, noticeKindLabels, storedDay, type NoticeKind } from './notices';
+import { daysBetween, formatDay, formatMoney, mexicoDay, noticeKindLabels, storedDay, type NoticeKind, milestoneFor } from './notices';
 import { normalizeAddress } from './rules';
 import { dailyDigest, formatWhen, type DigestItem, type DigestSection } from './templates';
 import { appUrl, operators, preferencesOf, sendTeamNotice } from './server';
@@ -25,7 +25,7 @@ export async function sendDailyDigests(now = new Date()) {
     db.authUser.findMany({ where: { email: { in: recipients } }, select: { id: true, email: true, name: true } }),
     db.calendarMeeting.findMany({ where: { status: 'SYNCED', startAt: { gte: startOfDay, lt: new Date(startOfDay.getTime() + 86400000) } }, orderBy: { startAt: 'asc' }, select: { userId: true, title: true, startAt: true, meetUrl: true } }),
     db.clientNotice.findMany({ where: { status: 'PENDING' }, select: { kind: true, ownerEmail: true } }),
-    db.policy.findMany({ where: { status: 'ACTIVE', archivedAt: null, endDate: { gte: midnight(today), lte: midnight(shift(today, 30)) }, renewals: { none: { status: 'RENEWED', archivedAt: null } } }, orderBy: { endDate: 'asc' }, select: { id: true, number: true, endDate: true, ownerEmail: true, client: { select: { name: true } } } }),
+    db.policy.findMany({ where: { status: 'ACTIVE', archivedAt: null, endDate: { gte: midnight(today), lte: midnight(shift(today, 180)) }, nextPolicy:null, renewalPreparation:{isNot:{status:{in:['RENEWED','NOT_RENEWED']}}} }, orderBy: { endDate: 'asc' }, select: { id: true, number: true, endDate: true, ownerEmail: true, client: { select: { name: true } } } }),
     db.payment.findMany({ where: { status: { not: 'PAID' }, archivedAt: null, dueDate: { gte: midnight(shift(today, -30)), lte: midnight(shift(today, 7)) }, policy: { archivedAt: null, status: { not: 'CANCELLED' } } }, orderBy: { dueDate: 'asc' }, select: { id: true, amount: true, currency: true, dueDate: true, policy: { select: { number: true, ownerEmail: true, client: { select: { name: true } } } } } }),
     db.activity.findMany({ where: { kind: { not: null }, status: 'PENDING', archivedAt: null, dueDate: { lte: midnight(today) } }, orderBy: { dueDate: 'asc' }, select: { title: true, dueDate: true, ownerEmail: true, policyId: true, kind:true } }),
     db.claim.findMany({ where: { status: { not: 'CLOSED' }, archivedAt: null }, orderBy: { createdAt: 'asc' }, select: { id: true, reference: true, createdAt: true, policy: { select: { ownerEmail: true, client: { select: { name: true } } } } } }),
@@ -42,7 +42,7 @@ export async function sendDailyDigests(now = new Date()) {
       section('Tu agenda de hoy', meetings.filter(meeting => meeting.userId === user?.id).map(meeting => ({ text: `${formatWhen(meeting.startAt, false)} · ${meeting.title}`, url: meeting.meetUrl ?? `${base}/agenda` }))),
       section('Avisos a clientes por revisar', counts.map(([kind, count]) => ({ text: `${noticeKindLabels[kind]}: ${count}`, url: `${base}/avisos` })), { label: 'Abrir Avisos a clientes', url: `${base}/avisos` }),
       section('Seguimientos internos para hoy o atrasados', followUps.filter(item => mine(item.ownerEmail, email)).map(item => ({ text: item.title, detail: item.dueDate ? `Programado para ${formatDay(storedDay(item.dueDate))}` : undefined, url: item.kind?.startsWith('RENOVACION_')&&item.policyId?`${base}/crm/polizas?open=${encodeURIComponent(item.policyId)}`:item.kind?.startsWith('SEGUIMIENTO_')&&item.policyId?`${base}/crm/entregas?open=${encodeURIComponent(item.policyId)}`:`${base}/crm/actividades` }))),
-      section('Pólizas que vencen en los próximos 30 días', policies.filter(policy => mine(policy.ownerEmail, email)).map(policy => ({ text: `${policy.client.name} · ${policy.number}`, detail: `Vence el ${formatDay(storedDay(policy.endDate))} (en ${days(daysBetween(today, storedDay(policy.endDate)))})`, url: `${base}/crm/polizas?open=${encodeURIComponent(policy.id)}` }))),
+      section('Renovaciones por preparar según tu anticipación', policies.filter(policy => mine(policy.ownerEmail, email)&&milestoneFor(daysBetween(today,storedDay(policy.endDate)),settings(email).renewalDays)!==null).map(policy => ({ text: `${policy.client.name} · ${policy.number}`, detail: `Umbral de ${milestoneFor(daysBetween(today,storedDay(policy.endDate)),settings(email).renewalDays)} días · Vence el ${formatDay(storedDay(policy.endDate))} (en ${days(daysBetween(today, storedDay(policy.endDate)))})`, url: `${base}/crm/polizas?open=${encodeURIComponent(policy.id)}` }))),
       section('Recibos que vencen esta semana o están vencidos', payments.filter(payment => mine(payment.policy.ownerEmail, email)).map(payment => {
         const left = daysBetween(today, storedDay(payment.dueDate));
         return { text: `${payment.policy.client.name} · ${payment.policy.number} · ${formatMoney(payment.amount.toFixed(2), payment.currency)}`, detail: left < 0 ? `Vencido hace ${days(-left)}` : left === 0 ? 'Vence hoy' : `Vence en ${days(left)}`, url: `${base}/crm/pagos?open=${encodeURIComponent(payment.id)}` };

@@ -25,8 +25,9 @@ export type AssistantModel = (typeof assistantModels)[number]['id'];
 // meetings and the morning summary.
 export type NotificationSettings = { team: boolean; toasts: boolean; payments: boolean; renewals: boolean; followUps: boolean; emailProspects: boolean; emailClaims: boolean; emailAgenda: boolean; emailDigest: boolean; clearedAt: string | null; clearedReminders: string | null };
 export const notificationSwitches = ['team', 'toasts', 'payments', 'renewals', 'followUps', 'emailProspects', 'emailClaims', 'emailAgenda', 'emailDigest'] as const;
-export type Preferences = { views: { [K in ViewKey]?: ViewValue<K> }; tours: { enabled: boolean; seen: string[] }; theme: Theme; notifications: NotificationSettings; assistantModel: AssistantModel };
+export type Preferences = { renewalDays:number[]; views: { [K in ViewKey]?: ViewValue<K> }; tours: { enabled: boolean; seen: string[] }; theme: Theme; notifications: NotificationSettings; assistantModel: AssistantModel };
 export type PreferencesPatch = {
+  renewalDays?:number[];
   views?: Preferences['views'];
   resetViews?: true;
   tours?: { enabled?: boolean; seen?: string[] };
@@ -35,7 +36,7 @@ export type PreferencesPatch = {
   assistantModel?: AssistantModel;
 };
 const defaultNotifications: NotificationSettings = { team: true, toasts: true, payments: true, renewals: true, followUps: true, emailProspects: true, emailClaims: true, emailAgenda: true, emailDigest: true, clearedAt: null, clearedReminders: null };
-export const defaultPreferences: Preferences = { views: {}, tours: { enabled: false, seen: [] }, theme: 'light', notifications: defaultNotifications, assistantModel: 'claude-haiku-5-5' };
+export const defaultPreferences: Preferences = { renewalDays:[60,45,30], views: {}, tours: { enabled: false, seen: [] }, theme: 'light', notifications: defaultNotifications, assistantModel: 'claude-haiku-5-5' };
 export const MAX_SEEN = 100;
 export const TOUR_ID = /^[a-z0-9:-]{1,60}$/;
 export const REMINDER_KEY = /^[0-9:-]{1,60}$/;
@@ -61,6 +62,7 @@ export function readPreferences(stored: unknown): Preferences {
   if (isTimestamp(rawNotifications.clearedAt)) notifications.clearedAt = rawNotifications.clearedAt;
   if (typeof rawNotifications.clearedReminders === 'string' && REMINDER_KEY.test(rawNotifications.clearedReminders)) notifications.clearedReminders = rawNotifications.clearedReminders;
   return {
+    renewalDays:validRenewalDays(value.renewalDays)?[...value.renewalDays].sort((a,b)=>b-a):[60,45,30],
     views: views as Preferences['views'],
     tours: { enabled: tours.enabled === true, seen: [...new Set(seen)].slice(-MAX_SEEN) },
     theme: (themeOptions as readonly unknown[]).includes(value.theme) ? value.theme as Theme : defaultPreferences.theme,
@@ -70,6 +72,7 @@ export function readPreferences(stored: unknown): Preferences {
 }
 export function mergePreferences(current: Preferences, patch: PreferencesPatch): Preferences {
   return {
+    renewalDays:patch.renewalDays?[...patch.renewalDays].sort((a,b)=>b-a):current.renewalDays,
     views: patch.resetViews ? { ...patch.views } : { ...current.views, ...patch.views },
     tours: {
       enabled: patch.tours?.enabled ?? current.tours.enabled,
@@ -80,3 +83,5 @@ export function mergePreferences(current: Preferences, patch: PreferencesPatch):
     assistantModel: patch.assistantModel ?? current.assistantModel,
   };
 }
+
+export function validRenewalDays(value:unknown):value is number[]{return Array.isArray(value)&&value.length>=1&&value.length<=5&&value.every(n=>Number.isInteger(n)&&n>=1&&n<=180)&&new Set(value).size===value.length;}

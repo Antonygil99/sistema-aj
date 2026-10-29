@@ -5,6 +5,7 @@ export class ApiError extends Error {
   constructor(public readonly code: string, public readonly status: number, message: string, public readonly issues: Issue[] = []) { super(message); }
 }
 export const errorMessages: Record<string, string> = {
+  DRIVE_FOLDER_URL:'Usa el enlace HTTPS de una carpeta en drive.google.com.',DRIVE_NOT_CONNECTED:'Guarda la carpeta y autoriza tu cuenta de Google Drive.',DRIVE_RECONNECT:'Renueva la autorización de Google Drive desde Conexiones.',DRIVE_ACCESS_DENIED:'Tu cuenta de Google no puede consultar ese archivo o carpeta. Revisa también que Google Drive API esté habilitada.',DRIVE_OUTSIDE_FOLDER:'El elemento no pertenece a la carpeta vinculada o es un acceso directo.',DRIVE_FOLDER_INVALID:'Selecciona una carpeta válida de Google Drive.',DRIVE_UNAVAILABLE:'No se pudo consultar Drive. Reintenta sin cambiar los permisos.',
   RENEWAL_STAGE_INVALID:'Guarda primero la etapa anterior o reabre la preparación para revisarla.',
   RENEWAL_REVIEW_REQUIRED:'Cambió el contenido revisado. Guarda como Por preparar y revisa de nuevo antes de comunicar.',
   DOCUMENT_DELIVERY_SCOPE:'Solo se autoriza la entrega de carátulas o recibos vinculados directamente a una póliza del expediente.',

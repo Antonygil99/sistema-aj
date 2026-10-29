@@ -15,6 +15,9 @@ import {GET as getConversation,PATCH as closeConversation} from '../src/app/api/
 import {POST as replyRoute} from '../src/app/api/whatsapp/conversations/[id]/reply/route';
 import {GET as channelSettings} from '../src/app/api/whatsapp/channels/route';
 import {POST as saveResource} from '../src/app/api/resource-links/route';
+import {GET as driveOverview,POST as driveConfigure,DELETE as driveDisconnect} from '../src/app/api/drive/route';
+import {GET as driveCallback} from '../src/app/api/drive/connected/route';
+import {GET as driveFiles} from '../src/app/api/drive/files/route';
 import {PATCH as classifyDelivery} from '../src/app/api/documents/[id]/delivery/route';
 import {deliverableWhere} from '../src/modules/documentos/delivery';
 import {sendClientEmail} from '../src/modules/email/server';
@@ -123,6 +126,18 @@ try{await db.$transaction(async tx=>{
  const refreshed=await tx.document.findUniqueOrThrow({where:{id:old.id}});
  assert.equal((await classify(refreshed,'INTERNAL')).status,200);
  assert.equal(await tx.document.count({where:deliverableWhere(client.id)}),0,'revoking delivery removes the document from selectable attachments');
+ const cfg=(folderId:string)=>({folderUrl:'https://drive.google.com/drive/folders/'+folderId});
+ for(const [actor,root] of [[a,'fixture-root-a'],[j,'fixture-root-j']] as const){
+  const r=await driveConfigure(await request(actor,'/api/drive',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(cfg(root))}));assert.equal(r.status,200);
+  const overview=await driveOverview(await request(actor,'/api/drive'));const json=await overview.json();assert.equal(json.connected,false);assert.ok(json.folderUrl.endsWith(root));
+ }
+ assert.equal((await driveConfigure(await request(a,'/api/drive',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({folderUrl:'https://evil.invalid/folders/fake-root'})}))).status,422);
+ await tx.driveConnection.update({where:{userId:j.id},data:{enabled:true}});
+ const callback=await driveCallback(await request(a,'/api/drive/connected?attempt='+randomUUID()));assert.equal(callback.status,303);assert.ok(callback.headers.get('location')?.endsWith('result=reconnect'));
+ assert.equal((await tx.driveConnection.findUniqueOrThrow({where:{userId:a.id}})).enabled,false,'callback cannot grant access without matching nonce and Google verification');
+ assert.equal((await driveFiles(await request(a,'/api/drive/files'))).status,409,'no provider request before human authorization');
+ assert.equal((await driveDisconnect(await request(a,'/api/drive',{method:'DELETE'}))).status,200);
+ assert.equal((await tx.driveConnection.findUniqueOrThrow({where:{userId:j.id}})).enabled,true,'disconnect only affects the actor');
  passed=true;throw Error(rollback);
 },{timeout:120000});}catch(e){if(!(e instanceof Error)||e.message!==rollback)throw e;}finally{state.ajDb=oldDb;globalThis.fetch=oldFetch;keys.forEach((k,i)=>{if(env[i]===undefined)delete process.env[k];else process.env[k]=env[i];});await db.$disconnect();}
 assert.ok(passed);

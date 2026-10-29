@@ -136,8 +136,8 @@ export async function deleteContact(actor: Actor, clientId: string, contactId: s
 // Automatic emails to teammates: one per recipient, deduplicated so a retry never repeats them (false = already sent).
 export async function preferencesOf(emails: string[]) {
   const rows = emails.length ? await getDb().userPreference.findMany({ where: { email: { in: emails } }, select: { email: true, data: true } }) : [];
-  const byEmail = new Map(rows.map(row => [row.email.toLowerCase(), readPreferences(row.data).notifications]));
-  return (email: string): NotificationSettings => byEmail.get(email) ?? readPreferences(null).notifications;
+  const byEmail = new Map(rows.map(row => [row.email.toLowerCase(), ({...readPreferences(row.data).notifications,renewalDays:readPreferences(row.data).renewalDays})]));
+  return (email: string): NotificationSettings & {renewalDays:number[]} => byEmail.get(email) ?? {...readPreferences(null).notifications,renewalDays:[60,45,30]};
 }
 export async function operators() {
   return getDb().accessGrant.findMany({ where: { enabled: true, role: { in: ['ADMIN', 'SUPERADMIN'] } }, select: { email: true, role: true, enabled: true } });

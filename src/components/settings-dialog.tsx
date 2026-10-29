@@ -1,4 +1,5 @@
 'use client';
+import {RenewalAlertSettings} from './renewal-alert-settings';
 import { useEffect, useId, type ReactNode } from 'react';
 import { Colorfilter, Monitor, Moon, Sun1 } from '@/components/icons';
 import { assistantModels, providerLabels, type NotificationSettings, type Theme } from '@/modules/preferences';
@@ -62,6 +63,7 @@ export function SettingsDialog({ open, section, onClose, role = 'USER' }: { open
       </fieldset>
     </Section>
     <Section id="notificaciones" title="Notificaciones">
+      {role!=='USER'?<RenewalAlertSettings/>:null}
       {notificationOptions.map(option => <SwitchRow key={option.key} label={option.label} hint={option.hint} checked={preferences.notifications[option.key]} onChange={next => update({ notifications: { [option.key]: next } })}/>)}
       <h4 className="settings-subtitle">Por correo</h4>
       {emailOptions.map(option => <SwitchRow key={option.key} label={option.label} hint={option.hint} checked={preferences.notifications[option.key]} onChange={next => update({ notifications: { [option.key]: next } })}/>)}

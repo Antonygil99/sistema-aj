@@ -11,3 +11,7 @@
 @media(max-width:650px){.renewal-preparation .contact-form,.broker-channels form{grid-template-columns:1fr}.renewal-preparation,.policy-extraction,.broker-channels form{padding:16px}.policy-extraction .table-wrap{overflow:auto}}
 .renewal-preparation .contact-form input[type=checkbox],.broker-channels form input[type=checkbox],[data-feature=recursos] input[type=checkbox],.policy-extraction input[type=checkbox]{width:18px;height:18px;min-width:18px;flex:0 0 18px;padding:0;margin:4px 0 0;accent-color:var(--c-3f6b54,#3f6b54)}
 .broker-channels caption{color:inherit;text-align:left;padding:12px 14px}
+
+.drive-manager input{max-width:100%;box-sizing:border-box}.drive-reference-list{list-style:none;padding:0}.drive-reference-list li{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:14px 0;border-bottom:1px solid var(--c-e1e7e3,#e1e7e3);overflow-wrap:anywhere}.drive-reference-list li>span,.drive-reference-list li>a{flex:1;min-width:160px}.drive-manager .document-panel{overflow-wrap:anywhere}
+
+.drive-manager input,.renewal-alert-settings input{width:100%;box-sizing:border-box;border:1px solid var(--c-e1e7e3,#e1e7e3);border-radius:10px;padding:12px;background:var(--c-f5f6f5,#f5f6f5);color:inherit;font:inherit}.renewal-alert-settings label{display:grid;gap:8px}.renewal-alert-settings{margin:20px 0;line-height:1.6}

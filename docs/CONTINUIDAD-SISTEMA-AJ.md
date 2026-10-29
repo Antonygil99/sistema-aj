@@ -2,6 +2,10 @@
 
 Actualizado: 29 de octubre de 2026. Documento para continuar el trabajo con Claude o cualquier desarrollador. No contiene credenciales ni correos privados de las cuentas autorizadas.
 
+## Ampliación vigente: referencias de Drive y anticipación interna
+
+Ver el final de [brokers-renovaciones-recursos.md](brokers-renovaciones-recursos.md): conexión individual de metadatos Google Drive, raíz compartida de Ale/Joel preseleccionada en la base privada con consentimiento pendiente, referencias por expediente sin copiar originales y umbrales personales del resumen diario interno. La prueba con Drive real requiere habilitar API y autorizar cada cuenta; no se da por realizada. Esta ampliación sustituye los pendientes históricos de Drive que aparecen más abajo, pero no implementa descarga/indexación ni hereda permisos a agentes.
+
 ## Entrega vigente: los seis puntos de brokers y operación
 
 La implementación y sus límites están en [brokers-renovaciones-recursos.md](brokers-renovaciones-recursos.md). Incluye canales privados por propietario (también en el servidor), configuración de canales sin acceso global al contenido, preparación revisada de renovaciones, captura desde carátulas con proveedor de IA configurado, número de póliza como texto completo, recursos internos/públicos y estado explícito de propuestas MCP. La migración aditiva `20261029180000_broker_channels_and_workflows` añade tres tablas sin borrar el historial.

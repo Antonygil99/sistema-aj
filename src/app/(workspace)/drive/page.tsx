@@ -1,0 +1,3 @@
+import {requireUser} from '@/lib/session';import {DriveManager} from '@/components/drive-manager';import {getDb} from '@/lib/db';
+export const metadata={title:'Google Drive · Sistema AJ'};
+export default async function Page({searchParams}:{searchParams:Promise<{clientId?:string;result?:string}>}){await requireUser('ADMIN');const {clientId,result}=await searchParams;const client=clientId?await getDb().client.findFirst({where:{id:clientId.slice(0,100),archivedAt:null},select:{id:true,name:true}}):null;return <DriveManager connectionResult={result} initialClientId={client?.id} initialClientName={client?.name}/>;}

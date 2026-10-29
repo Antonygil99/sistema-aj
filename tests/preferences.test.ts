@@ -60,3 +60,8 @@ test('limpiar oculta lo visto y los recordatorios vuelven cuando cambian', () =>
   assert.equal(quiet.events.length, 0);
   assert.equal(quiet.showReminders, false);
 });
+
+test('renewal lead days validate bounds, uniqueness and safe defaults',()=>{
+ assert.deepEqual(readPreferences({renewalDays:[30,90,60]}).renewalDays,[90,60,30]);
+ for(const days of [[],[0],[181],[30,30],[1,2,3,4,5,6]])assert.deepEqual(readPreferences({renewalDays:days}).renewalDays,[60,45,30]);
+});
