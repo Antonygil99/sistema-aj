@@ -1,6 +1,10 @@
 # Sistema AJ — continuidad del proyecto
 
-Actualizado: 29 de octubre de 2026. Documento para continuar el trabajo con Claude o cualquier desarrollador. No contiene credenciales ni correos privados de las cuentas autorizadas.
+Actualizado: 31 de octubre de 2026. Documento para continuar el trabajo con Claude o cualquier desarrollador. No contiene credenciales ni correos privados de las cuentas autorizadas.
+
+## Atención de WhatsApp: primera fase sin proveedor
+
+Ver [whatsapp-atencion-asistida.md](whatsapp-atencion-asistida.md). La bandeja ofrece clasificación orientativa por reglas del último mensaje entrante propio, posibles urgencias, motivos múltiples y borradores para llevar a un redactor vacío. Incluye simulación con ocho casos ficticios para los administradores, tarjeta, recorrido y Novedades. No envía automáticamente, consulta expedientes por teléfono, crea tareas/prospectos, ejecuta agentes ni descarga multimedia. El proveedor de IA, las herramientas supervisadas por broker y el piloto de números reales siguen en fases posteriores; Meta aún no confirma la verificación según Tony al 31/10. Los documentos de diagnóstico del 30/10 conservan su fecha de corte.
 
 ## Ampliación vigente: referencias de Drive y anticipación interna
 

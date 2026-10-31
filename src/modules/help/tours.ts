@@ -69,6 +69,12 @@ function moduleTour(slug: ModuleSlug): Tour {
   return { ...base, steps: [intro(tips[slug] ?? entry.description), ...tableSteps(slug)] };
 }
 export const tours: Tour[] = [
+  {id:'funcion:atencion-whatsapp',kind:'feature',title:'Preparar la atención de WhatsApp',summary:'Prueba motivos, posibles urgencias y borradores sin enviar mensajes.',route:'/whatsapp',minRole:'ADMIN',steps:[
+    {title:'Una orientación, con revisión humana',body:'El motivo sugerido usa reglas de texto, no un modelo de IA. La atención permanece en el broker de la bandeja; no se abren expedientes por coincidencia de teléfono.',illustration:'brokers'},
+    {targets:['.wa-assistance-entry'],title:'Probar antes de conectar',body:'Abre Probar clasificación y elige un caso ficticio. Puedes ensayar cotizaciones, renovaciones, pagos, urgencias, cambios y audios, sin usar Meta ni guardar registros.'},
+    {targets:['.wa-assistance','.wa-columns'],title:'Leer y confirmar el motivo',body:'Al abrir una conversación se orienta el último mensaje recibido. Los archivos siguen pendientes de revisión humana; no se leen audios o documentos automáticamente.'},
+    {targets:['.wa-composer'],title:'El envío sigue siendo tuyo',body:'Puedes llevar el borrador al redactor solo si está vacío y el canal permite responder. Revisa y edita el texto: todavía debes pulsar Enviar respuesta. No hay acciones automáticas sobre la cartera.'},
+  ]},
   {...moduleTour('productos'),id:'funcion:aseguradoras',kind:'feature',title:'Catálogo por aseguradora',route:'/crm/productos'},
   {id:'funcion:brokers',kind:'feature',title:'Mi bandeja privada',summary:'Canales propios y preparación de la conexión.',route:'/whatsapp',steps:[
     {title:'Tu bandeja pertenece a tu cuenta',body:'Solo aparecen conversaciones de tus canales asignados. Un número pendiente de asociación conserva su historial y no se muestra a otros brokers.',illustration:'brokers'},

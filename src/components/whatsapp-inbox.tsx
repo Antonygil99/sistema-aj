@@ -5,11 +5,13 @@ import { apiFetch, ApiError, messageFor } from './ui/client-api';
 import { canReply } from '@/modules/whatsapp/parse';
 import { messageFailure } from '@/modules/whatsapp/errors';
 import { displayWhatsAppContact } from '@/modules/whatsapp/recipient';
+import { WhatsAppAssistance, WhatsAppAssistanceDemo } from './whatsapp-assistance';
+import type { MessageAssistance } from '@/modules/whatsapp/assistance';
 
 type Message = { id: string; direction: string; kind: string; body: string; status: string; sentAt: string; senderName: string | null; failureCode?: string | null };
 type Conversation = { id: string; displayName: string; contactId: string; phoneNumberId: string; lastInboundAt: string | null; lastMessageAt: string; closed: boolean; messages?: Message[] };
 type Inbox = { rows: Conversation[]; total: number; open: number; sendingConfigured: boolean; channels?:{id:string;name:string;configured:boolean;linked:boolean}[] };
-type Thread = { conversation: Conversation; rows: Message[]; hasMore: boolean; canSend: boolean };
+type Thread = { conversation: Conversation; rows: Message[]; hasMore: boolean; canSend: boolean; assistance?: MessageAssistance | null };
 const labels: Record<string, string> = { RECEIVED: 'Recibido', SENDING: 'Enviando', UNKNOWN: 'Confirmación pendiente', ACCEPTED: 'Aceptado por Meta', sent: 'Enviado', delivered: 'Entregado', read: 'Leído', failed: 'No enviado' };
 const media: Record<string, string> = { image: 'Imagen recibida', audio: 'Audio recibido', video: 'Video recibido', document: 'Documento recibido', sticker: 'Sticker recibido', location: 'Ubicación recibida', contacts: 'Contacto recibido', interactive: 'Respuesta interactiva recibida', reaction: 'Reacción recibida', unsupported: 'Mensaje no compatible' };
 const date = (value: string) => new Intl.DateTimeFormat('es-MX', { timeZone: 'America/Mexico_City', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
@@ -64,6 +66,12 @@ export function WhatsAppInbox({ canWrite }: { canWrite: boolean }) {
     selection.current = id; viewedThread.current = null; threadVersion.current++; setSelected(id); setThread(null); setBody(''); request.current = null; setError(''); setNotice('');
     if (id) { setThreadLoading(true); void loadThread(id); }
   }
+  function useDraft(text: string) {
+    if (pending.current || body.trim()) return;
+    setBody(text); request.current = null;
+    setNotice('Borrador colocado en el redactor. Revisa el texto antes de enviarlo.');
+    document.getElementById('wa-reply')?.focus();
+  }
   async function refresh() {
     if (pending.current) return;
     pending.current = true; setBusy(true); setError(''); setNotice('');
@@ -111,6 +119,7 @@ export function WhatsAppInbox({ canWrite }: { canWrite: boolean }) {
   return <section className="wa-workspace" aria-label="Bandeja de WhatsApp">
     <div className="wa-summary"><div><span>Conversaciones</span><strong>{inbox?.total ?? '—'}</strong></div><div><span>Por atender</span><strong>{inbox?.open ?? '—'}</strong></div><div><span>Envío manual</span><strong>{inbox ? inbox.sendingConfigured ? 'Configurado' : 'Pendiente' : '—'}</strong></div><div><span>Atención</span><strong>Humana</strong></div></div>
     <div className="wa-toolbar"><p>Actualización cada 15 segundos · acceso privado del equipo</p><div className="wa-toolbar-actions">{canWrite ? <button type="button" className="button button-soft" disabled={busy} onClick={() => void checkConnection()}>Comprobar conexión</button> : null}<button type="button" className="button button-soft" disabled={busy} onClick={() => void refresh()}><Refresh2 aria-hidden="true"/>{busy ? 'Actualizando…' : 'Actualizar recibidos'}</button></div></div>
+    {canWrite ? <div className="wa-assistance-entry"><p>Revisa cómo se orientarán las solicitudes de tus clientes.</p><WhatsAppAssistanceDemo/></div> : null}
     <p>{!inbox?'Consultando tus canales…':inbox.channels?.length?inbox.channels.map(c=>`${c.name}: ${!c.linked?'pendiente de vincular en Meta':c.configured?'credencial configurada':'pendiente de credencial'}`).join(' · '):'No tienes un canal asignado. El superadmin debe preparar tu canal antes de mostrar conversaciones.'}</p>
     {error ? <p className="wa-alert" role="alert">{error}</p> : null}{notice ? <p className="wa-notice" role="status">{notice}</p> : null}
     <div className={`wa-columns${selected ? ' wa-selected' : ''}`}>
@@ -129,6 +138,7 @@ export function WhatsAppInbox({ canWrite }: { canWrite: boolean }) {
               {message.direction === 'OUT' && message.status === 'failed' ? <p className="wa-send-error">{messageFor(messageFailure(message.failureCode ?? null))}{/^META_\d+$/.test(message.failureCode ?? '') ? ` Código de Meta: ${message.failureCode!.slice(5)}.` : ''}</p> : null}
               <footer><time dateTime={message.sentAt}>{date(message.sentAt)}</time><span>{labels[message.status] ?? message.status}</span></footer></article>)}
           </div>
+          {thread.assistance ? <WhatsAppAssistance key={thread.assistance.sourceMessageId} value={thread.assistance} onUse={canWrite ? useDraft : undefined} disabled={busy || !ready || Boolean(body.trim())}/> : null}
           <form className="wa-composer" onSubmit={event => { event.preventDefault(); void send(); }}>
             {!canWrite ? <p>Tu cuenta tiene acceso de consulta.</p> : !inbox?.sendingConfigured || !thread.canSend ? <p>El envío aún no está configurado para este número empresarial.</p> : uncertain ? <p role="status">Hay un envío sin confirmar. No lo reenvíes: revisa la entrega en Meta antes de continuar.</p> : !windowOpen ? <p>La ventana de respuesta de 24 horas está cerrada. Se necesita una plantilla aprobada; esta bandeja todavía no envía plantillas.</p> : <p>Respuesta manual desde la cuenta seleccionada. Revisa el texto antes de enviarlo.</p>}
             <label className="sr-only" htmlFor="wa-reply">Tu respuesta</label><textarea id="wa-reply" rows={3} value={body} maxLength={4096} disabled={busy || !ready} onChange={event => setBody(event.target.value)} placeholder="Escribe una respuesta para este contacto…"/>

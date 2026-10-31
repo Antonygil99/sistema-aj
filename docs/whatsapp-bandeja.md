@@ -1,5 +1,7 @@
 # Bandeja de WhatsApp
 
+Actualización 31/10/2026: [orientación y simulación de atención](whatsapp-atencion-asistida.md), con motivos y borradores revisables. Usa reglas de texto; todavía no ejecuta agentes ni lee multimedia. No cambia el aislamiento ni activa envíos automáticos.
+
 Acceso: `/whatsapp` (sesión Google y acceso del equipo requeridos). USER consulta; ADMIN y SUPERADMIN pueden responder, sincronizar eventos y marcar conversaciones resueltas. Una respuesta nueva reabre la conversación. La bandeja está aislada por propietario del canal, incluidos contadores, búsquedas e hilos directos. Administrar canales no concede supervisión del contenido. Ver [brokers-renovaciones-recursos.md](brokers-renovaciones-recursos.md).
 
 ## Flujo

@@ -72,6 +72,16 @@ try{await db.$transaction(async tx=>{
  assert.equal((await channelSettings(await request(a,'/api/whatsapp/channels'))).status,403,'un broker no administra canales ajenos');
  const foreignContext={params:Promise.resolve({id:cj.id})};
  assert.equal((await getConversation(await request(a,'/api/whatsapp/conversations/'+cj.id),foreignContext)).status,404);
+ // Routing is read-only, owner-scoped, and uses the newest inbound even when viewing older messages.
+ const incoming = await tx.whatsAppMessage.create({data:{conversationId:ca.id,direction:'IN',kind:'text',body:'Quiero renovar el seguro de mi auto y pagar un recibo',status:'RECEIVED',sentAt:new Date('2026-10-30T12:00:00Z')}});
+ const outgoing = await tx.whatsAppMessage.create({data:{conversationId:ca.id,direction:'OUT',kind:'text',body:'Urgente, fixture outgoing must not classify',status:'sent',sentAt:new Date('2026-10-30T13:00:00Z')}});
+ const ownContext={params:Promise.resolve({id:ca.id})};
+ for(const suffix of ['', '?cursor='+outgoing.id]){
+  const response=await getConversation(await request(a,'/api/whatsapp/conversations/'+ca.id+suffix),ownContext);
+  assert.equal(response.status,200);const {assistance}=await response.json();
+  assert.equal(assistance.sourceMessageId,incoming.id);assert.equal(assistance.area,'RENEWAL');assert.equal(assistance.automaticSending,false);
+ }
+ assert.equal(await tx.whatsAppMessage.count({where:{conversationId:ca.id}}),2,'reading assistance never sends or persists a draft');
  assert.equal((await closeConversation(await request(a,'/api/whatsapp/conversations/'+cj.id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({closed:true})}),foreignContext)).status,404);
  assert.equal((await replyRoute(await request(a,'/api/whatsapp/conversations/'+cj.id+'/reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({body:'No enviar',requestId:randomUUID()})}),foreignContext)).status,404);
  assert.equal((await tx.whatsAppConversation.findUniqueOrThrow({where:{id:cj.id}})).closed,false);

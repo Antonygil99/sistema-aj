@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { deliveryState, type DeliveryStatus } from '@/modules/whatsapp/parse';
 import { recordEvent } from '@/modules/events';
 import { ownConversation, conversationScope, ownChannel, channelCredentials } from '@/modules/whatsapp/channels';
+import { assistMessage } from '@/modules/whatsapp/assistance';
 export const runtime = 'nodejs';
 type Context = { params: Promise<{ id: string }> };
 export async function GET(request: Request, context: Context) {
@@ -28,7 +29,10 @@ export async function GET(request: Request, context: Context) {
       const receipt = row.metaId ? byId.get(row.metaId) : undefined;
       return receipt ? { ...row, status: deliveryState(row.status, receipt.status as DeliveryStatus['status']), deliveredAt: receipt.deliveredAt ?? row.deliveredAt, readAt: receipt.readAt ?? row.readAt } : row;
     });
-    return Response.json({ conversation, rows: visible, hasMore: rows.length > 50,
+    // Always classify the newest inbound, never an outgoing reply or the current history page.
+    // This query runs only after the channel ownership check above. No raw webhook data is returned.
+    const latest = await getDb().whatsAppMessage.findFirst({ where: { conversationId: id, direction: 'IN' }, orderBy: [{ sentAt: 'desc' }, { id: 'desc' }], select: { id: true, kind: true, body: true } });
+    return Response.json({ conversation, rows: visible, hasMore: rows.length > 50, assistance: latest ? assistMessage(latest) : null,
       canSend: Boolean(channelCredentials(await ownChannel(auth.actor,conversation.phoneNumberId))) }, { headers: { 'Cache-Control': 'private, no-store' } });
   } catch (error) { return apiError(error); }
 }
