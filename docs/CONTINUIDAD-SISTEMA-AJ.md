@@ -4,6 +4,8 @@ Actualizado: 3 de noviembre de 2026. Documento para continuar el trabajo con Cla
 
 ## Drive en Documentos y comprobantes
 
+Incidente 03/11: la versión con `Payment.evidenceDriveLinkId` se desplegó sin aplicar su migración, causando errores al consultar Pagos/Clientes. Se aplicó `20261103160000_drive_payment_evidence` y se verificaron consultas reales de ambos módulos y finanzas del expediente sin modificar registros. `vercel.json` fija ahora `scripts/vercel-build.mjs`: en producción ejecuta migraciones antes de generar Prisma y compilar, deteniéndose si fallan; los previews no migran la base compartida.
+
 Documentos ofrece una pestaña Google Drive para ADMIN/SUPERADMIN usando la conexión individual ya guardada. Explora la raíz y subcarpetas, con paginación y miniaturas privadas obtenidas mediante servidor, límite de 2 MB, hosts de Google validados y sin caché. Los formatos sin miniatura muestran un icono y acceso al original. No se copian originales a R2. El selector del pago permite vincular un archivo al expediente y elegirlo como `drive:<linkId>`; el servidor valida acceso actual, pertenencia a raíz y cliente, formato y conexión antes de confirmar. `Payment.evidenceDriveLinkId` conserva una relación restrictiva; no se desvincula una referencia usada en pagos. Pruebas de interfaz con APIs simuladas; pendiente validar con las sesiones reales de Ale/Joel y Google.
 
 Calendario de renovaciones: siguiente iteración. La agenda sigue mostrando reuniones; falta incorporar vencimientos de pólizas, asignación por broker y sincronización idempotente con el Google Calendar elegido. No se crearon eventos en esta entrega.
