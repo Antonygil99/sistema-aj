@@ -1,6 +1,10 @@
 # Sistema AJ — continuidad del proyecto
 
-Actualizado: 31 de octubre de 2026. Documento para continuar el trabajo con Claude o cualquier desarrollador. No contiene credenciales ni correos privados de las cuentas autorizadas.
+Actualizado: 2 de noviembre de 2026. Documento para continuar el trabajo con Claude o cualquier desarrollador. No contiene credenciales ni correos privados de las cuentas autorizadas.
+
+## Renovación OAuth del MCP
+
+Ver [conexion-mcp.md](conexion-mcp.md). La solicitud inicial anuncia `offline_access` y la nueva herramienta `aj_request_persistent_access` permite pedirlo sin ampliar acceso a datos. El consentimiento conserva seleccionados los permisos previos del mismo usuario/cliente que sigan permitidos y solicitados. Conexiones distingue autorización de renovación y credencial vigente, con instrucción para el chat. Access tokens de cinco minutos, refresh rotatorio de treinta días; no se modifican autorizaciones ya concedidas. Cada broker debe autorizar una vez el ámbito adicional y comprobar persistencia en su aplicación. El servidor superó una prueba SQL descartable de caducidad/refresh sin cookie, sesión vencida y revocación; no equivale a una validación real en ChatGPT/Claude/Android.
 
 ## Atención de WhatsApp: primera fase sin proveedor
 

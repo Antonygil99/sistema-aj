@@ -18,7 +18,7 @@ export function oauthQuery(params:Record<string,string|string[]|undefined>) {
   if(serialized.length>16000)throw new McpError('INVALID_OAUTH_QUERY');
   return serialized;
 }
-export async function consentRequest(query:string,role:AccessRole) {
+export async function consentRequest(query:string,role:AccessRole,userId?:string) {
   if(query.length>16000||!await verifyOAuthQueryParams(query,process.env.BETTER_AUTH_SECRET!))throw new McpError('OAUTH_REQUEST_EXPIRED',400);
   const params=new URLSearchParams(query),clientId=params.get('client_id');
   if(!clientId)throw new McpError('INVALID_CLIENT');
@@ -27,7 +27,8 @@ export async function consentRequest(query:string,role:AccessRole) {
   const requested=(params.get('scope')??mcpScopes.join(' ')).split(' ').filter(Boolean);
   const scopes=requested.filter(scope=>allowedScopes(role).includes(scope));
   if(!scopes.includes('crm:read'))throw new McpError('READ_SCOPE_REQUIRED');
-  return {clientId:client.clientId,name:client.name??'Aplicación externa',redirect:params.get('redirect_uri')??'',scopes};
+  const previous=userId?await getDb().oauthConsent.findFirst({where:{userId,clientId:client.clientId},select:{scopes:true}}):null;
+  return {clientId:client.clientId,name:client.name??'Aplicación externa',redirect:params.get('redirect_uri')??'',scopes,previousScopes:previous?.scopes.filter(scope=>scopes.includes(scope))??[]};
 }
 export async function oauthRedirect(result:unknown):Promise<string> {
   if(result instanceof Response){const location=result.headers.get('location');if(location)return location;if(!result.ok)throw new McpError('OAUTH_REQUEST_FAILED',400);return oauthRedirect(await result.json());}

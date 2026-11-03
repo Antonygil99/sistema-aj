@@ -1,6 +1,21 @@
 # Sistema AJ desde ChatGPT y Claude
 
-Actualizado: 28 de octubre de 2026. Esta conexión trabaja con datos administrativos y archivos del CRM. No concede acceso al repositorio, al código ni a publicaciones.
+Actualizado: 2 de noviembre de 2026. Esta conexión trabaja con datos administrativos y archivos del CRM. No concede acceso al repositorio, al código ni a publicaciones.
+
+## Mantener la conexión entre sesiones
+
+Si ChatGPT o Claude vuelve a pedir **Conectar / Reconectar**, revisa **Conexiones → Aplicaciones con acceso**. El CRM distingue la autorización de renovación y la existencia de una credencial de renovación vigente; nunca muestra su valor. «Permitir todo» del chat se refiere a acciones de herramientas, no añade renovación OAuth.
+
+1. Actualiza las herramientas de la conexión en tu aplicación si aún no conoce la nueva herramienta. En ChatGPT la opción disponible en el complemento de desarrollo es **Actualizar herramientas**; después abre un chat nuevo y selecciona Sistema AJ.
+2. Pide: «Usa Sistema AJ y llama `aj_request_persistent_access` para mantener mi conexión entre sesiones conservando mis permisos actuales». También puedes copiar esa instrucción desde Conexiones. Si el acceso ya caducó, inicia primero la reconexión que ofrezca tu aplicación.
+3. En la autorización de AJ, conserva los permisos anteriores y marca **Mantener la conexión entre sesiones**. Los permisos ya concedidos para ese mismo usuario/aplicación se preseleccionan solo si la solicitud firmada los incluye y su rol aún los admite. No se añaden escrituras, archivos o eliminación por pedir persistencia. Una nueva autorización humana es necesaria; no se cambia una concesión anterior en la base.
+4. Haz una consulta, espera más de cinco minutos y repítela en el mismo chat y en otro nuevo. La comprobación real de almacenamiento/renovación por ChatGPT o Claude requiere esta prueba del usuario; la prueba del servidor no acredita el comportamiento de todas las aplicaciones o móviles.
+
+El desafío HTTP inicial anuncia `crm:read offline_access`. `aj_request_persistent_access` pide únicamente esos dos ámbitos y conserva los activos que aún permita el rol. La ampliación administrativa `aj_request_change_access` también solicita renovación para no dejar otra conexión temporal al ampliar permisos. Las consultas normales siguen admitiendo tokens temporales; el usuario puede optar por no mantener la conexión y la pantalla explica que tendrá que volver a autorizar al caducar el acceso. No se alteran las consultas de datos ni se amplían los ámbitos de un token emitido sin autorización.
+
+Los accesos mantienen cinco minutos de vida. La renovación usa credenciales rotatorias con una caducidad configurada de treinta días, sin ventana de reutilización; no se promete conexión indefinida. Puede requerir nueva autorización por caducidad, revocación, cambios de permisos o pérdida de credenciales en la aplicación. Desconectar conserva los controles vigentes de revocación. No se prolongó la sesión Google del CRM ni se ejecutaron acciones sobre expedientes.
+
+Verificado: OAuth real del proveedor instalado con SQL y actores efímeros en transacción descartada: solicitud inicial con renovación, concesión temporal sin refresh, ampliación sin datos de negocio, permisos previos acotados por usuario/solicitud, caducidad del acceso original mediante reloj simulado, sesión del navegador vencida, refresh sin cookies, token rotatorio nuevo con los mismos permisos, nueva llamada MCP aceptada y revocación que impide renovar. UI con componentes reales y API simulada: permisos previos, eliminación no preseleccionada, opción temporal, aprobar/cancelar y móvil. No se cambiaron concesiones reales de Ale/Joel.
 
 ## Conectar tu cuenta
 

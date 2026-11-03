@@ -1,14 +1,27 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { allowedScopes, checkPermission, fields, moduleSchema, project, safePatch } from '../src/modules/mcp/policy';
-import { authorizationChallenge, toolScopes } from '../src/modules/mcp/authorization';
+import { authorizationChallenge, toolScopes, initialAuthorizationChallenge, persistentAuthorizationChallenge } from '../src/modules/mcp/authorization';
+
+test('MCP persistence requests refresh without granting new business permissions or requiring it for ordinary reads',()=>{
+  assert.deepEqual(toolScopes('aj_request_persistent_access'),['crm:read','offline_access']);
+  const challenge=authorizationChallenge('ADMIN',['crm:read','crm:write','crm:files'],toolScopes('aj_request_persistent_access'))!;
+  assert.match(challenge,/scope="crm:read crm:write crm:files offline_access"/);
+  assert.equal(challenge.includes('crm:delete'),false);
+  assert.match(authorizationChallenge('USER',['crm:read'],toolScopes('aj_request_persistent_access'))!,/scope="crm:read offline_access"/);
+  assert.equal(authorizationChallenge('USER',['crm:read','offline_access'],toolScopes('aj_request_persistent_access')),null);
+  assert.match(initialAuthorizationChallenge(),/scope="crm:read offline_access"/);
+  assert.match(persistentAuthorizationChallenge('Bearer resource_metadata="https://example.invalid/meta", scope="crm:read"'),/scope="crm:read offline_access"/);
+  assert.match(persistentAuthorizationChallenge('Bearer error="invalid_token", scope="crm:read offline_access crm:files"'),/error="invalid_token", scope="crm:read offline_access crm:files"/);
+  assert.equal(authorizationChallenge('USER',['crm:read'],toolScopes('aj_list')),null);
+});
 
 test('MCP tools declare administrative write and file scopes without requesting permanent deletion by default',()=>{
   assert.deepEqual(toolScopes('aj_capabilities'),['crm:read']);
   assert.deepEqual(toolScopes('aj_prepare_intake'),['crm:read','crm:write']);
   assert.deepEqual(toolScopes('aj_prepare_import'),['crm:read','crm:write']);
   assert.deepEqual(toolScopes('aj_prepare_upload'),['crm:read','crm:files']);
-  assert.deepEqual(toolScopes('aj_request_change_access'),['crm:read','crm:write','crm:files']);
+  assert.deepEqual(toolScopes('aj_request_change_access'),['crm:read','crm:write','crm:files','offline_access']);
   assert.deepEqual(toolScopes('aj_propose_change',{module:'carpetas',operation:'update'}),['crm:read','crm:files']);
   assert.deepEqual(toolScopes('aj_propose_change',{module:'clientes',operation:'delete'}),['crm:read','crm:delete']);
 });

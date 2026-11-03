@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { AccessRole } from '@/lib/access-policy';
-export const scopeLabels = { 'crm:read': 'Consultar registros y archivos', 'crm:write': 'Proponer altas y cambios', 'crm:delete': 'Proponer eliminación permanente', 'crm:files': 'Proponer cargas y organizar archivos', offline_access: 'Mantener la conexión hasta que la revoques' } as const;
+export const scopeLabels = { 'crm:read': 'Consultar registros y archivos', 'crm:write': 'Proponer altas y cambios', 'crm:delete': 'Proponer eliminación permanente', 'crm:files': 'Proponer cargas y organizar archivos', offline_access: 'Mantener la conexión entre sesiones' } as const;
 export const mcpScopes = Object.keys(scopeLabels);
 export const mcpResource = () => new URL('/mcp', process.env.BETTER_AUTH_URL || 'http://localhost:3000').href;
 export class McpError extends Error { constructor(public code: string, public status = 400) { super(code); } }

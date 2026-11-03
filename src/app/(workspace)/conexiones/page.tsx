@@ -11,6 +11,7 @@ export default async function ConnectionsPage() {
   const db=getDb();
   const consents=await db.oauthConsent.findMany({where:{userId:user.id},select:{clientId:true,scopes:true,createdAt:true},orderBy:{createdAt:'desc'}});
   const clients=await db.oauthClient.findMany({where:{clientId:{in:consents.map(c=>c.clientId)}},select:{clientId:true,name:true}});
+  const renewable=await db.oauthRefreshToken.findMany({where:{userId:user.id,revoked:null,expiresAt:{gt:new Date()},scopes:{has:'offline_access'}},select:{clientId:true},distinct:['clientId']});
   const pending=await db.mcpChange.findMany({where:{userId:user.id,status:'PENDING',expiresAt:{gt:new Date()}},select:{id:true,module:true,operation:true,expiresAt:true},orderBy:{createdAt:'desc'},take:30});
-  return <Connections endpoint={mcpResource()} role={user.role} connections={consents.map(c=>({...c,name:clients.find(client=>client.clientId===c.clientId)?.name??'Aplicación externa',createdAt:c.createdAt.toISOString()}))} pending={pending.map(p=>({...p,expiresAt:p.expiresAt.toISOString()}))}/>;
+  return <Connections endpoint={mcpResource()} role={user.role} connections={consents.map(c=>({...c,renewalReady:c.scopes.includes('offline_access')&&renewable.some(r=>r.clientId===c.clientId),name:clients.find(client=>client.clientId===c.clientId)?.name??'Aplicación externa',createdAt:c.createdAt.toISOString()}))} pending={pending.map(p=>({...p,expiresAt:p.expiresAt.toISOString()}))}/>;
 }

@@ -16,6 +16,7 @@ import { migrationUrl } from './migration-url.mjs';
 import { prepareIntakeProposal, intakeSummary } from '../src/modules/mcp/forms';
 import { prepareBatch, getBatch, applyBatch, editBatchRow, importReport } from '../src/modules/imports/server';
 import { POST as reviewPost } from '../src/app/api/mcp/review/[id]/route';
+import { mock } from 'node:test';
 
 // Explicit, rollback-only integration test. No actual clients, sessions, buckets or external messages are used.
 const globalDb=globalThis as unknown as {ajDb:PrismaClient};
@@ -82,10 +83,11 @@ try {
     const rpcWith=(token:string,method:string,params?:unknown)=>mcpPost(request('/mcp',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Accept:'application/json, text/event-stream','MCP-Protocol-Version':'2025-11-25'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params})}));
     const rpc=(method:string,params?:unknown)=>rpcWith(tokens.access_token,method,params);
     const rpcJson=async(response:Response)=>{assert.equal(response.status,200);const value=await response.text(),line=value.split('\n').find(line=>line.startsWith('data:'));return JSON.parse(line?line.slice(5):value);};
-    assert.equal((await mcpPost(new Request(base+'/mcp',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}))).status,401,'no anonymous MCP');
+    const anonymous=await mcpPost(new Request(base+'/mcp',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}));
+    assert.equal(anonymous.status,401,'no anonymous MCP');assert.match(anonymous.headers.get('WWW-Authenticate')!,/scope="crm:read offline_access"/);
     const toolResponse=await rpc('tools/list');assert.equal(toolResponse.status,200);const rpcText=await toolResponse.text();const dataLine=rpcText.split('\n').find(line=>line.startsWith('data:'));const tools=JSON.parse(dataLine?dataLine.slice(5):rpcText);assert.ok(tools.result.tools.some((tool:{name:string})=>tool.name==='aj_list'));
     assert.ok(['aj_prepare_intake','aj_intake_status','aj_prepare_import','aj_import_status'].every(name=>tools.result.tools.some((tool:{name:string})=>tool.name===name)),'new intake/import tools exposed');
-    for(const [name,scopes]of [['aj_request_change_access',['crm:read','crm:write','crm:files']],['aj_prepare_upload',['crm:read','crm:files']],['aj_prepare_import',['crm:read','crm:write']]] as const){const tool=tools.result.tools.find((t:{name:string})=>t.name===name);assert.deepEqual(tool.securitySchemes,[{type:'oauth2',scopes}]);assert.deepEqual(tool._meta.securitySchemes,tool.securitySchemes,'top-level and compatibility OAuth metadata');}
+    for(const [name,scopes]of [['aj_request_change_access',['crm:read','crm:write','crm:files','offline_access']],['aj_prepare_upload',['crm:read','crm:files']],['aj_prepare_import',['crm:read','crm:write']]] as const){const tool=tools.result.tools.find((t:{name:string})=>t.name===name);assert.deepEqual(tool.securitySchemes,[{type:'oauth2',scopes}]);assert.deepEqual(tool._meta.securitySchemes,tool.securitySchemes,'top-level and compatibility OAuth metadata');}
     assert.ok(!tools.result.tools.some((tool:{name:string})=>/apply|commit|confirm/.test(tool.name)),'no model-callable approval');
     const capabilitiesResponse=await rpc('tools/call',{name:'aj_capabilities',arguments:{}});
     const capabilitiesText=await capabilitiesResponse.text(),capabilitiesLine=capabilitiesText.split('\n').find(line=>line.startsWith('data:'));
@@ -97,17 +99,30 @@ try {
     async function authorizeScopes(scope:string){
       const q=new URLSearchParams(query);q.set('client_id',secondClient);q.set('scope',scope);q.set('state',randomUUID());
       const start=await auth.handler(request('/api/auth/oauth2/authorize?'+q)),location=start.headers.get('location');assert.ok(location?.includes('/mcp/consent?'));
-      const approval=await consentPost(request('/api/mcp/consent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accept:true,query:throughPage(new URL(location!,base).search.slice(1)),scopes:scope.split(' ')})}));assert.equal(approval.status,200);
+      const signed=throughPage(new URL(location!,base).search.slice(1));
+      const old=await tx.oauthConsent.findFirst({where:{userId,clientId:secondClient},select:{scopes:true}});
+      const page=await consentRequest(signed,'ADMIN',userId);
+      assert.deepEqual(page.previousScopes,old?.scopes.filter(s=>scope.split(' ').includes(s))??[],'only prior requested permissions preselected');
+      assert.deepEqual((await consentRequest(signed,'ADMIN','unrelated-fixture')).previousScopes,[],'no consent read from another account');
+      const approval=await consentPost(request('/api/mcp/consent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accept:true,query:signed,scopes:scope.split(' ')})}));assert.equal(approval.status,200);
       const code=new URL((await approval.json()).redirect_uri).searchParams.get('code')!;
       const exchange=await auth.handler(request('/api/auth/oauth2/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'authorization_code',client_id:secondClient,code,code_verifier:verifier,redirect_uri:'https://example.invalid/mcp-callback',resource:mcpResource()})}));assert.equal(exchange.status,200);return (await exchange.json()).access_token as string;
     }
     const readToken=await authorizeScopes('crm:read'),beforeChanges=await tx.mcpChange.count({where:{userId}});
+    assert.equal(await tx.oauthRefreshToken.count({where:{userId,clientId:secondClient}}),0,'temporary connection creates no refresh token');
+    const needsPersistence=await rpcJson(await rpcWith(readToken,'tools/call',{name:'aj_request_persistent_access',arguments:{}}));
+    assert.match(needsPersistence.result._meta['mcp/www_authenticate'][0],/scope="crm:read offline_access"/);
+    const temporaryInfo=await rpcJson(await rpcWith(readToken,'tools/call',{name:'aj_capabilities',arguments:{}}));
+    assert.equal(temporaryInfo.result.structuredContent.connection.renewalAuthorized,false);
     const needsAccess=await rpcJson(await rpcWith(readToken,'tools/call',{name:'aj_request_change_access',arguments:{}}));
-    assert.equal(needsAccess.result.isError,true);assert.match(needsAccess.result._meta['mcp/www_authenticate'][0],/error="insufficient_scope"/);assert.match(needsAccess.result._meta['mcp/www_authenticate'][0],/scope="crm:read crm:write crm:files"/);
+    assert.equal(needsAccess.result.isError,true);assert.match(needsAccess.result._meta['mcp/www_authenticate'][0],/error="insufficient_scope"/);assert.match(needsAccess.result._meta['mcp/www_authenticate'][0],/scope="crm:read crm:write crm:files offline_access"/);
     const blockedCreate=await rpcJson(await rpcWith(readToken,'tools/call',{name:'aj_propose_change',arguments:{module:'clientes',operation:'create',data:{name:'Must not create '+marker}}}));assert.equal(blockedCreate.result.isError,true);assert.ok(blockedCreate.result._meta['mcp/www_authenticate']);
     assert.equal(await tx.mcpChange.count({where:{userId}}),beforeChanges,'a scope challenge never prepares or applies a business change');
     await tx.accessGrant.update({where:{email},data:{role:'USER'}});const userDenied=await rpcJson(await rpcWith(readToken,'tools/call',{name:'aj_request_change_access',arguments:{}}));assert.equal(userDenied.result.isError,true);assert.equal(userDenied.result._meta?.['mcp/www_authenticate'],undefined,'read-only CRM users cannot upgrade to administrator scopes');await tx.accessGrant.update({where:{email},data:{role:'ADMIN'}});
-    const upgradedToken=await authorizeScopes('crm:read crm:write crm:files');
+    const legacyToken=await authorizeScopes('crm:read crm:write crm:files');
+    const keepExisting=await rpcJson(await rpcWith(legacyToken,'tools/call',{name:'aj_request_persistent_access',arguments:{}}));
+    assert.match(keepExisting.result._meta['mcp/www_authenticate'][0],/scope="crm:read crm:write crm:files offline_access"/);
+    const upgradedToken=await authorizeScopes('crm:read crm:write crm:files offline_access');
     const accessReady=await rpcJson(await rpcWith(upgradedToken,'tools/call',{name:'aj_request_change_access',arguments:{}}));assert.equal(accessReady.result.isError,undefined);assert.ok(accessReady.result.structuredContent.scopes.includes('crm:write'));assert.equal(await tx.mcpChange.count({where:{userId}}),beforeChanges);
     const forgedApproval=await consentPost(request('/api/mcp/consent',{method:'POST',headers:{Authorization:'Bearer '+tokens.access_token,'Content-Type':'application/json'},body:'{}'}));assert.equal(forgedApproval.status,403,'OAuth cannot self-approve');
     const crossOrigin=await consentPost(request('/api/mcp/consent',{method:'POST',headers:{origin:'https://attacker.invalid','Content-Type':'application/json'},body:'{}'}));assert.equal(crossOrigin.status,403,'cross-site approval denied');
@@ -157,11 +172,25 @@ try {
     const report=await importReport(actor,batch.batch.id);assert.ok(report.includes('IMPORT')&&report.includes('Omitida por coincidencia detectada.'));
     const revokeBatch=await prepareBatch(actor,{target:'prospectos',sourceName:'revoke',rows:[{name:'pending import '+marker}]},{oauthClientId:actor.clientId});
     assert.ok(raced.id);
+    // Advance only the fixture clock: exercise expiry and rotating refresh without waiting five minutes.
+    const beforeRefreshChanges=await tx.mcpChange.count({where:{userId}});
+    mock.timers.enable({apis:['Date'],now:(Number(claims.exp)+2)*1000});
+    assert.equal((await rpc('tools/list')).status,401,'original access token expires');
+    await tx.authSession.update({where:{id:sessionId},data:{expiresAt:new Date(Date.now()-1000)}});
+    const refresh=async(value:string)=>auth.handler(new Request(base+'/api/auth/oauth2/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'refresh_token',client_id:registration.client_id,refresh_token:value,resource:mcpResource()})}));
+    const renewedResponse=await refresh(tokens.refresh_token);assert.equal(renewedResponse.status,200,'refresh without browser session authorization');
+    const renewed=await renewedResponse.json();assert.ok(renewed.refresh_token);assert.notEqual(renewed.refresh_token,tokens.refresh_token);
+    const renewedClaims=decodeJwt(renewed.access_token);assert.ok(Number(renewedClaims.exp)>Number(claims.exp));
+    assert.equal(renewedClaims.scope,claims.scope,'refresh preserves business permissions');
+    assert.equal((await rpcWith(renewed.access_token,'tools/list')).status,200,'fresh MCP request works after expiry');
+    assert.equal(await tx.mcpChange.count({where:{userId}}),beforeRefreshChanges,'refresh does not create business changes');
     await revokeConnection(actor.id,actor.clientId);
+    assert.equal((await refresh(renewed.refresh_token)).status,400,'revocation prevents refresh');
+    assert.equal((await refresh(tokens.refresh_token)).status,400,'old rotating token cannot be reused');
     assert.equal((await tx.crmImport.findUniqueOrThrow({where:{id:revokeBatch.batch.id}})).status,'CANCELLED');
     assert.equal((await tx.mcpChange.findUniqueOrThrow({where:{id:pending.id}})).status,'CANCELLED');
     await assert.rejects(actorFromClaims(claims),{code:'CONNECTION_REVOKED'});
     passed=true;throw Error(rollback);
   },{maxWait:30000,timeout:240000});
-}catch(error){if(!(error instanceof Error&&error.message===rollback))throw error;}finally{globalDb.ajDb=db;globalThis.fetch=originalFetch;await db.$disconnect();}
+}catch(error){if(!(error instanceof Error&&error.message===rollback))throw error;}finally{mock.timers.reset();globalDb.ajDb=db;globalThis.fetch=originalFetch;await db.$disconnect();}
 assert.ok(passed);console.log('MCP_SMOKE_VERIFIED: OAuth PKCE, human consent, incremental scope challenges, reauthorization, scoped MCP, private projections, reviewed partial edits, idempotency, stale versions, roles, uploads, intake drafts/private sharing, reviewed imports, duplicate races, folders, reports and revocation. All fixtures rolled back.');

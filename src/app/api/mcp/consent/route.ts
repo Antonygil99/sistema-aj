@@ -9,7 +9,7 @@ export async function POST(request:Request) {
   try {
     const user=await human(request);
     const input=z.object({accept:z.boolean(),query:z.string().max(16000),scopes:z.array(z.string().max(40)).max(5)}).strict().parse(await request.json());
-    const valid=await consentRequest(input.query,user.role);
+    const valid=await consentRequest(input.query,user.role,user.id);
     if(input.scopes.some(scope=>!valid.scopes.includes(scope))||!input.scopes.includes('crm:read'))throw new McpError('INVALID_SCOPES');
     const oauthHeaders=new Headers(request.headers);oauthHeaders.set('accept','application/json');
     const oauthRequest=new Request(request.url,{headers:oauthHeaders});

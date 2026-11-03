@@ -65,6 +65,7 @@ function createAuth() {
       // Some deployed chat hosts still use RFC 7591; registration alone grants no access.
       allowDynamicClientRegistration: true, allowUnauthenticatedClientRegistration: true,
       refreshTokenReuseInterval: 0,
+      refreshTokenExpiresIn: 60 * 60 * 24 * 30,
     }), cimd({fetchClientMetadataResource, metadataProfile:'mcp-2026-07-28'}), nextCookies()],
   });
 }

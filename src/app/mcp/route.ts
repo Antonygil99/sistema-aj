@@ -4,6 +4,7 @@ import { getAuth } from '@/lib/auth';
 import { actorFromClaims, purgeExpiredUploads, rateLimitMcp } from '@/modules/mcp/actor';
 import { createCrmMcp } from '@/modules/mcp/server';
 import { mcpResource, McpError } from '@/modules/mcp/policy';
+import { initialAuthorizationChallenge, persistentAuthorizationChallenge } from '@/modules/mcp/authorization';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 export const maxDuration=60;
@@ -11,7 +12,7 @@ async function handler(request:Request) {
   const origin=request.headers.get('origin');
   if(origin&&origin!==new URL(mcpResource()).origin)return new Response(null,{status:403});
   const auth=getAuth();if(!auth)return Response.json({error:'AUTH_NOT_CONFIGURED'},{status:503});
-  return requireMcpAuth(auth,async(req,claims)=>{
+  const response = await requireMcpAuth(auth,async(req,claims)=>{
     try {
       const actor=await actorFromClaims(claims);
       await rateLimitMcp(actor.id);
@@ -22,9 +23,16 @@ async function handler(request:Request) {
       return response;
     } catch(error) {
       const status=error instanceof McpError?error.status:503;
-      return Response.json({error:error instanceof McpError?error.code:'SERVICE_UNAVAILABLE'},{status,headers:{'Cache-Control':'no-store',...(status===401?{'WWW-Authenticate':`Bearer resource_metadata="${new URL('/.well-known/oauth-protected-resource/mcp',mcpResource()).href}"`}:{})}});
+      return Response.json({error:error instanceof McpError?error.code:'SERVICE_UNAVAILABLE'},{status,headers:{'Cache-Control':'no-store',...(status===401?{'WWW-Authenticate':initialAuthorizationChallenge()}:{})}});
     }
   },{resource:mcpResource(),requiredScopes:['crm:read']})(request);
+  if(response.status===401){
+    const headers=new Headers(response.headers),challenge=headers.get('WWW-Authenticate');
+    headers.set('Cache-Control','private, no-store');
+    headers.set('WWW-Authenticate',persistentAuthorizationChallenge(challenge));
+    return new Response(response.body,{status:response.status,statusText:response.statusText,headers});
+  }
+  return response;
 }
 export const GET=handler;
 export const POST=handler;

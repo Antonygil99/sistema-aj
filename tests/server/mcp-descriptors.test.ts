@@ -15,8 +15,13 @@ test('MCP protocol advertises OAuth scopes at both descriptor locations and hide
   };
   const admin=await toolsFor('ADMIN'),reader=await toolsFor('USER');
   const access=admin.find(tool=>tool.name==='aj_request_change_access')!;
-  assert.deepEqual(access.securitySchemes,[{type:'oauth2',scopes:['crm:read','crm:write','crm:files']}]);
+  assert.deepEqual(access.securitySchemes,[{type:'oauth2',scopes:['crm:read','crm:write','crm:files','offline_access']}]);
   assert.deepEqual(access._meta.securitySchemes,access.securitySchemes);
+  for(const tools of [admin,reader]){
+    const persistent=tools.find(tool=>tool.name==='aj_request_persistent_access')!;
+    assert.deepEqual(persistent.securitySchemes,[{type:'oauth2',scopes:['crm:read','offline_access']}]);
+    assert.deepEqual(persistent._meta.securitySchemes,persistent.securitySchemes);
+  }
   assert.ok(reader.some(tool=>tool.name==='aj_list'));
   assert.ok(!reader.some(tool=>['aj_request_change_access','aj_prepare_upload','aj_propose_change','aj_prepare_intake','aj_prepare_import'].includes(tool.name)));
 });
