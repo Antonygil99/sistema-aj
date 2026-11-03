@@ -31,14 +31,14 @@ export async function calendarOverview(userId: string, email: string, history = 
   ]);
   return { connected: Boolean(connection?.enabled), email, entries: entries.map(entryFromRow), activities: activities.map(activity => ({ ...activity, dueDate: activity.dueDate?.toISOString() ?? null })) };
 }
-export async function calendarCredentials(userId: string, headers: Headers, requireConnected = true) {
+export async function calendarCredentials(userId: string, headers: Headers | undefined, requireConnected = true) {
   if (requireConnected && !(await getDb().calendarConnection.findUnique({ where: { userId } }))?.enabled) throw new CalendarError('CALENDAR_NOT_CONNECTED', 409);
   const account = await googleAccount(userId);
   if (!account || !hasCalendarScope(account.scope) || !account.refreshToken || (account.refreshTokenExpiresAt && account.refreshTokenExpiresAt <= new Date())) throw new CalendarError('CALENDAR_RECONNECT', 409);
   const auth = getAuth();
   if (!auth) throw new CalendarError('AUTH_NOT_CONFIGURED', 503);
   try {
-    const token = await auth.api.getAccessToken({ headers, body: { accountId: account.id } });
+    const token = await auth.api.getAccessToken({ ...(headers ? { headers } : {}), body: { accountId: account.id, ...(!headers ? { userId } : {}) } });
     if (!token.accessToken || (token.accessTokenExpiresAt && new Date(token.accessTokenExpiresAt) <= new Date())) throw new Error('TOKEN_EXPIRED');
     return calendarGoogle(token.accessToken);
   } catch { throw new CalendarError('CALENDAR_RECONNECT', 409); }

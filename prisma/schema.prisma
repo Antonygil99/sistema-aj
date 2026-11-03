@@ -578,6 +578,9 @@ model AuthUser {
 }
 // Google credentials remain encrypted in AuthAccount; calendar ownership always comes from the session.
 model CalendarConnection {
+  renewalLeaseUntil DateTime?
+  renewalLeaseToken String?
+  renewalLastRunAt DateTime?
   userId String @id
   user AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
   enabled Boolean @default(true)
@@ -1058,4 +1061,18 @@ model Insurer {
  products Product[]
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
+}
+
+model CalendarRenewal {
+  id String @id
+  userId String
+  policyId String
+  generation Int @default(0)
+  fingerprint String @default("")
+  googleUrl String?
+  active Boolean @default(false)
+  checkedAt DateTime?
+  updatedAt DateTime @updatedAt
+  @@unique([userId, policyId])
+  @@index([userId, active])
 }

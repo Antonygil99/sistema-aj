@@ -251,3 +251,13 @@ Páginas públicas de Meta: `/privacidad`, `/terminos`, `/eliminacion-de-datos`.
 ## KPIs por módulo y notas de voz del cliente
 
 Los once módulos tienen cuatro KPIs reales, con definición visible, ámbito y actualización tras cambios. En Pólizas y Renovaciones se añadió radar a 60 días; en Pagos, radar de recibos por confirmar en el mes. La falta de calendarios conciliados se muestra como pendiente de datos, sin afirmar que la cobranza está al día. Los audios confirman el modelo de una póliza con varios recibos y priorizan avisos de renovación 30/20/10 días y pagos 20/10/0. Calendario y envío automático siguen pendientes. Ver docs/kpis-y-proceso.md para las fórmulas, el proceso y los límites. Audios y transcripciones completas permanecen fuera del repositorio público.
+
+
+## 2026-11-03 — Renovaciones en Google Calendar
+- Eventos de día completo en el calendario principal de cada broker conectado, únicamente para pólizas ACTIVE asignadas a su correo, cliente/póliza no archivados, sin siguiente vigencia y sin preparación RENEWED/NOT_RENEWED. No se generan vencimientos pasados ni se distribuyen pólizas sin responsable.
+- Tabla CalendarRenewal independiente de reuniones, ID determinista por usuario/póliza/generación, huella del contenido, lease de conexión y lotes limitados. Reintentos no duplican; eventos borrados reciben nueva generación. Se mantienen eventos históricos de pólizas aún vigentes.
+- La fecha y enlace se actualizan desde el CRM. Cancelación/archivo/renovación/reasignación retiran únicamente eventos gestionados por AJ. Las notificaciones personalizadas de Google se conservan. Sin invitados ni correos adicionales de Google; Resend y los avisos existentes no cambian.
+- POST /api/calendar/renewals usa sesión y origen confiable, deriva usuario de la sesión y exige grant administrativo vigente. Se ejecuta al abrir Mi agenda conectada y desde el botón de sincronizar.
+- GET /api/cron/calendar diario 12:00 UTC, protegido por CRON_SECRET/AJ_API_TOKEN. Credenciales renovables por auth.api servidor sin headers, solo para usuarios obtenidos de conexiones habilitadas. No acepta userId del cliente.
+- Migración 20261103190000_calendar_renewals obligatoria antes del código; Vercel production ejecuta migrate deploy en build. Para carteras grandes, el botón continúa por lotes y el cron retoma en futuras ejecuciones si agota su tiempo.
+- Pendiente de validación con sesión real de Ale/Joel: visualizar eventos en su Google Calendar. Pruebas de proveedor usan transporte simulado, no cuentas reales.

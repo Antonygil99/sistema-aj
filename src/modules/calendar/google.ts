@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { CalendarError, calendarTimeZone, type MeetingInput } from './schema';
+import type { RenewalEventBody } from './renewal-event';
 export const googleEventSchema = z.object({
   id: z.string(), status: z.string().optional(), htmlLink: z.string().optional(), hangoutLink: z.string().optional(),
   summary: z.string().optional(), description: z.string().optional(), location: z.string().optional(),
@@ -30,9 +31,9 @@ export function eventBody(input: Omit<MeetingInput, 'requestId'>, googleId: stri
 }
 export function calendarGoogle(token: string, transport: typeof fetch = fetch) {
   const base = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
-  async function call(path: string, method = 'GET', body?: unknown) {
+  async function call(path: string, method = 'GET', body?: unknown, timeout = 15000) {
     let response: Response;
-    try { response = await transport(base + path, { method, headers: { Authorization: `Bearer ${token}`, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(15000), cache: 'no-store' }); }
+    try { response = await transport(base + path, { method, headers: { Authorization: `Bearer ${token}`, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(timeout), cache: 'no-store' }); }
     catch { throw new CalendarError('CALENDAR_UNAVAILABLE', 503); }
     const data = response.status === 204 ? null : await response.json().catch(() => null);
     if (!response.ok) {
@@ -51,6 +52,31 @@ export function calendarGoogle(token: string, transport: typeof fetch = fetch) {
     return data;
   }
   return {
+    async syncRenewal(id: string, input: RenewalEventBody): Promise<GoogleEvent> {
+      const body = { ...input, extendedProperties: { private: { sistemaAjRenewal: id } } };
+      let existing: GoogleEvent | null = null;
+      try { existing = googleEventSchema.parse(await call(`/${encodeURIComponent(id)}`, 'GET', undefined, 5000)); }
+      catch (error) { if (!(error instanceof CalendarError) || error.code !== 'CALENDAR_EVENT_NOT_FOUND') throw error; }
+      if (!existing) {
+        try { return googleEventSchema.parse(await call('?sendUpdates=none', 'POST', { ...body, id, reminders: { useDefault: true } }, 5000)); }
+        catch (error) {
+          if (!(error instanceof CalendarError) || error.code !== 'CALENDAR_DUPLICATE') throw error;
+          existing = googleEventSchema.parse(await call(`/${encodeURIComponent(id)}`, 'GET', undefined, 5000));
+        }
+      }
+      if (existing.status === 'cancelled') throw new CalendarError('CALENDAR_EVENT_NOT_FOUND', 404);
+      if (existing.extendedProperties?.private?.sistemaAjRenewal !== id) throw new CalendarError('CALENDAR_EVENT_CHANGED', 409);
+      // Preserve the broker's Google notification settings; only CRM-owned fields are updated.
+      return googleEventSchema.parse(await call(`/${encodeURIComponent(id)}?sendUpdates=none`, 'PATCH', body, 5000));
+    },
+    async cancelRenewal(id: string) {
+      try {
+        const event = googleEventSchema.parse(await call(`/${encodeURIComponent(id)}`, 'GET', undefined, 5000));
+        if (event.status === 'cancelled') return;
+        if (event.extendedProperties?.private?.sistemaAjRenewal !== id) throw new CalendarError('CALENDAR_EVENT_CHANGED', 409);
+        await call(`/${encodeURIComponent(id)}?sendUpdates=none`, 'DELETE', undefined, 5000);
+      } catch (error) { if (!(error instanceof CalendarError) || error.code !== 'CALENDAR_EVENT_NOT_FOUND') throw error; }
+    },
     async verify() { await call('?maxResults=1&fields=kind'); },
     async insert(input: Omit<MeetingInput, 'requestId'>, id: string): Promise<GoogleEvent> {
       try { return googleEventSchema.parse(await call(`?conferenceDataVersion=1&sendUpdates=${input.notifyGuests ? 'all' : 'none'}`, 'POST', eventBody(input, id))); }

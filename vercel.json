@@ -1,5 +1,18 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "node scripts/vercel-build.mjs",
-  "crons": [{ "path": "/api/cron/logs", "schedule": "0 9 * * *" }, { "path": "/api/cron/email", "schedule": "0 13 * * *" }]
+  "crons": [
+    {
+      "path": "/api/cron/logs",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/email",
+      "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/cron/calendar",
+      "schedule": "0 12 * * *"
+    }
+  ]
 }
