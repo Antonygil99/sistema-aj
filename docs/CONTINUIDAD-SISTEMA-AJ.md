@@ -1,6 +1,10 @@
 # Sistema AJ — continuidad del proyecto
 
-Actualizado: 2 de noviembre de 2026. Documento para continuar el trabajo con Claude o cualquier desarrollador. No contiene credenciales ni correos privados de las cuentas autorizadas.
+Actualizado: 3 de noviembre de 2026. Documento para continuar el trabajo con Claude o cualquier desarrollador. No contiene credenciales ni correos privados de las cuentas autorizadas.
+
+## Acceso del recibo a su confirmación
+
+El editor general de Pagos muestra un aviso contextual al seleccionar Pagado, evita el intento de guardado inválido y ofrece Ir a confirmar pago. Resuelve la póliza guardada del recibo y abre `/crm/clientes/:id?recibo=:paymentId#pagos-:policyId`; el panel se expande y resalta/enfoca el recibo solo si pertenece a la póliza cargada. Advierte antes de descartar cambios, sin trasladar datos no guardados ni marcar pagos automáticamente. Un recibo nuevo debe guardarse primero como pendiente. No se modificaron los requisitos de referencia, evidencia y revisión de la confirmación, ni los permisos. Verificado con APIs simuladas en navegador de escritorio/móvil, cancelación y navegación al cliente/póliza/recibo correctos sin escrituras reales.
 
 ## Renovación OAuth del MCP
 
