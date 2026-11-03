@@ -1,4 +1,5 @@
 import 'server-only';
+import {verifyDriveEvidence} from '@/modules/drive/server';
 import { getDb } from '@/lib/db';
 import { ResourceError } from '@/modules/resources/rules';
 import { recordEvent, eventData } from '@/modules/events';
@@ -9,7 +10,7 @@ import type { Prisma } from '@/generated/prisma/client';
 
 export async function policyFinance(id: string) {
   const db = getDb();
-  const policy = await db.policy.findUnique({ where: { id }, include: { payments: { where: { archivedAt: null }, orderBy: [{ dueDate: 'asc' }, { id: 'asc' }], include: { evidenceDocument: { select: { id: true, name: true, archivedAt: true } } } }, previousPolicy: { select: { id: true, number: true, startDate: true, endDate: true } }, nextPolicy: { select: { id: true, number: true, startDate: true, endDate: true } } } });
+  const policy = await db.policy.findUnique({ where: { id }, include: { payments: { where: { archivedAt: null }, orderBy: [{ dueDate: 'asc' }, { id: 'asc' }], include: { evidenceDriveLink: {select:{id:true,name:true}}, evidenceDocument: { select: { id: true, name: true, archivedAt: true } } } }, previousPolicy: { select: { id: true, number: true, startDate: true, endDate: true } }, nextPolicy: { select: { id: true, number: true, startDate: true, endDate: true } } } });
   if (!policy) throw new ResourceError('RECORD_NOT_FOUND',404);
   const evidence = await db.document.findMany({ where: { archivedAt: null, OR: [{ policyId: id }, { clientId: policy.clientId, policyId: null, claimId: null }] }, select: { id: true, name: true }, orderBy: { createdAt: 'desc' }, take: 200 });
   return { policy, evidence, today: mexicoDay(new Date()) };
@@ -31,17 +32,27 @@ export async function createPolicySchedule(id: string, input: unknown, actor: Ac
   });
   await recordEvent(actor,'updated','polizas',id,'Calendario de recibos revisado');
 }
-export async function confirmPayment(id: string, input: unknown, actor: Actor) {
+export async function confirmPayment(id: string, input: unknown, actor: Actor, headers?: Headers) {
   const data = confirmationInput.parse(input), db = getDb();
   if (data.paidAt > mexicoDay(new Date())) throw new ResourceError('FINANCE_FUTURE_PAYMENT',422);
+  const driveId = data.evidenceDocumentId.startsWith('drive:') ? data.evidenceDocumentId.slice(6) : null;
+  const context = driveId ? await db.payment.findUnique({where:{id},select:{policy:{select:{clientId:true}}}}) : null;
+  const drive = driveId && context && headers ? await verifyDriveEvidence(context.policy.clientId,driveId,actor,headers) : null;
+  if(driveId&&!drive)throw new ResourceError('FINANCE_EVIDENCE_SCOPE',422);
   await db.$transaction(async tx => {
     const payment = await tx.payment.findUnique({ where: { id }, include: { policy: { include: { client: true } } } });
     if (!payment || payment.archivedAt || payment.policy.archivedAt || payment.policy.client.archivedAt || payment.policy.status === 'CANCELLED') throw new ResourceError('RECORD_NOT_FOUND',404);
     if (payment.status === 'PAID') throw new ResourceError('FINANCE_ALREADY_PAID',409);
-    const document = await tx.document.findUnique({ where: { id: data.evidenceDocumentId } });
+    if(drive){
+      await tx.$queryRaw`SELECT id FROM "ClientDriveLink" WHERE id=${drive.linkId} FOR UPDATE`;
+      const link=await tx.clientDriveLink.findFirst({where:{id:drive.linkId,clientId:payment.policy.clientId,fileId:drive.fileId,rootFolderId:drive.rootFolderId}});
+      const connection=await tx.driveConnection.findFirst({where:{userId:actor.id!,enabled:true,folderId:drive.rootFolderId,updatedAt:drive.connectionUpdatedAt}});
+      if(!link||!connection)throw new ResourceError('FINANCE_EVIDENCE_SCOPE',422);
+    }
+    const document = !drive ? await tx.document.findUnique({ where: { id: data.evidenceDocumentId } }) : null;
     const sameScope = document && !document.archivedAt && (document.policyId === payment.policyId || (document.clientId === payment.policy.clientId && !document.policyId && !document.claimId));
-    if (!sameScope) throw new ResourceError('FINANCE_EVIDENCE_SCOPE',422);
-    const saved = await tx.payment.updateMany({ where: { id, updatedAt: new Date(data.expectedUpdatedAt), status: { not: 'PAID' } }, data: { status: 'PAID', paidAt: new Date(data.paidAt), reference: data.reference, evidenceDocumentId: data.evidenceDocumentId } });
+    if (!drive && !sameScope) throw new ResourceError('FINANCE_EVIDENCE_SCOPE',422);
+    const saved = await tx.payment.updateMany({ where: { id, updatedAt: new Date(data.expectedUpdatedAt), status: { not: 'PAID' } }, data: { status: 'PAID', paidAt: new Date(data.paidAt), reference: data.reference, evidenceDocumentId: drive ? null : data.evidenceDocumentId, evidenceDriveLinkId: drive?.linkId ?? null } });
     if (!saved.count) throw new ResourceError('RECORD_CHANGED',409);
   });
   await recordEvent(actor,'updated','pagos',id,'Pago confirmado con evidencia');

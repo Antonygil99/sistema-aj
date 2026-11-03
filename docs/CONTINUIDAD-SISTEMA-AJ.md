@@ -2,6 +2,12 @@
 
 Actualizado: 3 de noviembre de 2026. Documento para continuar el trabajo con Claude o cualquier desarrollador. No contiene credenciales ni correos privados de las cuentas autorizadas.
 
+## Drive en Documentos y comprobantes
+
+Documentos ofrece una pestaña Google Drive para ADMIN/SUPERADMIN usando la conexión individual ya guardada. Explora la raíz y subcarpetas, con paginación y miniaturas privadas obtenidas mediante servidor, límite de 2 MB, hosts de Google validados y sin caché. Los formatos sin miniatura muestran un icono y acceso al original. No se copian originales a R2. El selector del pago permite vincular un archivo al expediente y elegirlo como `drive:<linkId>`; el servidor valida acceso actual, pertenencia a raíz y cliente, formato y conexión antes de confirmar. `Payment.evidenceDriveLinkId` conserva una relación restrictiva; no se desvincula una referencia usada en pagos. Pruebas de interfaz con APIs simuladas; pendiente validar con las sesiones reales de Ale/Joel y Google.
+
+Calendario de renovaciones: siguiente iteración. La agenda sigue mostrando reuniones; falta incorporar vencimientos de pólizas, asignación por broker y sincronización idempotente con el Google Calendar elegido. No se crearon eventos en esta entrega.
+
 ## Acceso del recibo a su confirmación
 
 El editor general de Pagos muestra un aviso contextual al seleccionar Pagado, evita el intento de guardado inválido y ofrece Ir a confirmar pago. Resuelve la póliza guardada del recibo y abre `/crm/clientes/:id?recibo=:paymentId#pagos-:policyId`; el panel se expande y resalta/enfoca el recibo solo si pertenece a la póliza cargada. Advierte antes de descartar cambios, sin trasladar datos no guardados ni marcar pagos automáticamente. Un recibo nuevo debe guardarse primero como pendiente. No se modificaron los requisitos de referencia, evidencia y revisión de la confirmación, ni los permisos. Verificado con APIs simuladas en navegador de escritorio/móvil, cancelación y navegación al cliente/póliza/recibo correctos sin escrituras reales.

@@ -11,3 +11,12 @@ test('Drive only reads metadata, checks ancestors and rejects shortcuts, trash a
  assert.equal((await api.withinRoot('inside-123')).id,'inside-123');
  for(const id of ['outside-123','shortcut-123','trash-123'])await assert.rejects(api.withinRoot(id),{code:'DRIVE_OUTSIDE_FOLDER'});
 });
+
+test('Drive thumbnails validate trusted image origin before sending credentials',async()=>{
+ for(const target of ['https://lh3.googleusercontent.com/thumbnail','https://evil.invalid/steal','https://googleusercontent.com.evil.invalid/steal']){
+  const calls:string[]=[];
+  const fetcher:typeof fetch=async(input,init)=>{const u=new URL(String(input));calls.push(u.hostname);if(u.hostname==='www.googleapis.com'){const id=u.pathname.split('/').at(-1);return Response.json(id==='root-123'?{id,name:'Root',mimeType:'application/vnd.google-apps.folder'}:{id,name:'Proof',mimeType:'image/png',parents:['root-123'],thumbnailLink:target});}assert.equal(init?.redirect,'error');return new Response(new Uint8Array([1,2]),{headers:{'Content-Type':'image/png'}});};
+  const api=driveGoogle('fixture-token',{folderId:'root-123',resourceKey:null},fetcher);
+  if(target.includes('lh3.googleusercontent.com'))assert.equal((await api.thumbnail('proof-123')).type,'image/png');else{await assert.rejects(api.thumbnail('proof-123'),{code:'DRIVE_UNAVAILABLE'});assert.deepEqual(calls,['www.googleapis.com','www.googleapis.com']);}
+ }
+});

@@ -1,3 +1,4 @@
+import {DocumentsSources} from './drive-files';
 import { notFound } from 'next/navigation';
 import { getDb } from '@/lib/db';
 import { requireUser } from '@/lib/session';
@@ -26,8 +27,9 @@ export async function DocumentsPage({ clientId = null, folderId = null }: { clie
     canUpload ? db.claim.findMany({ where: active, take: 100, orderBy: { createdAt: 'desc' }, select: { id: true, reference: true } }) : [],
   ]);
   const options: DocumentOption[] = [...clients.map(c => ({ id: c.id, label: c.name, kind: 'clientId' as const })), ...policies.map(p => ({ id: p.id, label: `Póliza · ${p.number}`, kind: 'policyId' as const })), ...claims.map(c => ({ id: c.id, label: `Siniestro · ${c.reference}`, kind: 'claimId' as const }))];
-  return <DocumentLibrary key={`${clientId || 'team'}:${openFolder ?? ''}`} clientId={clientId} initialFolderId={openFolder} clientName={client?.name}
+  const library = <DocumentLibrary key={`${clientId || 'team'}:${openFolder ?? ''}`} clientId={clientId} initialFolderId={openFolder} clientName={client?.name}
     initial={documents.map(d => ({ ...d, createdAt: d.createdAt.toISOString(), updatedAt: d.updatedAt.toISOString() }))} initialTotal={total}
     initialFolders={folders.map(f => ({ ...f, updatedAt: f.updatedAt.toISOString() }))}
     userName={user.name} options={options} canUpload={canUpload} canDelete={user.role === 'SUPERADMIN'} configured={storage.configured} configurationMessage={canUpload ? storage.message : undefined}/>;
+  return canUpload ? <DocumentsSources clientId={clientId}>{library}</DocumentsSources> : library;
 }
