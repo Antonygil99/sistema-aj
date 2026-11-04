@@ -270,3 +270,13 @@ Los once módulos tienen cuatro KPIs reales, con definición visible, ámbito y 
 - Ale deberá volver a conectar una vez, elegir Mantener la conexión y después Autorizar conexión con la casilla Mantener la conexión entre sesiones seleccionada. La pantalla de ChatGPT debe probarse en una conversación nueva y después de cinco minutos; la prueba del servidor por sí sola no acredita que ChatGPT almacene la nueva credencial.
 - Validación: pruebas de firma y conservación de parámetros; navegador con API simulada para ambas elecciones; check completo. Smoke transaccional ampliado para nueva autorización PKCE y refresh sin cookie. Todas sus fixtures se revierten; ningún expediente real se utiliza ni se envían correos.
 - Pendiente anterior conservado: sincronización de recibos/pagos en Google Calendar; por ahora el cambio publicado previo solo cubre renovaciones.
+
+
+## 2026-11-04 — Google Calendar: recibos de cada cliente
+- CalendarPayment registra un evento por usuario/recibo, independiente de CalendarRenewal y de reuniones manuales. Migración 20261104150000_calendar_payments.
+- Fuente: recibos PENDING/OVERDUE no archivados; póliza no archivada ni CANCELLED, cliente no archivado y ownerEmail igual al broker autenticado. Las pólizas EXPIRED pueden conservar adeudos pendientes. Sin responsable no se distribuyen a calendarios ajenos.
+- Día completo en dueDate original, incluso atrasados. Descripción: importe decimal exacto y moneda (sin conversiones UDI), estado y enlace al expediente con recibo resaltado. No incluye datos bancarios, referencia ni comprobantes.
+- Cambios de fecha, importe, moneda o estado se actualizan por huella; recibos pagados/archivados, pólizas canceladas/archivadas y reasignaciones retiran el evento gestionado en la próxima sincronización. Reaperturas usan nueva generación de ID; los reintentos mantienen ID y no duplican.
+- Misma autorización administrativa activa y lease de CalendarConnection para evitar solapar pagos y renovaciones. Marcas privadas de Google distintas para cada tipo: no modifica citas personales ni confunde renovaciones con pagos.
+- POST /api/calendar/payments requiere sesión y origen confiable; no acepta identidad del cliente. Mi agenda ejecuta pagos y renovaciones por lotes. /api/cron/calendar incluye ambas tareas en la programación diaria existente. No hay envío de invitaciones ni nuevas automatizaciones de correo.
+- Comprobaciones: tests de proveedor y servidor simulados (aislamiento, importes, UDI, cambios, pago, reapertura, idempotencia); navegador simulado para continuación de lotes, botón y móvil; check completo. Falta observación visual en Google con sesión real de Ale/Joel; no se insertaron recibos ni pagos de prueba en producción.

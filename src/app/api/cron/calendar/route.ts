@@ -1,6 +1,7 @@
 import { authorizedCleanup } from '@/modules/log-retention';
 import { getDb } from '@/lib/db';
 import { syncCalendarRenewals } from '@/modules/calendar/renewals-server';
+import { syncCalendarPayments } from '@/modules/calendar/payments-server';
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
@@ -15,12 +16,14 @@ export async function GET(request: Request) {
     try {
       let more = true;
       while (more && Date.now() < deadline) {
-        const result = await syncCalendarRenewals(connection.userId, undefined, deadline);
-        more = result.more && !result.running;
+        const payments = await syncCalendarPayments(connection.userId, undefined, deadline);
+        if (Date.now() >= deadline) break;
+        const renewals = await syncCalendarRenewals(connection.userId, undefined, deadline);
+        more = (payments.more || renewals.more) && !payments.running && !renewals.running;
       }
       processed++;
     }
-    catch { failed++; console.error('CALENDAR_RENEWAL_SYNC_FAILED'); }
+    catch { failed++; console.error('CALENDAR_SYNC_FAILED'); }
   }
   return Response.json({ processed, failed, remaining: connections.length - processed - failed }, { status: failed ? 503 : 200, headers: { 'Cache-Control': 'private, no-store' } });
 }

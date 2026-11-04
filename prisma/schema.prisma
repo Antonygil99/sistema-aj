@@ -1076,3 +1076,18 @@ model CalendarRenewal {
   @@unique([userId, policyId])
   @@index([userId, active])
 }
+
+// Managed payment events are independent of renewals and manual meetings.
+model CalendarPayment {
+  id String @id
+  userId String
+  paymentId String
+  generation Int @default(0)
+  fingerprint String @default("")
+  googleUrl String?
+  active Boolean @default(false)
+  checkedAt DateTime?
+  updatedAt DateTime @updatedAt
+  @@unique([userId, paymentId])
+  @@index([userId, active])
+}

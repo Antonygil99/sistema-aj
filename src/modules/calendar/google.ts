@@ -52,8 +52,11 @@ export function calendarGoogle(token: string, transport: typeof fetch = fetch) {
     return data;
   }
   return {
-    async syncRenewal(id: string, input: RenewalEventBody): Promise<GoogleEvent> {
-      const body = { ...input, extendedProperties: { private: { sistemaAjRenewal: id } } };
+    async syncPayment(id: string, input: RenewalEventBody): Promise<GoogleEvent> { return this.syncRenewal(id, input, 'payment'); },
+    async cancelPayment(id: string) { return this.cancelRenewal(id, 'payment'); },
+    async syncRenewal(id: string, input: RenewalEventBody, kind: 'renewal' | 'payment' = 'renewal'): Promise<GoogleEvent> {
+      const marker = kind === 'payment' ? 'sistemaAjPayment' : 'sistemaAjRenewal';
+      const body = { ...input, extendedProperties: { private: { [marker]: id } } };
       let existing: GoogleEvent | null = null;
       try { existing = googleEventSchema.parse(await call(`/${encodeURIComponent(id)}`, 'GET', undefined, 5000)); }
       catch (error) { if (!(error instanceof CalendarError) || error.code !== 'CALENDAR_EVENT_NOT_FOUND') throw error; }
@@ -65,15 +68,16 @@ export function calendarGoogle(token: string, transport: typeof fetch = fetch) {
         }
       }
       if (existing.status === 'cancelled') throw new CalendarError('CALENDAR_EVENT_NOT_FOUND', 404);
-      if (existing.extendedProperties?.private?.sistemaAjRenewal !== id) throw new CalendarError('CALENDAR_EVENT_CHANGED', 409);
+      if (existing.extendedProperties?.private?.[marker] !== id) throw new CalendarError('CALENDAR_EVENT_CHANGED', 409);
       // Preserve the broker's Google notification settings; only CRM-owned fields are updated.
       return googleEventSchema.parse(await call(`/${encodeURIComponent(id)}?sendUpdates=none`, 'PATCH', body, 5000));
     },
-    async cancelRenewal(id: string) {
+    async cancelRenewal(id: string, kind: 'renewal' | 'payment' = 'renewal') {
+      const marker = kind === 'payment' ? 'sistemaAjPayment' : 'sistemaAjRenewal';
       try {
         const event = googleEventSchema.parse(await call(`/${encodeURIComponent(id)}`, 'GET', undefined, 5000));
         if (event.status === 'cancelled') return;
-        if (event.extendedProperties?.private?.sistemaAjRenewal !== id) throw new CalendarError('CALENDAR_EVENT_CHANGED', 409);
+        if (event.extendedProperties?.private?.[marker] !== id) throw new CalendarError('CALENDAR_EVENT_CHANGED', 409);
         await call(`/${encodeURIComponent(id)}?sendUpdates=none`, 'DELETE', undefined, 5000);
       } catch (error) { if (!(error instanceof CalendarError) || error.code !== 'CALENDAR_EVENT_NOT_FOUND') throw error; }
     },
