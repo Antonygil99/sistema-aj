@@ -110,6 +110,23 @@ try {
     }
     const readToken=await authorizeScopes('crm:read'),beforeChanges=await tx.mcpChange.count({where:{userId}});
     assert.equal(await tx.oauthRefreshToken.count({where:{userId,clientId:secondClient}}),0,'temporary connection creates no refresh token');
+    // A cached ChatGPT connection may omit offline_access. The consent screen can restart
+    // the exact PKCE flow with explicit persistence, without asking a model to call a tool.
+    const legacyQuery=new URLSearchParams(query);legacyQuery.set('client_id',secondClient);legacyQuery.set('scope','crm:read');legacyQuery.set('state','persistence-fixture');legacyQuery.set('prompt','consent');
+    const legacyStart=await auth.handler(request('/api/auth/oauth2/authorize?'+legacyQuery));
+    const legacySigned=throughPage(new URL(legacyStart.headers.get('location')!,base).search.slice(1));
+    const upgrade=await consentPost(request('/api/mcp/consent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accept:true,requestPersistence:true,query:legacySigned,scopes:['crm:read']})}));
+    assert.equal(upgrade.status,200);
+    const upgradeStart=await auth.handler(request((await upgrade.json()).redirect_uri));
+    const upgradeSigned=throughPage(new URL(upgradeStart.headers.get('location')!,base).search.slice(1));
+    const upgradePage=await consentRequest(upgradeSigned,'ADMIN',userId);assert.deepEqual(upgradePage.scopes,['crm:read','offline_access']);
+    const upgradeAccept=await consentPost(request('/api/mcp/consent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accept:true,query:upgradeSigned,scopes:['crm:read','offline_access']})}));
+    assert.equal(upgradeAccept.status,200);
+    const upgradeCallback=new URL((await upgradeAccept.json()).redirect_uri);assert.equal(upgradeCallback.searchParams.get('state'),'persistence-fixture');
+    const upgradeExchange=await auth.handler(request('/api/auth/oauth2/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'authorization_code',client_id:secondClient,code:upgradeCallback.searchParams.get('code')!,code_verifier:verifier,redirect_uri:'https://example.invalid/mcp-callback',resource:mcpResource()})}));
+    assert.equal(upgradeExchange.status,200);const upgradeTokens=await upgradeExchange.json();assert.ok(upgradeTokens.refresh_token,'UI upgrade issues a refresh credential');
+    const upgradeRefresh=await auth.handler(new Request(base+'/api/auth/oauth2/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'refresh_token',client_id:secondClient,refresh_token:upgradeTokens.refresh_token,resource:mcpResource()})}));
+    assert.equal(upgradeRefresh.status,200,'upgraded connection refreshes without any browser session');
     const needsPersistence=await rpcJson(await rpcWith(readToken,'tools/call',{name:'aj_request_persistent_access',arguments:{}}));
     assert.match(needsPersistence.result._meta['mcp/www_authenticate'][0],/scope="crm:read offline_access"/);
     const temporaryInfo=await rpcJson(await rpcWith(readToken,'tools/call',{name:'aj_capabilities',arguments:{}}));

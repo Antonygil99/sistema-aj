@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { makeSignature } from 'better-auth/crypto';
 import { verifyOAuthQueryParams } from '@better-auth/oauth-provider';
-import { oauthQuery } from '../../src/modules/mcp/consent';
+import { oauthQuery, persistentAuthorizationUrl } from '../../src/modules/mcp/consent';
 
 test('OAuth preserves repeated provider signature metadata across Next searchParams, including a URL client ID',async()=>{
   const secret='oauth-query-fixture-secret-not-used-in-production';
@@ -26,4 +26,16 @@ test('OAuth rejects duplicate credentials and redirect fields and bounds query m
   for(const key of ['client_id','redirect_uri','scope','state','sig','exp','resource'])assert.throws(()=>oauthQuery({[key]:['first','second']}),{code:'INVALID_OAUTH_QUERY'});
   assert.throws(()=>oauthQuery({ba_param:Array.from({length:65},()=> 'scope')}),{code:'INVALID_OAUTH_QUERY'});
   assert.throws(()=>oauthQuery({state:'x'.repeat(16001)}),{code:'INVALID_OAUTH_QUERY'});
+});
+
+
+test('persistence upgrade starts a fresh consent request and preserves OAuth binding without broadening business access',()=>{
+ const q=new URLSearchParams({response_type:'code',client_id:'https://chatgpt.com/oauth/client.json',redirect_uri:'https://chatgpt.com/connector_platform_oauth_redirect',scope:'crm:read crm:write',state:'original',code_challenge:'x'.repeat(43),code_challenge_method:'S256',sig:'old',exp:'123',ba_iat:'old',prompt:'none'});
+ q.append('resource','https://example.invalid/mcp');q.append('ba_param','scope');
+ const result=new URL(persistentAuthorizationUrl(q.toString()),'https://example.invalid');
+ assert.equal(result.pathname,'/api/auth/oauth2/authorize');
+ for(const key of ['client_id','redirect_uri','state','code_challenge','code_challenge_method','resource'])assert.equal(result.searchParams.get(key),q.get(key));
+ assert.equal(result.searchParams.get('scope'),'crm:read crm:write offline_access');
+ assert.equal(result.searchParams.get('prompt'),'consent');
+ for(const key of ['sig','exp','ba_iat','ba_param'])assert.equal(result.searchParams.has(key),false);
 });

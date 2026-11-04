@@ -261,3 +261,12 @@ Los once módulos tienen cuatro KPIs reales, con definición visible, ámbito y 
 - GET /api/cron/calendar diario 12:00 UTC, protegido por CRON_SECRET/AJ_API_TOKEN. Credenciales renovables por auth.api servidor sin headers, solo para usuarios obtenidos de conexiones habilitadas. No acepta userId del cliente.
 - Migración 20261103190000_calendar_renewals obligatoria antes del código; Vercel production ejecuta migrate deploy en build. Para carteras grandes, el botón continúa por lotes y el cron retoma en futuras ejecuciones si agota su tiempo.
 - Pendiente de validación con sesión real de Ale/Joel: visualizar eventos en su Google Calendar. Pruebas de proveedor usan transporte simulado, no cuentas reales.
+
+
+## 2026-11-04 — Reconexión MCP y solicitudes sin offline_access
+- Las capturas de Ale muestran una solicitud OAuth sin offline_access, por lo que AJ emitía una conexión de cinco minutos sin renovación. Los desafíos OAuth ya sugerían el permiso, pero la solicitud del chat no lo incluía y la pantalla remitía al modelo a llamar una herramienta.
+- Ahora la pantalla temporal ofrece Mantener la conexión. Una acción humana autenticada verifica la solicitud firmada y crea una nueva solicitud al proveedor con offline_access y prompt=consent, conservando client_id, state, PKCE, redirect_uri y resource. El proveedor vuelve a validar y firmar; nunca se modifica una firma anterior. El segundo consentimiento permite revisar y rechazar el permiso.
+- Solo se ofrece si el cliente admite refresh_token y usa PKCE S256. No se amplían permisos de negocio. Sigue disponible la elección temporal de cinco minutos. No se modificaron la duración del token ni las conexiones existentes.
+- Ale deberá volver a conectar una vez, elegir Mantener la conexión y después Autorizar conexión con la casilla Mantener la conexión entre sesiones seleccionada. La pantalla de ChatGPT debe probarse en una conversación nueva y después de cinco minutos; la prueba del servidor por sí sola no acredita que ChatGPT almacene la nueva credencial.
+- Validación: pruebas de firma y conservación de parámetros; navegador con API simulada para ambas elecciones; check completo. Smoke transaccional ampliado para nueva autorización PKCE y refresh sin cookie. Todas sus fixtures se revierten; ningún expediente real se utiliza ni se envían correos.
+- Pendiente anterior conservado: sincronización de recibos/pagos en Google Calendar; por ahora el cambio publicado previo solo cubre renovaciones.

@@ -28,7 +28,16 @@ export async function consentRequest(query:string,role:AccessRole,userId?:string
   const scopes=requested.filter(scope=>allowedScopes(role).includes(scope));
   if(!scopes.includes('crm:read'))throw new McpError('READ_SCOPE_REQUIRED');
   const previous=userId?await getDb().oauthConsent.findFirst({where:{userId,clientId:client.clientId},select:{scopes:true}}):null;
-  return {clientId:client.clientId,name:client.name??'Aplicación externa',redirect:params.get('redirect_uri')??'',scopes,previousScopes:previous?.scopes.filter(scope=>scopes.includes(scope))??[]};
+  return {clientId:client.clientId,name:client.name??'Aplicación externa',redirect:params.get('redirect_uri')??'',scopes,canRequestPersistence:client.grantTypes.includes('refresh_token')&&params.get('code_challenge_method')==='S256'&&Boolean(params.get('code_challenge')),previousScopes:previous?.scopes.filter(scope=>scopes.includes(scope))??[]};
+}
+// Call only after consentRequest has verified the original signed query and the human's session.
+// Start a NEW provider-validated request; never alter or re-sign the signed consent request.
+export function persistentAuthorizationUrl(query:string) {
+  const source=new URLSearchParams(query),params=new URLSearchParams();
+  for(const key of ['response_type','client_id','redirect_uri','state','code_challenge','code_challenge_method','resource','nonce','ui_locales','login_hint','max_age'])for(const value of source.getAll(key))params.append(key,value);
+  params.set('scope',[...new Set([...(source.get('scope')??'crm:read').split(/\s+/).filter(Boolean),'offline_access'])].join(' '));
+  params.set('prompt','consent');
+  return '/api/auth/oauth2/authorize?'+params.toString();
 }
 export async function oauthRedirect(result:unknown):Promise<string> {
   if(result instanceof Response){const location=result.headers.get('location');if(location)return location;if(!result.ok)throw new McpError('OAUTH_REQUEST_FAILED',400);return oauthRedirect(await result.json());}
