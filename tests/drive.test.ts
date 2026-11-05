@@ -3,8 +3,8 @@ test('Drive search runs at the provider across pages while retaining the parent 
  const api=driveGoogle('fixture',{folderId:'root-123',resourceKey:null},async(input)=>{
   const u=new URL(String(input));if(u.pathname.endsWith('/root-123'))return Response.json({id:'root-123',name:'Root',mimeType:'application/vnd.google-apps.folder'});
   const q=u.searchParams.get('q')!;assert.ok(q.startsWith("'root-123' in parents and trashed = false"));
-  assert.ok(q.includes("name contains 'Carlos' and name contains 'O\\'Neil'"));assert.equal(u.searchParams.get('pageToken'),'next-page');
-  return Response.json({files:[{id:'receipt-123',name:'Carlos',mimeType:'application/pdf',parents:['root-123']},{id:'foreign-123',name:'Carlos',mimeType:'application/pdf',parents:['outside-123']}]});
+  assert.ok(q.includes("fullText contains 'Carlos'"));assert.ok(q.includes("name contains 'O\\'Neil'"));assert.equal(u.searchParams.get('pageToken'),'next-page');
+  return Response.json({files:[{id:'receipt-123',name:"Carlos O'Neil",mimeType:'application/pdf',parents:['root-123']},{id:'foreign-123',name:"Carlos O'Neil",mimeType:'application/pdf',parents:['outside-123']}]});
  });
  assert.deepEqual((await api.list(undefined,'next-page',"Carlos O'Neil")).files.map(f=>f.id),['receipt-123']);
 });

@@ -295,6 +295,6 @@ Los once módulos tienen cuatro KPIs reales, con definición visible, ámbito y 
 
 
 ## 2026-11-05 — Buscador de Drive en Documentos y comprobantes
-- GET /api/drive/files acepta q (máximo 120 caracteres). La consulta se realiza en Google con name contains por palabra y AND, con comillas/barras escapadas. Mantiene restricción por padre y verificación de pertenencia a raíz. Busca todas las páginas de la carpeta actual; no es búsqueda recursiva global.
+- GET /api/drive/files acepta q (máximo 120 caracteres). La consulta se realiza en Google con (name contains OR fullText contains) por palabra y AND, con comillas/barras escapadas. Los resultados se filtran por nombre en AJ, evitando mostrar coincidencias solo de contenido. Google limita coincidencias parciales; el campo pide palabras completas. Mantiene restricción por padre y verificación de pertenencia a raíz. Busca todas las páginas de la carpeta actual; no es búsqueda recursiva global.
 - Campo etiquetado con alcance, debounce 300 ms, abort de consultas anteriores y secuencia para descartar respuestas tardías. Cargar más añade sin perder archivos ni duplicar IDs. Navegar carpetas limpia búsqueda.
 - Validación: check completo; test de consulta segura, paginación y filtrado de árbol ajeno; navegador simulado con búsqueda, acumulación y móvil. No se realizaron modificaciones en archivos reales de Drive.
