@@ -1,4 +1,13 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';import {folderFromUrl,driveLink} from '../src/modules/drive/rules';import {driveGoogle} from '../src/modules/drive/google';
+test('Drive search runs at the provider across pages while retaining the parent restriction and escaping query text',async()=>{
+ const api=driveGoogle('fixture',{folderId:'root-123',resourceKey:null},async(input)=>{
+  const u=new URL(String(input));if(u.pathname.endsWith('/root-123'))return Response.json({id:'root-123',name:'Root',mimeType:'application/vnd.google-apps.folder'});
+  const q=u.searchParams.get('q')!;assert.ok(q.startsWith("'root-123' in parents and trashed = false"));
+  assert.ok(q.includes("name contains 'Carlos' and name contains 'O\\'Neil'"));assert.equal(u.searchParams.get('pageToken'),'next-page');
+  return Response.json({files:[{id:'receipt-123',name:'Carlos',mimeType:'application/pdf',parents:['root-123']},{id:'foreign-123',name:'Carlos',mimeType:'application/pdf',parents:['outside-123']}]});
+ });
+ assert.deepEqual((await api.list(undefined,'next-page',"Carlos O'Neil")).files.map(f=>f.id),['receipt-123']);
+});
 test('Drive URLs restrict host, folders, keys and generated destinations',()=>{
  assert.deepEqual(folderFromUrl('https://drive.google.com/drive/folders/fixture-root?resourcekey=fixture-key'),{folderId:'fixture-root',resourceKey:'fixture-key'});
  for(const u of ['https://evil.invalid/drive/folders/fixture-root','http://drive.google.com/drive/folders/fixture-root','https://user:pass@drive.google.com/drive/folders/fixture-root','https://drive.google.com/file/d/fixture-root/view'])assert.throws(()=>folderFromUrl(u));
