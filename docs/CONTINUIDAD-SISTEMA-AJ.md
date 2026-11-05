@@ -280,3 +280,15 @@ Los once módulos tienen cuatro KPIs reales, con definición visible, ámbito y 
 - Misma autorización administrativa activa y lease de CalendarConnection para evitar solapar pagos y renovaciones. Marcas privadas de Google distintas para cada tipo: no modifica citas personales ni confunde renovaciones con pagos.
 - POST /api/calendar/payments requiere sesión y origen confiable; no acepta identidad del cliente. Mi agenda ejecuta pagos y renovaciones por lotes. /api/cron/calendar incluye ambas tareas en la programación diaria existente. No hay envío de invitaciones ni nuevas automatizaciones de correo.
 - Comprobaciones: tests de proveedor y servidor simulados (aislamiento, importes, UDI, cambios, pago, reapertura, idempotencia); navegador simulado para continuación de lotes, botón y móvil; check completo. Falta observación visual en Google con sesión real de Ale/Joel; no se insertaron recibos ni pagos de prueba en producción.
+
+
+## 2026-11-04 — MCP tras consentimiento persistente: compatibilidad de renovación
+- Audio de Ale 17:58: autoriza mantener conexión pero vuelve al aviso de reconexión. Captura confirma casilla offline_access; ya no es el caso previo de conexión temporal.
+- Consulta de solo lectura: consentimiento persistente activo; credenciales de renovación emitidas a las 23:46 y 23:47 UTC, varias rotaciones separadas por segundos, renovaciones vigentes y ninguna revocación manual. Esto acredita actividad de intercambio/refresh, NO que ChatGPT haya guardado o utilizado siempre la última credencial.
+- Se cambia TTL del recurso MCP de 300 a 3600 segundos. Refresh sigue rotando y caducando a 30 días; se habilita refreshTokenReuseInterval=30 para que reintentos equivalentes en esa ventana reciban el mismo par de credenciales. No aumenta permisos ni desactiva revocación; fuera de ventana el token rotado se rechaza.
+- Se alinea texto de conexión temporal a una hora. No se considera una causa raíz confirmada: son ajustes de compatibilidad ante las rotaciones repetidas y los fallos tras el consentimiento.
+- /api/auth/oauth2/token registra solo MCP_OAUTH_TOKEN_RESULT con estado, expiresIn, refreshIssued y código OAuth de una lista cerrada. Nunca registra códigos de autorización, cuerpos de petición, tokens, cookies ni texto libre del proveedor.
+- Vercel runtime logs por plugin devolvió 403 forbidden. CLI vercel no está instalada; no se pudo observar el error exacto de la petición de Ale. No confundir con ausencia de errores. Debe revisarse un reintento real tras publicar; si persiste, obtener el código sanitizado del registro con acceso al dashboard.
+- Pruebas: JWT exp-iat coincide con expires_in=3600; renovación sin sesión; repetición dentro de ventana devuelve los mismos tokens; repetición fuera se rechaza; revocación bloquea renovación. Fixtures transaccionales, sin modificar clientes reales. Audio local en outputs/mcp-reconexion-2026-11-04.
+
+- Importante: el proveedor siembra recursos en modo insertOnly. La migración 20261105001500_mcp_access_lifetime actualiza el recurso de producción existente de 300 a 3600 segundos sin tocar sus permisos, claves ni otras políticas. Cambiar solo auth.ts no bastaba.

@@ -78,7 +78,8 @@ try {
     const code=new URL(approved.redirect_uri).searchParams.get('code');assert.ok(code);
     const exchange=await auth.handler(request('/api/auth/oauth2/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'authorization_code',client_id:registration.client_id,code,code_verifier:verifier,redirect_uri:'https://example.invalid/mcp-callback',resource:mcpResource()})}));
     assert.equal(exchange.status,200,'PKCE token exchange');const tokens=await exchange.json();assert.ok(tokens.access_token);assert.ok(tokens.refresh_token);
-    const claims=decodeJwt(tokens.access_token);const actor=await actorFromClaims(claims);assert.equal(actor.id,userId);assert.equal(actor.role,'ADMIN');
+    assert.equal(tokens.expires_in,3600,'advertised access lifetime');
+    const claims=decodeJwt(tokens.access_token);assert.equal(Number(claims.exp)-Number(claims.iat),tokens.expires_in,'JWT expiry matches token response');const actor=await actorFromClaims(claims);assert.equal(actor.id,userId);assert.equal(actor.role,'ADMIN');
     globalThis.fetch=async (url,init)=>String(url)===base+'/api/auth/jwks'?auth.handler(new Request(String(url),init)):originalFetch(url,init);
     const rpcWith=(token:string,method:string,params?:unknown)=>mcpPost(request('/mcp',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Accept:'application/json, text/event-stream','MCP-Protocol-Version':'2025-11-25'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params})}));
     const rpc=(method:string,params?:unknown)=>rpcWith(tokens.access_token,method,params);
@@ -197,6 +198,9 @@ try {
     const refresh=async(value:string)=>auth.handler(new Request(base+'/api/auth/oauth2/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'refresh_token',client_id:registration.client_id,refresh_token:value,resource:mcpResource()})}));
     const renewedResponse=await refresh(tokens.refresh_token);assert.equal(renewedResponse.status,200,'refresh without browser session authorization');
     const renewed=await renewedResponse.json();assert.ok(renewed.refresh_token);assert.notEqual(renewed.refresh_token,tokens.refresh_token);
+    const replayResponse=await refresh(tokens.refresh_token);assert.equal(replayResponse.status,200,'duplicate refresh within retry window');
+    const replay=await replayResponse.json();assert.equal(replay.refresh_token,renewed.refresh_token,'retry returns same rotated credential');assert.equal(replay.access_token,renewed.access_token,'retry does not mint another access token');
+    const staleRetry=await auth.handler(new Request(base+'/api/auth/oauth2/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'refresh_token',client_id:secondClient,refresh_token:upgradeTokens.refresh_token,resource:mcpResource()})}));assert.equal(staleRetry.status,400,'rotated token outside retry window is rejected');
     const renewedClaims=decodeJwt(renewed.access_token);assert.ok(Number(renewedClaims.exp)>Number(claims.exp));
     assert.equal(renewedClaims.scope,claims.scope,'refresh preserves business permissions');
     assert.equal((await rpcWith(renewed.access_token,'tools/list')).status,200,'fresh MCP request works after expiry');

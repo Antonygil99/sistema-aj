@@ -1,5 +1,6 @@
 import { toNextJsHandler } from 'better-auth/next-js';
 import { getAuth } from '@/lib/auth';
+import { oauthTokenDiagnostic } from '@/modules/mcp/oauth-diagnostics';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 async function handler(request: Request) {
@@ -11,7 +12,9 @@ async function handler(request: Request) {
   if (['get-access-token', 'refresh-token'].includes(new URL(request.url).pathname.split('/').at(-1) ?? '')) return Response.json({ error: 'FORBIDDEN' }, { status: 403 });
   const auth = getAuth();
   if (!auth) return Response.json({ error: 'AUTH_NOT_CONFIGURED' }, { status: 503 });
-  return toNextJsHandler(auth)[request.method === 'GET' ? 'GET' : 'POST'](request);
+  const response = await toNextJsHandler(auth)[request.method === 'GET' ? 'GET' : 'POST'](request);
+  if (path === '/oauth2/token') console.info(JSON.stringify(oauthTokenDiagnostic(response.status, await response.clone().json().catch(() => null))));
+  return response;
 }
 export const GET = handler;
 export const POST = handler;

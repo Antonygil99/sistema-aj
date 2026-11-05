@@ -61,10 +61,11 @@ function createAuth() {
     plugins: [jwt(), mcp({
       loginPage: '/mcp/connect', consentPage: '/mcp/consent', resource: mcpResource(),
       scopes: mcpScopes, grantTypes: ['authorization_code', 'refresh_token'],
-      resources: [{ identifier: mcpResource(), name: 'Sistema AJ', allowedScopes: mcpScopes, accessTokenTtl: 300 }],
+      resources: [{ identifier: mcpResource(), name: 'Sistema AJ', allowedScopes: mcpScopes, accessTokenTtl: 3600 }],
       // Some deployed chat hosts still use RFC 7591; registration alone grants no access.
       allowDynamicClientRegistration: true, allowUnauthenticatedClientRegistration: true,
-      refreshTokenReuseInterval: 0,
+      // Equivalent refresh retries briefly receive the same rotated credential.
+      refreshTokenReuseInterval: 30,
       refreshTokenExpiresIn: 60 * 60 * 24 * 30,
     }), cimd({fetchClientMetadataResource, metadataProfile:'mcp-2026-07-28'}), nextCookies()],
   });
