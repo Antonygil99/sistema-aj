@@ -1,3 +1,4 @@
+import {smartSearchWhere} from '@/modules/smart-search-server';
 import Link from 'next/link';
 import { Add, Folder2, FolderOpen, SearchNormal1 } from '@/components/icons';
 import { getDb } from '@/lib/db';
@@ -16,7 +17,7 @@ export async function DossiersPage({ query = '', page = 0 }: { query?: string; p
   const db = getDb();
   const q = query.trim().slice(0, 100);
   const skip = Math.max(0, Math.min(10000, page)) * PAGE;
-  const where = { archivedAt: null, ...(q ? { OR: [{ name: { contains: q, mode: 'insensitive' as const } }, { email: { contains: q, mode: 'insensitive' as const } }, { phone: { contains: q } }] } : {}) };
+  const where = { archivedAt: null, ...await smartSearchWhere('clientes',q) };
   const [clients, total, pendingForms] = await Promise.all([
     db.client.findMany({ where, skip, take: PAGE, orderBy: { name: 'asc' }, include: { policies: { where: { archivedAt: null }, include: { payments: { where: { archivedAt: null, status: { not: 'PAID' } }, orderBy: { dueDate: 'asc' }, take: 1 } } } } }),
     db.client.count({ where }),
@@ -26,7 +27,7 @@ export async function DossiersPage({ query = '', page = 0 }: { query?: string; p
   return <>
     <div className="resource-toolbar"><ClientViewSwitch current="dossiers"/><span className="resource-count">{total} expediente{total === 1 ? '' : 's'}</span>{canEdit?<Link className="button button-soft" href="/importaciones?destino=clientes">Importar</Link>:null}{newButton}</div>
     {pendingForms.length?<section className="document-panel"><h2>Fichas recibidas por revisar</h2><p className="lead-small">Respuestas manuales o externas guardadas en el CRM. Revisa la ficha antes de incorporar cambios.</p><div className="wizard-actions">{pendingForms.map(form=><Link className="button button-soft" key={form.client.id} href={`/crm/clientes/${form.client.id}#ficha-cliente`}>{form.client.name} · versión {form.revision}</Link>)}</div></section>:null}
-    <form className="resource-filters"><label className="search-field"><SearchNormal1 aria-hidden="true"/><span className="sr-only">Buscar expediente</span><input name="q" type="search" defaultValue={q} placeholder="Nombre, correo o teléfono" maxLength={100}/></label><button className="button button-soft">Buscar</button></form>
+    <form className="resource-filters"><label className="search-field"><SearchNormal1 aria-hidden="true"/><span className="sr-only">Buscar expediente</span><input name="q" type="search" defaultValue={q} placeholder="Nombre, póliza, RFC, correo o teléfono" maxLength={100}/></label><button className="button button-soft">Buscar</button></form>
     {clients.length ? <div className="dossier-grid">{clients.map((client, index) => {
       const next = client.policies.flatMap(policy => policy.payments.map(payment => ({ ...payment, currency: policy.currency }))).sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())[0];
       return <Link className={`dossier-card folder-tone-${index % 3}`} key={client.id} href={`/crm/clientes/${client.id}`}><LinkPending/>

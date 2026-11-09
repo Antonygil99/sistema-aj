@@ -1,3 +1,5 @@
+import {matchesSearch} from '@/modules/smart-search';
+import {smartSearchWhere} from '@/modules/smart-search-server';
 import 'server-only';
 import { after } from 'next/server';
 import { z } from 'zod';
@@ -46,7 +48,6 @@ const links = {
   prospect: (id: string) => `/crm/prospectos?open=${id}`, claim: (id: string) => `/crm/siniestros?open=${id}`, delivery: (id: string) => `/crm/entregas?open=${id}`,
   activity: (id: string) => `/crm/actividades?open=${id}`,
 };
-const contains = (text: string) => ({ contains: text, mode: 'insensitive' as const });
 
 const tools = {
   buscar_clientes: define({
@@ -54,7 +55,7 @@ const tools = {
     input: z.object({ texto: z.string().trim().min(2).max(100).describe('Parte del nombre, correo o teléfono.'), limite: limit }),
     label: input => `Buscando clientes: «${input.texto}»`,
     run: async input => {
-      const rows = await db().client.findMany({ where: { archivedAt: null, OR: [{ name: contains(input.texto) }, { email: contains(input.texto) }, { phone: contains(input.texto) }] }, take: input.limite ?? 10, orderBy: { name: 'asc' }, select: { id: true, name: true, email: true, phone: true, _count: { select: { policies: { where: { status: 'ACTIVE', archivedAt: null } } } } } });
+      const rows = await db().client.findMany({ where: { archivedAt: null, ...await smartSearchWhere('clientes',input.texto) }, take: input.limite ?? 10, orderBy: { name: 'asc' }, select: { id: true, name: true, email: true, phone: true, _count: { select: { policies: { where: { status: 'ACTIVE', archivedAt: null } } } } } });
       return { resultados: rows.map(row => ({ id: row.id, nombre: row.name, correo: row.email, telefono: row.phone, polizas_activas: row._count.policies, enlace: links.client(row.id) })) };
     },
   }),
@@ -91,7 +92,7 @@ const tools = {
     run: async (input, ctx) => {
       const owner = ownerOf(input.responsable, ctx);
       const now = today(ctx);
-      const where = { archivedAt: null, status: input.estado ?? 'ACTIVE' as const, ...(owner ? { ownerEmail: owner } : {}), ...(input.vence_en_dias !== undefined ? { endDate: { gte: midnight(now), lte: midnight(shift(now, input.vence_en_dias)) } } : {}), ...(input.texto ? { OR: [{ number: contains(input.texto) }, { product: contains(input.texto) }, { insurer: contains(input.texto) }, { client: { name: contains(input.texto) } }] } : {}) };
+      const where = { archivedAt: null, status: input.estado ?? 'ACTIVE' as const, ...(owner ? { ownerEmail: owner } : {}), ...(input.vence_en_dias !== undefined ? { endDate: { gte: midnight(now), lte: midnight(shift(now, input.vence_en_dias)) } } : {}), ...await smartSearchWhere('polizas',input.texto??'') };
       const [total, rows] = await Promise.all([db().policy.count({ where }), db().policy.findMany({ where, take: input.limite ?? 15, orderBy: { endDate: 'asc' }, select: { id: true, number: true, product: true, insurer: true, endDate: true, premium: true, currency: true, ownerEmail: true, client: { select: { id: true, name: true, email: true } } } })]);
       return { total, mostradas: rows.length, polizas: rows.map(row => ({ numero: row.number, cliente: row.client.name, cliente_tiene_correo: Boolean(row.client.email), producto: row.product, aseguradora: row.insurer, vence: day(row.endDate), dias_para_vencer: daysBetween(now, storedDay(row.endDate)), prima: formatMoney(row.premium.toFixed(2), row.currency), responsable: row.ownerEmail, enlace: links.policy(row.id), expediente: links.client(row.client.id) })) };
     },
@@ -116,7 +117,7 @@ const tools = {
     label: input => input.etapa ? `Buscando prospectos en «${stageLabels[input.etapa]}»` : input.texto ? `Buscando prospectos: «${input.texto}»` : 'Buscando prospectos',
     run: async (input, ctx) => {
       const owner = ownerOf(input.responsable, ctx);
-      const where = { archivedAt: null, ...(input.etapa ? { status: input.etapa } : { status: { notIn: ['CLIENTE' as const, 'PERDIDO' as const] } }), ...(owner ? { ownerEmail: owner } : {}), ...(input.texto ? { OR: [{ name: contains(input.texto) }, { email: contains(input.texto) }, { phone: contains(input.texto) }] } : {}) };
+      const where = { archivedAt: null, ...(input.etapa ? { status: input.etapa } : { status: { notIn: ['CLIENTE' as const, 'PERDIDO' as const] } }), ...(owner ? { ownerEmail: owner } : {}), ...(input.texto ? { ...await smartSearchWhere('prospectos',input.texto) } : {}) };
       const rows = await db().prospect.findMany({ where, take: 100, orderBy: { updatedAt: 'desc' }, select: { id: true, name: true, email: true, phone: true, source: true, status: true, ownerEmail: true, createdAt: true, diagProtect: true, diagDependents: true, diagCare: true, diagCoverage: true, diagMedicalHistory: true, diagPain: true } });
       const shaped = rows.map(row => {
         const answered = diagnosisProgress(row);
@@ -178,7 +179,7 @@ const tools = {
     input: z.object({ texto: z.string().trim().max(100).optional() }),
     label: input => input.texto ? `Consultando productos: «${input.texto}»` : 'Consultando el catálogo de productos',
     run: async input => {
-      const rows = await db().product.findMany({ where: { archivedAt: null, ...(input.texto ? { OR: [{ name: contains(input.texto) }, { insurer: contains(input.texto) }, { description: contains(input.texto) }] } : {}) }, take: 25, orderBy: { name: 'asc' }, select: { name: true, insurer: true, line: true, description: true, highlights: true, ownerEmail: true } });
+      const rows = await db().product.findMany({ where: { archivedAt: null, ...await smartSearchWhere('productos',input.texto??'') }, take: 25, orderBy: { name: 'asc' }, select: { name: true, insurer: true, line: true, description: true, highlights: true, ownerEmail: true } });
       return { productos: rows.map(row => ({ nombre: row.name, aseguradora: row.insurer, ramo: productLineLabels[row.line], descripcion: row.description, puntos_clave: row.highlights, responsable: row.ownerEmail })) };
     },
   }),
@@ -200,7 +201,7 @@ const tools = {
     label: input => input.tema ? `Consultando la guía: «${input.tema}»` : 'Consultando la guía del sistema',
     run: async input => {
       const term = input.tema?.toLocaleLowerCase('es');
-      const matches = tours.filter(tour => !term || `${tour.title} ${tour.summary} ${tour.steps.map(step => `${step.title} ${step.body}`).join(' ')}`.toLocaleLowerCase('es').includes(term));
+      const matches = tours.filter(tour => !term || matchesSearch(`${tour.title} ${tour.summary} ${tour.steps.map(step => `${step.title} ${step.body}`).join(' ')}`,term));
       return {
         pantallas: matches.slice(0, 8).map(tour => ({ titulo: tour.title, resumen: tour.summary, ruta: tour.route ?? null, pasos: tour.steps.map(step => `${step.title}: ${step.body}`) })),
         procesos: [

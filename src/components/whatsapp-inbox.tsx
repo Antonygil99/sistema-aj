@@ -17,12 +17,12 @@ const media: Record<string, string> = { image: 'Imagen recibida', audio: 'Audio 
 const date = (value: string) => new Intl.DateTimeFormat('es-MX', { timeZone: 'America/Mexico_City', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
 const preview = (message?: Message) => message ? message.body || media[message.kind] || 'Mensaje recibido' : 'Sin mensajes';
 
-export function WhatsAppInbox({ canWrite }: { canWrite: boolean }) {
+export function WhatsAppInbox({ canWrite,initialConversationId=null }: { canWrite: boolean;initialConversationId?:string|null }) {
   const [inbox, setInbox] = useState<Inbox | null>(null), [thread, setThread] = useState<Thread | null>(null);
-  const [selected, setSelected] = useState<string | null>(null), [query, setQuery] = useState(''), [skip, setSkip] = useState(0);
-  const [loading, setLoading] = useState(true), [threadLoading, setThreadLoading] = useState(false), [busy, setBusy] = useState(false);
+  const [selected, setSelected] = useState<string | null>(initialConversationId), [query, setQuery] = useState(''), [skip, setSkip] = useState(0);
+  const [loading, setLoading] = useState(true), [threadLoading, setThreadLoading] = useState(Boolean(initialConversationId)), [busy, setBusy] = useState(false);
   const [error, setError] = useState(''), [notice, setNotice] = useState(''), [body, setBody] = useState('');
-  const selection = useRef<string | null>(null), request = useRef<{ id: string; body: string; thread: string } | null>(null);
+  const selection = useRef<string | null>(initialConversationId), request = useRef<{ id: string; body: string; thread: string } | null>(null);
   const pending = useRef(false), listVersion = useRef(0), threadVersion = useRef(0), mounted = useRef(true);
   const scrollArea = useRef<HTMLDivElement>(null), viewedThread = useRef<string | null>(null);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
@@ -55,6 +55,12 @@ export function WhatsAppInbox({ canWrite }: { canWrite: boolean }) {
       }
     } catch (e) { if (!signal?.aborted && version === threadVersion.current && mounted.current) { setError((e as Error).message); setThreadLoading(false); } }
   }, []);
+  useEffect(() => {
+    if (!initialConversationId) return;
+    const controller = new AbortController();
+    const timer = setTimeout(() => { void loadThread(initialConversationId, controller.signal); }, 0);
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, [initialConversationId, loadThread]);
   useEffect(() => { const controller = new AbortController(); const timer = setTimeout(() => { void loadInbox(controller.signal); }, 250); return () => { clearTimeout(timer); controller.abort(); }; }, [loadInbox]);
   useEffect(() => {
     const refresh = () => { if (document.hidden || pending.current) return; void loadInbox(); if (selection.current) void loadThread(selection.current); };

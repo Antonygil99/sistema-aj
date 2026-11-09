@@ -1,17 +1,25 @@
 // Pure shaping of global search results (labels, grouping, destinations). Shared by the API, the browser and tests.
 import { resources, type ResourceSlug, type Row } from './resources/config';
-export type SearchKind = ResourceSlug | 'documentos' | 'carpetas' | 'usuarios';
+import {matchesSearch} from './smart-search';
+import {hasRole,type AccessRole} from '@/lib/access-policy';
+export type SearchKind = ResourceSlug | 'documentos' | 'carpetas' | 'usuarios'|'aseguradoras'|'tramites'|'agenda'|'whatsapp'|'avisos'|'secciones'|'entregas'|'recursos'|'plantillas';
 export type SearchResult = { kind: SearchKind; id: string; title: string; subtitle: string; href: string; download?: boolean };
-export const searchOrder: SearchKind[] = ['clientes', 'polizas', 'prospectos', 'productos', 'documentos', 'carpetas', 'pagos', 'renovaciones', 'siniestros', 'cotizaciones', 'actividades', 'usuarios'];
+export const searchOrder: SearchKind[] = ['clientes', 'polizas', 'prospectos', 'productos','aseguradoras', 'documentos', 'carpetas', 'pagos', 'renovaciones', 'siniestros', 'cotizaciones', 'actividades','tramites','avisos','agenda','whatsapp', 'usuarios','entregas','recursos','plantillas','secciones'];
 export const kindLabels: Record<SearchKind, string> = {
+  entregas:'Entrega',recursos:'Recurso',plantillas:'Plantilla',aseguradoras:'Aseguradora',tramites:'Trámite',agenda:'Evento',whatsapp:'Conversación',avisos:'Aviso',secciones:'Sección',
   clientes: 'Cliente', polizas: 'Póliza', prospectos: 'Prospecto', cotizaciones: 'Cotización', pagos: 'Recibo', renovaciones: 'Renovación',
   siniestros: 'Siniestro', actividades: 'Actividad', documentos: 'Archivo', carpetas: 'Carpeta', usuarios: 'Usuario', productos: 'Producto',
 };
 export const groupLabels: Record<SearchKind, string> = {
+  entregas:'Entregas',recursos:'Recursos',plantillas:'Mis plantillas',aseguradoras:'Aseguradoras',tramites:'Trámites',agenda:'Mi agenda',whatsapp:'Mi WhatsApp',avisos:'Avisos a clientes',secciones:'Ir a una sección',
   clientes: 'Clientes', polizas: 'Pólizas', prospectos: 'Prospectos', cotizaciones: 'Cotizaciones', pagos: 'Recibos', renovaciones: 'Renovaciones',
   siniestros: 'Siniestros', actividades: 'Actividades', documentos: 'Archivos', carpetas: 'Carpetas', usuarios: 'Usuarios y accesos', productos: 'Productos',
 };
 export const searchQuery = (value: string | null) => (value ?? '').trim().slice(0, 100);
+export function sectionResults(q:string,role:AccessRole):SearchResult[]{
+ const pages:[string,string,AccessRole?][]=[['Resumen','/'],['WhatsApp','/whatsapp'],['Agenda Google Calendar','/agenda'],['Prospectos','/crm/prospectos'],['Clientes expedientes','/crm/clientes'],['Pólizas seguros','/crm/polizas'],['Pagos recibos','/crm/pagos'],['Documentos archivos Drive','/crm/documentos'],['Cotizaciones','/crm/cotizaciones'],['Entregas','/crm/entregas'],['Renovaciones','/crm/renovaciones'],['Siniestros','/crm/siniestros'],['Actividades','/crm/actividades'],['Trámites','/tramites','ADMIN'],['Avisos correos plantillas','/avisos'],['Recursos','/recursos'],['Productos aseguradoras','/crm/productos'],['Asistentes agentes IA','/asistentes','SUPERADMIN'],['Conexiones MCP Google Drive','/conexiones'],['Novedades','/novedades'],['Importaciones Excel','/importaciones','ADMIN'],['Usuarios accesos','/usuarios','SUPERADMIN'],['Registro de actividad auditoría','/logs','SUPERADMIN']];
+ return pages.filter(([name,,minimum])=>(!minimum||hasRole(role,minimum))&&matchesSearch(name,q)).map(([title,href])=>({kind:'secciones',id:href,title,subtitle:'Abrir sección',href}));
+}
 // Clients open their dossier; other tables open their list filtered to the record, with its card already open.
 export function resourceResult(slug: ResourceSlug, row: Row): SearchResult {
   const config = resources[slug];

@@ -1,4 +1,5 @@
 import 'server-only';
+import {smartSearchWhere} from '@/modules/smart-search-server';
 import {resolvePolicyCatalog} from '@/modules/polizas/catalog-server';
 import {preserveCompanyImage,insurerImageMetadata,ensureInsurer} from '@/modules/aseguradoras/server';
 import { getDb } from '@/lib/db';
@@ -32,7 +33,9 @@ function delegate(client: unknown, slug: ResourceSlug) { return (client as Recor
 const withInclude = (slug: ResourceSlug) => ({ ...(definitions[slug].include ? { include: definitions[slug].include } : {}), ...(definitions[slug].omit ? { omit: definitions[slug].omit } : {}) });
 
 export async function listResource(slug: ResourceSlug, input: unknown) {
-  const { query, where } = listFilter(slug, input);
+  const { query } = listFilter(slug, input);
+  const {where:base}=listFilter(slug,{...query,q:''});
+  const where={...base,...await smartSearchWhere(slug,query.q,getDb(),{includePrivateNotes:true})};
   const db = getDb(), model = delegate(db, slug);
   const [data, total] = await Promise.all([
     model.findMany({ where, take: query.take, skip: query.skip, orderBy: [...definitions[slug].orderBy, { id: 'desc' }], ...withInclude(slug) }),
@@ -42,7 +45,8 @@ export async function listResource(slug: ResourceSlug, input: unknown) {
 }
 // Global search: a few active matches per table, without counting.
 export async function searchResource(slug: ResourceSlug, q: string, take = 5) {
-  const { where } = listFilter(slug, { q, take });
+  const { where:base } = listFilter(slug, { take });
+  const where={...base,...await smartSearchWhere(slug,q,getDb(),{includePrivateNotes:true})};
   return delegate(getDb(), slug).findMany({ where, take, orderBy: [...definitions[slug].orderBy, { id: 'desc' }], ...withInclude(slug) });
 }
 export async function findResource(slug: ResourceSlug, id: string) {

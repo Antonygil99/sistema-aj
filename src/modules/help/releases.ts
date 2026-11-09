@@ -1,3 +1,4 @@
+import {matchesSearch} from '../smart-search';
 import type { AccessRole } from '../../lib/access-policy';
 
 export const changeKinds = { feature: 'Nueva función', improvement: 'Mejora', fix: 'Corrección' } as const;
@@ -7,6 +8,7 @@ export type Release = { id: string; date: string; title: string; summary: string
 // Editorial history, backed by the repository's commits. Add new releases here when shipping a feature;
 // do not derive user-facing promises from commit messages or a third-party approval state at runtime.
 export const releases: Release[] = [
+  { id: '2026-11-09-smart-search', date: '2026-11-09', title: 'Encuentra los registros aunque cambie el formato', summary: 'Búsqueda compartida por nombre, póliza y datos del expediente.', changes: [{ id: 'smart-search', title: 'Busca sin preocuparte por comas, acentos o guiones', body: 'Los buscadores del CRM comparan las palabras en cualquier orden y toleran mayúsculas, acentos y separadores. Busca un expediente por su póliza o combina nombre y número. El buscador global incorpora aseguradoras, trámites, avisos, tus eventos y tus conversaciones, y accesos a las secciones. Conserva permisos, filtros y ceros iniciales; no adivina números ni modifica datos.', area: 'Búsqueda', kind: 'improvement', href: '/crm/polizas' }] },
   { id: '2026-11-09-policy-catalog', date: '2026-11-09', title: 'Pólizas conectadas al catálogo', summary: 'Aseguradora y producto con búsqueda y selección relacionada.', changes: [{ id: 'policy-dependent-catalog', title: 'Elige la aseguradora y encuentra su producto', body: 'La edición y el alta de pólizas comparten selectores con búsqueda. Elegir una aseguradora filtra sus productos; elegir un producto completa aseguradora y responsable. Los datos históricos se conservan y pueden vincularse al catálogo o capturarse según la carátula. Trámites explica las pólizas compatibles sin mostrar un selector vacío.', area: 'Pólizas', kind: 'improvement', href: '/crm/polizas', minRole: 'ADMIN' }] },
   { id: '2026-11-05-drive-search', date: '2026-11-05', title: 'Encuentra tus comprobantes en Drive', summary: 'Busca carpetas y archivos sin recorrer página por página.', changes: [{ id: 'drive-name-search', title: 'Buscador de carpetas y archivos', body: 'Busca por nombre en todas las páginas de la carpeta abierta. Escribe el nombre del cliente para encontrar su carpeta y busca dentro de ella el comprobante. Cargar más conserva los resultados anteriores. Disponible en Documentos y al elegir un comprobante de pago.', area: 'Documentos', kind: 'improvement', href: '/crm/documentos', minRole: 'ADMIN' }] },
   { id: '2026-11-04-calendar-payments', date: '2026-11-04', title: 'Calendario de pagos por cliente', summary: 'Los recibos pendientes también aparecen en el Google Calendar de su broker.', changes: [{ id: 'calendar-payment-events', title: 'Un evento por recibo pendiente', body: 'Sincroniza pagos y renovaciones desde Mi agenda. Cada recibo muestra vencimiento, importe, moneda y un enlace directo al expediente. Los recibos vencidos conservan su fecha original; al confirmar el pago, archivar el recibo o reasignar la póliza, el evento se retira del calendario anterior en la próxima sincronización. Se actualiza al abrir la agenda y diariamente.', area: 'Agenda', kind: 'feature', href: '/agenda', minRole: 'ADMIN' }] },
@@ -131,11 +133,10 @@ export const releases: Release[] = [
   ] },
 ];
 const rank: Record<AccessRole, number> = { USER: 0, ADMIN: 1, SUPERADMIN: 2 };
-const normalized = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 export function visibleReleases(role: AccessRole): Release[] {
   return releases.map(release => ({ ...release, changes: release.changes.filter(change => !change.minRole || rank[role] >= rank[change.minRole]) })).filter(release => release.changes.length);
 }
 export function filterReleases(items: Release[], query: string, kind: 'all' | ChangeKind): Release[] {
-  const q = normalized(query.trim());
-  return items.map(release => ({ ...release, changes: release.changes.filter(change => (kind === 'all' || change.kind === kind) && (!q || normalized(`${release.title} ${change.title} ${change.body} ${change.area}`).includes(q))) })).filter(release => release.changes.length);
+  const q = query.trim();
+  return items.map(release => ({ ...release, changes: release.changes.filter(change => (kind === 'all' || change.kind === kind) && (!q || matchesSearch(`${release.title} ${change.title} ${change.body} ${change.area}`,q))) })).filter(release => release.changes.length);
 }

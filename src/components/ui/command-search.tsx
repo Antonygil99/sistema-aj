@@ -2,8 +2,9 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { Card, CloseCircle, Clock, DocumentText, DocumentUpload, Folder2, FolderAdd, Refresh2, SearchNormal1, UserOctagon } from '@/components/icons';
+import { Card, CloseCircle, Clock, DocumentText, DocumentUpload, Folder2, FolderAdd, Refresh2, SearchNormal1, UserOctagon, NotificationBing, TaskSquare, ShieldTick, Category, Book1, MessageText } from '@/components/icons';
 import { groupResults, kindLabels, type SearchKind, type SearchResult } from '@/modules/search';
+import { GoogleCalendarBrandIcon, WhatsAppBrandIcon } from '../brand-icons';
 import { moduleIcons } from '../module-icons';
 import { apiFetch } from './client-api';
 import { lockBodyScroll, portalTarget } from './modal';
@@ -16,7 +17,15 @@ function kindIcon(kind: SearchKind) {
   if (kind === 'documentos') return <DocumentText aria-hidden="true"/>;
   if (kind === 'carpetas') return <Folder2 aria-hidden="true"/>;
   if (kind === 'usuarios') return <UserOctagon aria-hidden="true"/>;
-  const Icon = moduleIcons[kind];
+  if (kind === 'whatsapp') return <WhatsAppBrandIcon aria-hidden="true"/>;
+  if (kind === 'agenda') return <GoogleCalendarBrandIcon/>;
+  if (kind === 'aseguradoras') return <ShieldTick aria-hidden="true"/>;
+  if (kind === 'tramites') return <TaskSquare aria-hidden="true"/>;
+  if (kind === 'avisos') return <NotificationBing aria-hidden="true"/>;
+  if (kind === 'recursos') return <Book1 aria-hidden="true"/>;
+  if (kind === 'plantillas') return <MessageText aria-hidden="true"/>;
+  if (kind === 'secciones') return <Category aria-hidden="true"/>;
+  const Icon = moduleIcons[kind as keyof typeof moduleIcons] ?? SearchNormal1;
   return <Icon aria-hidden="true"/>;
 }
 function useDebounce<T>(value: T, delay = 200) {
@@ -136,7 +145,7 @@ function SearchPalette({ role, open, onClose, onClosed }: { role: Role; open: bo
       <div className="search-label-row"><label className="search-label" htmlFor={`${listId}-input`}>Buscar en el CRM</label><button type="button" className="search-close" aria-label="Cerrar buscador" onClick={onClose}><CloseCircle aria-hidden="true"/></button></div>
       <div className="search-input">
         <input ref={input} id={`${listId}-input`} type="text" role="combobox" aria-expanded="true" aria-controls={listId} aria-autocomplete="list" aria-activedescendant={flat[active] ? `${listId}-${active}` : undefined}
-          value={query} maxLength={100} autoComplete="off" spellCheck={false} placeholder="¿Qué buscas? Clientes, pólizas, archivos, recibos…" onChange={event => { setQuery(event.target.value); setActive(0); }}/>
+          value={query} maxLength={100} autoComplete="off" spellCheck={false} placeholder="Nombre, póliza, cliente, archivo o sección…" onChange={event => { setQuery(event.target.value); setActive(0); }}/>
         <span ref={iconBox} className="search-input-icon" aria-hidden="true"><SearchNormal1/></span>
       </div>
       <div ref={list} id={listId} role="listbox" aria-label="Resultados" className="search-results" aria-busy={loading}>

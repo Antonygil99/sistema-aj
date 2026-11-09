@@ -1,4 +1,5 @@
 'use client';
+import {matchesSearch} from '@/modules/smart-search';
 import {useEffect,useId,useRef,useState} from 'react';
 import Link from 'next/link';
 import {RelationPicker} from './ui/relation-picker';
@@ -16,7 +17,7 @@ export function PolicyCatalogFields({values,label,onChange,disabled=false,error}
  useEffect(()=>{const controller=new AbortController();apiFetch<{data:Company[]}>('/api/insurers',{signal:controller.signal}).then(r=>{if(!controller.signal.aborted){setCompanies(r.data);setFailed(false);}}).catch(()=>{if(!controller.signal.aborted)setFailed(true);});return()=>controller.abort();},[attempt]);
  useEffect(()=>{if(!open)return;const close=(e:PointerEvent)=>{if(!box.current?.contains(e.target as Node))setOpen(false);};document.addEventListener('pointerdown',close);return()=>document.removeEventListener('pointerdown',close);},[open]);
  const company=companies.find(c=>insurerKey(c.name)===insurerKey(values.insurer));
- const matches=companies.filter(c=>insurerKey(c.name).includes(insurerKey(query)));
+ const matches=companies.filter(c=>matchesSearch(c.name,query));
  function choose(c:Company){setOpen(false);setQuery('');setLine('');if(insurerKey(c.name)!==insurerKey(values.insurer))onChange({insurer:c.name,productId:'',product:'',ownerEmail:''},'');else onChange({insurer:c.name});}
  function product(id:string,text:string,row?:Row){setManual(false);setLine(String(row?.line??''));onChange({productId:id,...(row?{insurer:String(row.insurer),product:String(row.name),ownerEmail:typeof row.ownerEmail==='string'?row.ownerEmail:''}:{})},text);}
  return <div className="policy-catalog-fields is-wide">

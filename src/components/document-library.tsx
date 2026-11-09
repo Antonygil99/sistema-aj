@@ -1,4 +1,5 @@
 'use client';
+import {matchesSearch} from '@/modules/smart-search';
 import {Select} from '@/components/ui/select';
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type DragEvent, type KeyboardEvent, type MouseEvent } from 'react';
@@ -68,7 +69,7 @@ export function DocumentLibrary({ initial, initialTotal, initialFolders, options
   const position = useRef({ folderId: initialFolderId, skip: 0, query: '' });
   const path: FolderRow[] = [];
   for (let ancestor = folders.find(folder => folder.id === folderId), seen = new Set<string>(); ancestor && !seen.has(ancestor.id); ancestor = folders.find(folder => folder.id === ancestor?.parentId)) { seen.add(ancestor.id); path.unshift(ancestor); }
-  const visibleFolders = folders.filter(folder => folder.parentId === folderId && (!activeQuery || folder.name.toLocaleLowerCase().includes(activeQuery.toLocaleLowerCase())));
+  const visibleFolders = folders.filter(folder => folder.parentId === folderId && (!activeQuery || matchesSearch(folder.name,activeQuery)));
   const currentLabel = path.at(-1)?.name ?? clientName ?? 'Archivos del equipo';
   const load = useCallback(async (target: string | null, nextSkip = 0, search = '', quiet = false) => {
     if (!quiet) setBusy(true);

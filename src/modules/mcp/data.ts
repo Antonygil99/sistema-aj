@@ -1,4 +1,5 @@
 import 'server-only';
+import {smartSearchWhere} from '@/modules/smart-search-server';
 import { z } from 'zod';
 import { Prisma, type PrismaClient } from '@/generated/prisma/client';
 import { getDb } from '@/lib/db';
@@ -20,8 +21,7 @@ const selectFor=(module:McpModule)=>Object.fromEntries(['id',...fields[module],'
 export const listInput=z.object({module:z.enum(Object.keys(models) as [McpModule,...McpModule[]]),query:z.string().trim().max(100).default(''),take:z.number().int().min(1).max(25).default(12),skip:z.number().int().min(0).max(10000).default(0),archived:z.boolean().default(false),clientId:z.string().min(1).max(100).optional()}).strict();
 export async function listRecords(actor:McpActor,input:z.input<typeof listInput>) {
   const query=listInput.parse(input),resource=query.module;checkPermission(actor.role,actor.scopes,'read',resource);
-  const names=['name','number','reference','title'].filter(field=>fields[resource].includes(field));
-  const where={archivedAt:query.archived?{not:null}:null,...(query.query?{OR:names.map(field=>({[field]:{contains:query.query,mode:'insensitive'}}))}:{}),...(query.clientId?(fields[resource].includes('clientId')?{clientId:query.clientId}:{id:query.clientId}):{})};
+  const where={archivedAt:query.archived?{not:null}:null,...await smartSearchWhere(resource,query.query),...(query.clientId?(fields[resource].includes('clientId')?{clientId:query.clientId}:{AND:[{id:query.clientId}]}):{})};
   const db=delegate(getDb(),resource);
   const [rows,total]=await Promise.all([db.findMany({where,select:selectFor(resource),orderBy:[{updatedAt:'desc'},{id:'asc'}],skip:query.skip,take:query.take}),db.count({where})]);
   return {module:resource,rows:jsonData(rows),total,skip:query.skip,take:query.take};

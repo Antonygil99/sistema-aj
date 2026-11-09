@@ -1,3 +1,4 @@
+import {smartSearchWhere} from '@/modules/smart-search-server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { authenticate, authorize, apiError } from '@/lib/api';
@@ -19,7 +20,7 @@ export async function GET(request: Request) {
     const folderId = z.string().max(100).nullable().parse(url.searchParams.get('folderId'));
     const clientId = z.string().max(100).nullable().parse(url.searchParams.get('clientId'));
     await folderScope(folderId, clientId);
-    const where = { ...scopeWhere(clientId), folderId, archivedAt: null, ...(query ? { name: { contains: query, mode: 'insensitive' as const } } : {}) };
+    const where = { ...scopeWhere(clientId), folderId, archivedAt: null, ...await smartSearchWhere('documentos',query) };
     const [data, total] = await getDb().$transaction([
       getDb().document.findMany({ where, take, skip, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], select: documentSelect }),
       getDb().document.count({ where }),
