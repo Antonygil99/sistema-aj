@@ -1,4 +1,5 @@
 import 'server-only';
+import {resolvePolicyCatalog} from '@/modules/polizas/catalog-server';
 import {preserveCompanyImage,insurerImageMetadata,ensureInsurer} from '@/modules/aseguradoras/server';
 import { getDb } from '@/lib/db';
 import { getR2 } from '@/integrations/r2/server';
@@ -48,14 +49,10 @@ export async function findResource(slug: ResourceSlug, id: string) {
   return delegate(getDb(), slug).findUnique({ where: { id }, ...withInclude(slug) });
 }
 export async function createResource(slug: ResourceSlug, input: unknown, db = getDb()) {
-  const data = applyRules(slug, schemas[slug].parse(input) as Record<string, unknown>);
+  let data = applyRules(slug, schemas[slug].parse(input) as Record<string, unknown>);
+  if(slug==='polizas')data=await resolvePolicyCatalog(db,data);
   if(slug==='productos')return db.$transaction(async tx=>{if(!data.ownerEmail||!await tx.accessGrant.findFirst({where:{email:String(data.ownerEmail),enabled:true,role:{in:['ADMIN','SUPERADMIN']}}}))throw new ResourceError('PRODUCT_OWNER_INVALID',422);const insurer=await ensureInsurer(tx,String(data.insurer));return delegate(tx,slug).create({data:{...data,insurerId:insurer.id},...withInclude(slug)});});
   if (slug === 'pagos' && data.status === 'PAID') throw new ResourceError('FINANCE_USE_CONFIRMATION',422);
-  // A policy from the catalog inherits the product's responsible (Ale for medical, Joel for autos) unless one was chosen.
-  if (slug === 'polizas' && data.productId && !data.ownerEmail) {
-    const product = await db.product.findUnique({ where: { id: String(data.productId) }, select: { ownerEmail: true } });
-    if (product?.ownerEmail) data.ownerEmail = product.ownerEmail;
-  }
   return delegate(db, slug).create({ data, ...withInclude(slug) });
 }
 // Optimistic concurrency: the update only applies to the version the user edited.
@@ -66,6 +63,7 @@ export async function updateResource(slug: ResourceSlug, id: string, input: unkn
     if(slug==='productos'){if(!data.ownerEmail||!await tx.accessGrant.findFirst({where:{email:String(data.ownerEmail),enabled:true,role:{in:['ADMIN','SUPERADMIN']}}}))throw new ResourceError('PRODUCT_OWNER_INVALID',422);data.insurerId=(await ensureInsurer(tx,String(data.insurer))).id;}
     if (slug === 'polizas') {
       const existing = await tx.policy.findUnique({ where: { id }, include: { nextPolicy: { select: { id: true } } } });
+      Object.assign(data,await resolvePolicyCatalog(tx,data,existing??undefined));
       if (existing && (existing.nextPolicy || existing.previousPolicyId)) {
         const changed = ['number','insurer','currency'].some(key => data[key] !== existing[key as 'number'|'insurer'|'currency']) || Number(data.premium) !== Number(existing.premium) || new Date(data.startDate as Date).getTime() !== existing.startDate.getTime() || new Date(data.endDate as Date).getTime() !== existing.endDate.getTime();
         if (changed) throw new ResourceError('FINANCE_POLICY_HISTORY',409);
