@@ -8,8 +8,7 @@ export async function resolvePolicyCatalog<T extends Record<string,unknown>>(db:
  if(previous&&data.productId===previous.productId&&data.insurer===previous.insurer&&data.product===previous.product)return data;
  const product=await db.product.findUnique({where:{id:String(data.productId)},select:{name:true,insurer:true,ownerEmail:true,archivedAt:true,insurerProfile:{select:{name:true}}}});
  if(!product||product.archivedAt)throw new ResourceError('POLICY_PRODUCT_UNAVAILABLE',422);
- const retainedOldOwner=previous&&data.productId!==previous.productId&&data.ownerEmail===previous.ownerEmail;
- const owner=!retainedOldOwner&&typeof data.ownerEmail==='string'&&data.ownerEmail?data.ownerEmail:product.ownerEmail;
+ const owner=typeof data.ownerEmail==='string'&&data.ownerEmail?data.ownerEmail:product.ownerEmail;
  if(!owner||!await db.accessGrant.findFirst({where:{email:owner,enabled:true,role:{in:['ADMIN','SUPERADMIN']}}}))throw new ResourceError('PRODUCT_OWNER_INVALID',422);
  return {...data,insurer:product.insurerProfile?.name??product.insurer,product:product.name,ownerEmail:owner};
 }

@@ -8,7 +8,7 @@ test('el catálogo completa aseguradora/producto/responsable y rechaza productos
  const input={productId:'p',insurer:'Otra compañía',product:'Texto anterior',ownerEmail:''};
  assert.deepEqual(await resolvePolicyCatalog(db,input),{productId:'p',insurer:'HDI',product:'Médica Vital',ownerEmail:'ale@example.invalid'});
  const reassigned=await resolvePolicyCatalog(db,{...input,ownerEmail:'previous@example.invalid'},{productId:'old',insurer:'Otra',product:'Anterior',ownerEmail:'previous@example.invalid'});
- assert.equal(reassigned.ownerEmail,'ale@example.invalid','cambiar producto no conserva por accidente el responsable del producto anterior');
+ assert.equal(reassigned.ownerEmail,'previous@example.invalid','una asignación explícita a un administrador activo se conserva; la interfaz propone el responsable del catálogo');
  archived=true;await assert.rejects(resolvePolicyCatalog(db,input),{code:'POLICY_PRODUCT_UNAVAILABLE'});
  archived=false;enabled=false;await assert.rejects(resolvePolicyCatalog(db,input),{code:'PRODUCT_OWNER_INVALID'});
  const before=reads,legacy={productId:'p',insurer:'Texto contractual',product:'Producto contractual'};
