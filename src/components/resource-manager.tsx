@@ -71,7 +71,7 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
   }, [slug, toast,insurerId]);
   // A teammate changed this module: refresh quietly unless the user is in the middle of editing.
   useEffect(() => {
-    const onRemote = (event: Event) => { if (((event as CustomEvent<{ module: string }>).detail.module === slug||(slug==='productos'&&(event as CustomEvent<{module:string}>).detail.module==='aseguradoras')) && !modalOpen) void load(skip, applied, true); };
+    const onRemote = (event: Event) => { if (((event as CustomEvent<{ module: string }>).detail.module === slug||(slug==='actividades'&&(event as CustomEvent<{module:string}>).detail.module==='polizas')||(slug==='productos'&&(event as CustomEvent<{module:string}>).detail.module==='aseguradoras')) && !modalOpen) void load(skip, applied, true); };
     window.addEventListener('aj:remote-change', onRemote);
     return () => window.removeEventListener('aj:remote-change', onRemote);
   }, [slug, modalOpen, load, skip, applied]);
@@ -93,6 +93,8 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!editing || saving || !canEdit) return;
+    if(slug==='pagos'&&editing==='new')return;
+    if(slug==='renovaciones'&&['RENEWED','LOST'].includes(values.status)&&(!editing||editing==='new'||values.status!==editing.status))return;
     if (slug === 'pagos' && values.status === 'PAID' && (editing === 'new' || editing.status !== 'PAID')) return;
     const body = formToBody(config, values);
     const local: Record<string, string> = {};
@@ -160,8 +162,21 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
   const filtered = Boolean(applied.q || applied.status);
   const actions = (row: Row) => ({ edit: () => openEditor(row), archive: () => void setArchived(row, !row.archivedAt), remove: canDelete ? () => void remove(row) : undefined });
   const editingRow = editing && editing !== 'new' ? editing : null;
-  const readOnly = !canEdit || Boolean(editingRow?.archivedAt);
+  const readOnly = !canEdit || Boolean(editingRow?.archivedAt) || (slug==='pagos'&&editingRow?.status==='PAID');
+  const creatingSchedule=slug==='pagos'&&editing==='new';
+  const needsRenewalFlow=slug==='renovaciones'&&['RENEWED','LOST'].includes(values.status)&&(!editingRow||values.status!==editingRow.status);
   const needsPaymentConfirmation = slug === 'pagos' && values.status === 'PAID' && editingRow?.status !== 'PAID';
+  async function openContractFlow(){
+    const policyId=typeof editingRow?.policyId==='string'?editingRow.policyId:values.policyId;
+    if(!policyId||openingPayment||saving)return;
+    setOpeningPayment(true);setFormError('');
+    try{
+      const {data:policy}=await apiFetch<{data:Row}>(`/api/crm/polizas/${encodeURIComponent(policyId)}`);
+      if(typeof policy.clientId!=='string')throw Error('No se encontró su expediente.');
+      if(editingRow&&dirty&&!await confirm({title:'Continuar en el expediente',message:'Los cambios de esta ficha no se guardarán. Revisarás el calendario o la renovación completos de su póliza.',confirmLabel:'Ir al expediente',cancelLabel:'Seguir editando'}))return;
+      router.push(`/crm/clientes/${encodeURIComponent(policy.clientId)}#pagos-${encodeURIComponent(policyId)}`);
+    }catch(error){setFormError((error as Error).message);}finally{setOpeningPayment(false);}
+  }
   async function openPaymentConfirmation() {
     if (typeof editingRow?.policyId !== 'string' || openingPayment || saving) return;
     setOpeningPayment(true);
@@ -239,19 +254,21 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
     </div>
     {page.total > PAGE && view === 'list' ? <div className="document-pagination"><button type="button" className="text-button" disabled={loading || skip === 0} onClick={() => void load(Math.max(0, skip - PAGE), applied)}>Anterior</button><span>{skip + 1}–{Math.min(skip + PAGE, page.total)} de {page.total}</span><button type="button" className="text-button" disabled={loading || skip + PAGE >= page.total} onClick={() => void load(skip + PAGE, applied)}>Siguiente</button></div> : null}
     <Modal onAfterClose={editorOnly?()=>{if(savedInEditor.current)onSaved?.();else onDismiss?.();}:undefined} icon={readOnly?Eye:editingRow?Edit2:Add} open={modalOpen} onClose={() => void requestClose()} busy={saving} size="lg"
-      title={editing === 'new' ? `Nuev${config.article === 'una' ? 'a' : 'o'} ${config.singular}` : readOnly ? capitalize(config.singular) : `Editar ${config.singular}`}
+      title={creatingSchedule?'Preparar calendario':editing === 'new' ? `Nuev${config.article === 'una' ? 'a' : 'o'} ${config.singular}` : readOnly ? capitalize(config.singular) : `Editar ${config.singular}`}
       description={editingRow?.archivedAt ? 'Archivado: restáuralo para poder editarlo.' : editingRow ? `Registrado el ${new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium' }).format(new Date(editingRow.createdAt))}` : 'Los campos marcados con * son obligatorios.'}
-      footer={<>{editingRow && canEdit ? <button type="button" className="text-button" disabled={saving} onClick={() => void setArchived(editingRow, !editingRow.archivedAt)}>{editingRow.archivedAt ? <><ArrowRotateLeft aria-hidden="true"/>Restaurar</> : <><Archive aria-hidden="true"/>Archivar</>}</button> : null}
-        {editingRow && canDelete ? <button type="button" className="text-button is-danger" disabled={saving} onClick={() => void remove(editingRow)}><Trash aria-hidden="true"/>Eliminar</button> : null}
+      footer={<>{editingRow && canEdit && !(slug==='pagos'&&editingRow.status==='PAID') ? <button type="button" className="text-button" disabled={saving} onClick={() => void setArchived(editingRow, !editingRow.archivedAt)}>{editingRow.archivedAt ? <><ArrowRotateLeft aria-hidden="true"/>Restaurar</> : <><Archive aria-hidden="true"/>Archivar</>}</button> : null}
+        {editingRow && canDelete && !(slug==='pagos'&&editingRow.status==='PAID') ? <button type="button" className="text-button is-danger" disabled={saving} onClick={() => void remove(editingRow)}><Trash aria-hidden="true"/>Eliminar</button> : null}
         {editingRow && config.modalLinks ? config.modalLinks(editingRow).map(link => <Link key={link.href} className={link.primary ? 'button button-soft' : 'text-button'} href={link.href}>{link.label}</Link>) : null}
         <span className="modal-footer-spacer"/>
         <button type="button" className="text-button" disabled={saving} onClick={() => void requestClose()}>{readOnly ? 'Cerrar' : 'Cancelar'}</button>
-        {!readOnly ? <button type="submit" form={`form-${slug}`} className="button" disabled={saving || needsPaymentConfirmation}><TickCircle aria-hidden="true"/>{saving ? 'Guardando…' : 'Guardar'}</button> : null}</>}>
+        {!readOnly&&!creatingSchedule ? <button type="submit" form={`form-${slug}`} className="button" disabled={saving || needsPaymentConfirmation || needsRenewalFlow}><TickCircle aria-hidden="true"/>{saving ? 'Guardando…' : 'Guardar'}</button> : null}</>}>
       <form id={`form-${slug}`} className="resource-form" onSubmit={save} noValidate={false}>
         {config.guide?.(values.status ?? '') ? <blockquote className="delivery-guide form-guide"><MessageText aria-hidden="true"/><span><small>Mensaje guía · {config.statuses?.[values.status] ?? ''}</small>{config.guide(values.status ?? '')}</span></blockquote> : null}
-        {config.fields.filter(field => !(slug==='polizas'&&['insurer','product'].includes(field.name)) && !(needsPaymentConfirmation && field.name === 'paidAt') && (!field.showWhen || field.showWhen.values.includes(values[field.showWhen.field] ?? ''))).flatMap((field, index) => [field.section ? <h3 key={`section-${field.name}`} className="form-section">{field.section}{config.progress ? <span className="delivery-score">{config.progress(values as unknown as Row).done}/{config.progress(values as unknown as Row).total}</span> : null}</h3> : null, slug==='polizas'&&field.name==='productId'?<PolicyCatalogFields key={field.name} values={{insurer:values.insurer??'',product:values.product??'',productId:values.productId??'',ownerEmail:values.ownerEmail}} label={labels.productId} disabled={readOnly||saving} error={fieldErrors.productId||fieldErrors.insurer||fieldErrors.product} onChange={(patch,label)=>{setValues(current=>({...current,...patch}));if(label!==undefined)setLabels(current=>({...current,productId:label}));setFieldErrors(current=>Object.fromEntries(Object.entries(current).filter(([key])=>!['productId','insurer','product'].includes(key))));}}/>:<FieldInput key={field.name} field={field} value={values[field.name] ?? ''} label={labels[field.name] ?? ''} disabled={readOnly || saving} autoFocus={index === 0 && !readOnly && field.type !== 'image'}
+        {config.fields.filter(field => (!creatingSchedule||field.name==='policyId') && !(slug==='polizas'&&['insurer','product'].includes(field.name)) && !(needsPaymentConfirmation && field.name === 'paidAt') && (!field.showWhen || field.showWhen.values.includes(values[field.showWhen.field] ?? ''))).flatMap((field, index) => [field.section ? <h3 key={`section-${field.name}`} className="form-section">{field.section}{config.progress ? <span className="delivery-score">{config.progress(values as unknown as Row).done}/{config.progress(values as unknown as Row).total}</span> : null}</h3> : null, slug==='polizas'&&field.name==='productId'?<PolicyCatalogFields key={field.name} values={{insurer:values.insurer??'',product:values.product??'',productId:values.productId??'',ownerEmail:values.ownerEmail}} label={labels.productId} disabled={readOnly||saving} error={fieldErrors.productId||fieldErrors.insurer||fieldErrors.product} onChange={(patch,label)=>{setValues(current=>({...current,...patch}));if(label!==undefined)setLabels(current=>({...current,productId:label}));setFieldErrors(current=>Object.fromEntries(Object.entries(current).filter(([key])=>!['productId','insurer','product'].includes(key))));}}/>:<FieldInput key={field.name} field={field} value={values[field.name] ?? ''} label={labels[field.name] ?? ''} disabled={readOnly || saving || (!!editingRow&&['pagos','renovaciones'].includes(slug)&&field.name==='policyId')} autoFocus={index === 0 && !readOnly && field.type !== 'image'}
           team={['productos','polizas'].includes(slug)?team.filter(member=>member.role==='ADMIN'||member.role==='SUPERADMIN'):team} error={fieldErrors[field.name]} image={field.type === 'image' ? { current: !editingRow?null:removeImage?productCompanyImage(editingRow):config.image?.(editingRow)??null, inherited:!!productCompanyImage(editingRow)&&(removeImage||!editingRow?.imageType),hasOwnImage:!!editingRow?.imageType&&!removeImage,file: imageFile, onFile: file => { setImageFile(file); setRemoveImage(false); }, onRemove: () => { setImageFile(null); setRemoveImage(true); } } : undefined}
           onChange={(value, label, related) => { if (fieldErrors[field.name]) setFieldErrors(current => { const next = { ...current }; delete next[field.name]; return next; }); setValues(current => ({ ...current, [field.name]: value, ...(related && config.prefill ? config.prefill(field.name, related, current) : {}) })); if (label !== undefined) setLabels(current => ({ ...current, [field.name]: label })); }}/>])}
+        {creatingSchedule||needsRenewalFlow?<div role="note" className="payment-next-step"><span className="payment-next-step-icon"><TickCircle aria-hidden="true"/></span><div><h3>{creatingSchedule?'Prepara todos los recibos juntos':'Completa el cierre desde su expediente'}</h3><p>{creatingSchedule?'Elige la póliza y revisa su calendario completo. Los recibos deben sumar la prima y conservar su moneda.':'Registra la nueva vigencia o el motivo de no renovación. El seguimiento, la actividad y los eventos se actualizarán con el flujo correspondiente.'}</p><button type="button" className="button button-soft" disabled={!values.policyId||openingPayment||saving} onClick={()=>void openContractFlow()}>{openingPayment?'Abriendo…':creatingSchedule?'Preparar calendario en el expediente':'Ir a la renovación'}<ArrowRight aria-hidden="true"/></button></div></div>:null}
+        {editingRow&&['pagos','renovaciones'].includes(slug)&&!needsPaymentConfirmation&&!needsRenewalFlow?<button type="button" className="text-button form-wide" disabled={openingPayment||saving} onClick={()=>void openContractFlow()}>{slug==='pagos'?'Revisar calendario completo en el expediente':'Revisar preparación y nueva vigencia'}<ArrowRight aria-hidden="true"/></button>:null}
         {needsPaymentConfirmation ? <div role="note" className="payment-next-step" aria-label="Confirmar el pago en el expediente">
           <span className="payment-next-step-icon"><TickCircle aria-hidden="true"/></span>
           <div><h3>{editingRow ? 'Confirma el pago en su expediente' : 'Primero registra el recibo'}</h3><p>{editingRow ? 'Ahí registrarás la fecha efectiva, la referencia y el comprobante. Este recibo seguirá pendiente hasta que lo confirmes.' : 'Guárdalo como pendiente. Después podrás confirmar su pago desde el expediente con la fecha efectiva, la referencia y el comprobante.'}</p>

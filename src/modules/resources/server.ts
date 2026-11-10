@@ -1,4 +1,6 @@
 import 'server-only';
+import {lockPolicy,validateReceiptUpdate,validateContractSchedule,transferAutomaticFollowUps,markScheduleForReview,activeFinancialPolicy} from '@/modules/polizas/contract-server';
+import {validateRenewalWrite} from '@/modules/renovaciones/contract-server';
 import {smartSearchWhere} from '@/modules/smart-search-server';
 import {resolvePolicyCatalog} from '@/modules/polizas/catalog-server';
 import {preserveCompanyImage,insurerImageMetadata,ensureInsurer} from '@/modules/aseguradoras/server';
@@ -54,9 +56,10 @@ export async function findResource(slug: ResourceSlug, id: string) {
 }
 export async function createResource(slug: ResourceSlug, input: unknown, db = getDb()) {
   let data = applyRules(slug, schemas[slug].parse(input) as Record<string, unknown>);
-  if(slug==='polizas')data=await resolvePolicyCatalog(db,data);
+  if(slug==='polizas'){data=await resolvePolicyCatalog(db,data);if(data.ownerEmail&&!await db.accessGrant.findFirst({where:{email:String(data.ownerEmail),enabled:true,role:{in:['ADMIN','SUPERADMIN']}}}))throw new ResourceError('POLICY_OWNER_INVALID',422);}
   if(slug==='productos')return db.$transaction(async tx=>{if(!data.ownerEmail||!await tx.accessGrant.findFirst({where:{email:String(data.ownerEmail),enabled:true,role:{in:['ADMIN','SUPERADMIN']}}}))throw new ResourceError('PRODUCT_OWNER_INVALID',422);const insurer=await ensureInsurer(tx,String(data.insurer));return delegate(tx,slug).create({data:{...data,insurerId:insurer.id},...withInclude(slug)});});
-  if (slug === 'pagos' && data.status === 'PAID') throw new ResourceError('FINANCE_USE_CONFIRMATION',422);
+  if (slug === 'pagos') throw new ResourceError('FINANCE_USE_SCHEDULE',422);
+  if(slug==='renovaciones')return db.$transaction(async tx=>{await lockPolicy(tx,String(data.policyId));await validateRenewalWrite(tx,data);return delegate(tx,slug).create({data,...withInclude(slug)});});
   return delegate(db, slug).create({ data, ...withInclude(slug) });
 }
 // Optimistic concurrency: the update only applies to the version the user edited.
@@ -64,10 +67,23 @@ export async function updateResource(slug: ResourceSlug, id: string, input: unkn
   const { expectedUpdatedAt, data } = parseUpdate(slug, input);
   if(slug==='productos'){const product=await db.product.findUnique({where:{id},select:{imageKey:true,insurerId:true,updatedAt:true}});if(product?.imageKey&&product.updatedAt.getTime()===expectedUpdatedAt.getTime())await preserveCompanyImage(db,product.insurerId);}
   return db.$transaction(async tx => {
+    let assignment: {oldOwner:string|null;newOwner:string|null}|undefined;
+    if(slug==='polizas')await lockPolicy(tx,id);
+    if(slug==='pagos')await validateReceiptUpdate(tx,id,data);
+    if(slug==='renovaciones'){const old=await tx.renewal.findUnique({where:{id}});if(!old)throw new ResourceError('RECORD_NOT_FOUND',404);await lockPolicy(tx,old.policyId);await validateRenewalWrite(tx,data,old);}
     if(slug==='productos'){if(!data.ownerEmail||!await tx.accessGrant.findFirst({where:{email:String(data.ownerEmail),enabled:true,role:{in:['ADMIN','SUPERADMIN']}}}))throw new ResourceError('PRODUCT_OWNER_INVALID',422);data.insurerId=(await ensureInsurer(tx,String(data.insurer))).id;}
     if (slug === 'polizas') {
       const existing = await tx.policy.findUnique({ where: { id }, include: { nextPolicy: { select: { id: true } } } });
       Object.assign(data,await resolvePolicyCatalog(tx,data,existing??undefined));
+      if(existing){
+        assignment={oldOwner:existing.ownerEmail,newOwner:typeof data.ownerEmail==='string'?data.ownerEmail:null};
+        const changed=['currency','paymentFrequency'].some(key=>(data[key]??null)!==(existing[key as 'currency'|'paymentFrequency']??null))||Number(data.premium)!==Number(existing.premium)||new Date(data.startDate as Date).getTime()!==existing.startDate.getTime()||new Date(data.endDate as Date).getTime()!==existing.endDate.getTime();
+        if(assignment.newOwner&&assignment.oldOwner!==assignment.newOwner&&!await tx.accessGrant.findFirst({where:{email:assignment.newOwner,enabled:true,role:{in:['ADMIN','SUPERADMIN']}}}))throw new ResourceError('POLICY_OWNER_INVALID',422);
+        const history=await tx.payment.findMany({where:{policyId:id}});
+        const receipts=history.filter(row=>!row.archivedAt);
+        if((history.length||existing.previousPolicyId||existing.nextPolicy)&&data.clientId!==existing.clientId)throw new ResourceError('FINANCE_POLICY_CLIENT_LOCKED',422);
+        if(changed&&receipts.length)validateContractSchedule({...existing,...data} as typeof existing,receipts);
+      }
       if (existing && (existing.nextPolicy || existing.previousPolicyId)) {
         const changed = ['number','insurer','currency'].some(key => data[key] !== existing[key as 'number'|'insurer'|'currency']) || Number(data.premium) !== Number(existing.premium) || new Date(data.startDate as Date).getTime() !== existing.startDate.getTime() || new Date(data.endDate as Date).getTime() !== existing.endDate.getTime();
         if (changed) throw new ResourceError('FINANCE_POLICY_HISTORY',409);
@@ -85,13 +101,24 @@ export async function updateResource(slug: ResourceSlug, id: string, input: unkn
       const exists = await delegate(tx, slug).findUnique({ where: { id }, select: { id: true } });
       throw new ResourceError(exists ? 'RECORD_CHANGED' : 'RECORD_NOT_FOUND', exists ? 409 : 404);
     }
+    if(assignment)await transferAutomaticFollowUps(tx,id,assignment.oldOwner,assignment.newOwner);
     return delegate(tx, slug).findUnique({ where: { id }, ...withInclude(slug) });
   });
 }
 export async function archiveResource(slug: ResourceSlug, id: string, archived: boolean, db = getDb()) {
   if(slug==='productos'&&archived){const product=await db.product.findUnique({where:{id},select:{imageKey:true,insurerId:true}});if(product?.imageKey)await preserveCompanyImage(db,product.insurerId);}
-  if (slug === 'pagos' && (await db.payment.findUnique({ where: { id }, select: { status:true } }))?.status === 'PAID') throw new ResourceError('FINANCE_PAID_LOCKED',409);
-  const result = await delegate(db, slug).updateMany({ where: { id, archivedAt: archived ? null : { not: null }, ...(slug === 'pagos' ? { status: { not: 'PAID' } } : {}) }, data: { archivedAt: archived ? new Date() : null } });
+  if(slug==='pagos')return db.$transaction(async tx=>{
+    const row=await tx.payment.findUnique({where:{id}});if(!row)throw new ResourceError('RECORD_NOT_FOUND',404);
+    await lockPolicy(tx,row.policyId);
+    const current=await tx.payment.findUniqueOrThrow({where:{id}});
+    if(current.status==='PAID')throw new ResourceError('FINANCE_PAID_LOCKED',409);
+    if(!archived){const policy=await activeFinancialPolicy(tx,current.policyId);const receipts=await tx.payment.findMany({where:{policyId:current.policyId,archivedAt:null}});validateContractSchedule(policy,[...receipts.filter(r=>r.id!==id),current]);}
+    const result=await tx.payment.updateMany({where:{id,archivedAt:archived?null:{not:null},status:{not:'PAID'}},data:{archivedAt:archived?new Date():null}});
+    if(!result.count)throw new ResourceError('ALREADY_IN_STATE',409);
+    await markScheduleForReview(tx,current.policyId);
+    return delegate(tx,slug).findUnique({where:{id},...withInclude(slug)});
+  });
+  const result = await delegate(db, slug).updateMany({ where: { id, archivedAt: archived ? null : { not: null } }, data: { archivedAt: archived ? new Date() : null } });
   if (!result.count) {
     const exists = await delegate(db, slug).findUnique({ where: { id }, select: { id: true } });
     throw new ResourceError(exists ? 'ALREADY_IN_STATE' : 'RECORD_NOT_FOUND', exists ? 409 : 404);
@@ -107,6 +134,8 @@ export async function deleteResource(slug: ResourceSlug, id: string, db = getDb(
   try {
     const record = await db.$transaction(async tx => {
       if (slug === 'pagos') {
+        const payment=await tx.payment.findUnique({where:{id},select:{policyId:true}});
+        if(payment)await lockPolicy(tx,payment.policyId);
         await tx.$queryRaw`SELECT id FROM "Payment" WHERE id = ${id} FOR UPDATE`;
         if ((await tx.payment.findUnique({ where: { id }, select: { status:true } }))?.status === 'PAID') throw new ResourceError('FINANCE_PAID_LOCKED',409);
       }
@@ -119,6 +148,7 @@ export async function deleteResource(slug: ResourceSlug, id: string, db = getDb(
         for (const folder of orderLeavesFirst(folders)) await tx.documentFolder.delete({ where: { id: folder.id } });
       }
       await delegate(tx, slug).delete({ where: { id } });
+      if(slug==='pagos'&&!record.archivedAt)await markScheduleForReview(tx,String(record.policyId));
       return record;
     });
     if (image && isProductImageKey(image)) await getR2().remove(image).catch(() => console.error('R2_ORPHAN_CLEANUP_REQUIRED'));

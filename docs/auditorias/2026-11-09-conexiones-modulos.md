@@ -114,3 +114,8 @@ En producción hay 2 renovaciones cerradas no archivadas; 1 no tiene siguiente v
 5. Unificar el cierre de renovaciones y continuar con las pruebas reales de Google/MCP por broker.
 
 Este documento registra el diagnóstico inicial. Las correcciones del rediseño deben verificarse y anotarse después; no se dan por realizadas por la mera existencia de este reporte.
+
+
+## Seguimiento de implementación
+
+Los hallazgos de este corte inicial se atendieron con la selección relacionada de catálogo y la [entrega de operación financiera y cola de revisión](2026-11-09-operacion.md). Los datos faltantes se mantienen visibles para revisión humana; el reporte enlazado distingue las correcciones de código y las capturas que todavía requieren documentos reales.

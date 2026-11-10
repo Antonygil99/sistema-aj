@@ -9,6 +9,7 @@ import { ResourceError } from '@/modules/resources/rules';
 import { mexicoDay } from '@/modules/email/notices';
 import { attachProcedure, createProcedure, procedureData, reviewIssues, saveProcedure, template, transitionProcedure, requiredAttachments } from './schema';
 import { buildProcedurePdf, missingForExport, sha256 } from './pdf';
+import {lockPolicy} from '@/modules/polizas/contract-server';
 
 function fail(code:string,status=422):never{throw new ResourceError(code,status);}
 function human(actor:Actor){if(!actor.id||!actor.email||!['ADMIN','SUPERADMIN'].includes(actor.role))fail('FORBIDDEN',403);}
@@ -36,6 +37,8 @@ async function snapshot(tx:Prisma.TransactionClient,id:string,actor:Actor){
   return row;
 }
 async function locked(tx:Prisma.TransactionClient,id:string,expectedRevision:number,actor:Actor){
+  const parent=await tx.insuranceProcedure.findUnique({where:{id},select:{policyId:true}});
+  if(parent)await lockPolicy(tx,parent.policyId);
   await tx.$queryRaw`SELECT id FROM "InsuranceProcedure" WHERE id = ${id} FOR UPDATE`;
   const row=await tx.insuranceProcedure.findFirst({where:{id,...active,...scope(actor)},include:{attachments:{where:{active:true},include:{document:{select:{id:true,archivedAt:true}}}},policy:true}});
   if(!row)fail('RECORD_NOT_FOUND',404);if(row.revision!==expectedRevision)fail('RECORD_CHANGED',409);return row;

@@ -24,7 +24,7 @@ function tableSteps(slug: ModuleSlug): TourStep[] {
 const tips: Partial<Record<ModuleSlug, string>> = {
   polizas: 'Cada póliza pertenece a un expediente. Si eliges un producto del catálogo se completan la aseguradora, el producto y el responsable.',
   cotizaciones: 'Registra cada propuesta para un prospecto o cliente y sigue si se envió, se aceptó o se rechazó.',
-  pagos: 'Los recibos vencidos aparecen en los avisos y en el resumen. Marca cada recibo como pagado al cobrarlo.',
+  pagos: 'Los recibos vencidos aparecen en los avisos y en el resumen. Confirma cada pago desde su expediente con referencia y comprobante; ajusta los recibos desde el calendario completo.',
   renovaciones: 'Las renovaciones que vencen en los próximos 7 días aparecen en los avisos del equipo.',
   siniestros: 'Da seguimiento a cada caso desde que se abre hasta que se cierra, ligado a su póliza.',
   actividades: 'Tareas y próximos pasos del equipo. Los seguimientos de 7, 30 y 90 días de cada entrega se crean aquí solos.',
@@ -183,6 +183,16 @@ export const tours: Tour[] = [
     { targets: ['.meter-panel'], title: 'Entrega activa', body: 'Qué parte de las pólizas vigentes ya cumple las cinco señales de una entrega completa.' },
     { targets: ['.stat-list'], title: 'Operación diaria', body: 'Recibos vencidos, siniestros abiertos, referidos y cotizaciones del mes.' },
   ] },
+  { id:'funcion:revision',kind:'feature',title:'Por revisar',summary:'Completar asignaciones y calendarios con datos reales.',route:'/revision',minRole:'ADMIN',steps:[
+    {targets:['.review-counts'],title:'Elige qué completar',body:'Pulsa un contador para ver pólizas sin producto, responsables faltantes, calendarios por conciliar o cierres de renovación. Una póliza puede tener varios pendientes.'},
+    {targets:['.review-queue .resource-filters'],title:'Encuentra el expediente',body:'Busca por cliente, póliza, producto o aseguradora. Los filtros conservan la comparación sin comas ni acentos.'},
+    {targets:['.review-row'],title:'Continúa en el registro correcto',body:'El acceso abre su póliza, producto o calendario. Revisa la documentación y completa los datos; aquí no se asigna ni se genera nada automáticamente.'},
+  ]},
+  {id:'funcion:calendario-revisado',kind:'feature',title:'Ajustar calendario de recibos',summary:'Una propuesta completa que conserva pagos y comprobantes.',context:'client',minRole:'ADMIN',steps:[
+    {title:'Abre los recibos de la póliza',body:'En el expediente despliega Recibos, pagos y renovación. Usa Preparar calendario o Ajustar calendario completo.'},
+    {title:'Revisa la propuesta completa',body:'Modifica los pendientes o añade recibos. Si hay pagos confirmados, sus importes, vencimientos y comprobantes quedan bloqueados. El total debe coincidir con la prima contractual y usar su moneda.'},
+    {title:'Confirma contra la documentación',body:'Al guardar, los pendientes retirados se archivan y el calendario se actualiza junto. Si otro usuario modificó un recibo o confirmó un pago, se detiene el guardado y debes actualizar.'},
+  ]},
   ...modules.map(entry => moduleTour(entry.slug)),
   { id: 'modulo:expediente', kind: 'module', title: 'Expediente del cliente', summary: 'Pólizas, entrega activa, recibos y documentos de un cliente.', listed: false, steps: [
     { title: 'Expediente del cliente', body: 'Todo lo de este cliente en un solo lugar: sus pólizas, su entrega activa, sus recibos y sus documentos.' },
@@ -222,6 +232,7 @@ export function canSeeTour(tour: Tour, role: Role) { return !tour.minRole || ran
 // The tour that explains the screen at this path, if any.
 export function tourForPath(pathname: string): Tour | null {
   if (pathname === '/') return tourById('modulo:resumen');
+  if (pathname === '/revision') return tourById('funcion:revision');
   if (pathname === '/usuarios') return tourById('modulo:usuarios');
   if (pathname === '/agenda') return tourById('modulo:agenda');
   if (pathname === '/avisos') return tourById('modulo:avisos-clientes');

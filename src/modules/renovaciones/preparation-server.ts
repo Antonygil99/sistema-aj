@@ -41,6 +41,11 @@ export async function saveRenewalPreparation(policyId:string,input:unknown,actor
     const saved=existing?await tx.renewalPreparation.update({where:{policyId},data:values}):await tx.renewalPreparation.create({data:{...values,policyId}});
     const kind='RENOVACION_'+policyId,activity=await tx.activity.findFirst({where:{policyId,kind,archivedAt:null}});
     const closed=d.status==='NOT_RENEWED';
+    if(closed){
+      const entries=await tx.renewal.findMany({where:{policyId,archivedAt:null},select:{id:true}});
+      if(entries.length)await tx.renewal.updateMany({where:{id:{in:entries.map(row=>row.id)}},data:{status:'LOST'}});
+      else await tx.renewal.create({data:{policyId,dueDate:policy.endDate,status:'LOST',notes:'Desenlace registrado en la preparación de renovación.'}});
+    }else if(d.status==='PREPARING')await tx.renewal.updateMany({where:{policyId,archivedAt:null,status:{in:['LOST','RENEWED']}},data:{status:'PENDING'}});
     const task={title:'Seguimiento de renovación · '+policy.number,dueDate:d.followUpDate?new Date(d.followUpDate):null,status:closed||!d.followUpDate?'DONE' as const:'PENDING' as const,ownerEmail:policy.ownerEmail??actor.email};
     if(activity)await tx.activity.update({where:{id:activity.id},data:task});
     else if(d.followUpDate&&!closed)await tx.activity.create({data:{...task,kind,policyId,clientId:policy.clientId}});

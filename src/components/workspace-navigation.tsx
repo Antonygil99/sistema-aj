@@ -3,7 +3,7 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Book1, Category, DocumentFilter, Link2, MagicStar, More, Note, NotificationBing, TaskSquare, UserOctagon, type Icon } from '@/components/icons';
+import { Book1, Category, DocumentFilter, Link2, MagicStar, More, Note, NotificationBing, TaskSquare, ShieldSecurity, UserOctagon, type Icon } from '@/components/icons';
 import { GoogleCalendarBrandIcon, WhatsAppBrandIcon } from './brand-icons';
 import { moduleIcons } from './module-icons';
 import { portalTarget } from './ui/modal';
@@ -38,6 +38,7 @@ const secondary: { label: string; items: Destination[] }[] = [
     { href: '/novedades', label: 'Novedades', icon: Note },
   ] },
   { label: 'Administración', items: [
+    { href: '/revision', label: 'Por revisar', icon: ShieldSecurity, minimum: 'ADMIN' },
     { href: '/usuarios', label: 'Usuarios y accesos', icon: UserOctagon, minimum: 'SUPERADMIN' },
     { href: '/logs', label: 'Registro de actividad', icon: DocumentFilter, minimum: 'SUPERADMIN' },
   ] },

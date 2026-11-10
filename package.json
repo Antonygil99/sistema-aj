@@ -30,7 +30,8 @@
     "theme": "node scripts/theme-tokens.mjs",
     "icons": "node scripts/build-icons.mjs",
     "mcp:widget": "node scripts/build-mcp-widget.mjs",
-    "mcp:smoke": "node --import ./scripts/server-test-loader.mjs --import tsx scripts/mcp-smoke.ts"
+    "mcp:smoke": "node --import ./scripts/server-test-loader.mjs --import tsx scripts/mcp-smoke.ts",
+    "operation:smoke": "node --import ./scripts/server-test-loader.mjs --import tsx scripts/operation-integrity-smoke.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.134.0",

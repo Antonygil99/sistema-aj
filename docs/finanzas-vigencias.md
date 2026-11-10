@@ -12,3 +12,8 @@ Desde un expediente de cliente, abrir «Recibos, pagos y renovación» en cada p
 Migración `20261026010000_policy_finance`: no elimina filas; añade vínculos, referencia/evidencia de recibos y ajusta la unicidad de póliza. El seed se adapta, pero no se ejecuta en producción.
 
 Validación: pruebas puras en `tests/finance.test.ts`, tipos, lint y build. `node --conditions=react-server --import tsx scripts/finance-smoke.ts` comprueba en una única transacción revertida calendario, bloqueo de duplicados, alcance de evidencia, confirmación, renovación con el mismo número y protección del historial. No deja fixtures, no envía correo/WhatsApp y no transforma cobros históricos del Excel en pagos confirmados. La conciliación completa y revisión de datos reales por el equipo siguen pendientes.
+
+
+## Actualización 9 de noviembre de 2026
+
+Ahora se puede ajustar el calendario completo conservando pagos confirmados y archivando pendientes retirados. El CRUD comparte reglas contractuales y los cierres de renovación usan el expediente. Ver [operación y verificación](auditorias/2026-11-09-operacion.md).

@@ -7,13 +7,44 @@ import type { Actor } from '@/lib/api';
 import { confirmationInput, policyDay, renewalInput, scheduleInput, scheduleIssues } from './finance';
 import { mexicoDay } from '@/modules/email/notices';
 import type { Prisma } from '@/generated/prisma/client';
+import {editScheduleInput} from './finance';
+import {activeFinancialPolicy,lockPolicy,scheduleVersion,validateContractSchedule} from './contract-server';
 
 export async function policyFinance(id: string) {
   const db = getDb();
-  const policy = await db.policy.findUnique({ where: { id }, include: { payments: { where: { archivedAt: null }, orderBy: [{ dueDate: 'asc' }, { id: 'asc' }], include: { evidenceDriveLink: {select:{id:true,name:true}}, evidenceDocument: { select: { id: true, name: true, archivedAt: true } } } }, previousPolicy: { select: { id: true, number: true, startDate: true, endDate: true } }, nextPolicy: { select: { id: true, number: true, startDate: true, endDate: true } } } });
+  const policy = await db.policy.findUnique({ where: { id }, include: { _count:{select:{payments:true}}, payments: { where: { archivedAt: null }, orderBy: [{ dueDate: 'asc' }, { id: 'asc' }], include: { evidenceDriveLink: {select:{id:true,name:true}}, evidenceDocument: { select: { id: true, name: true, archivedAt: true } } } }, previousPolicy: { select: { id: true, number: true, startDate: true, endDate: true } }, nextPolicy: { select: { id: true, number: true, startDate: true, endDate: true } } } });
   if (!policy) throw new ResourceError('RECORD_NOT_FOUND',404);
   const evidence = await db.document.findMany({ where: { archivedAt: null, OR: [{ policyId: id }, { clientId: policy.clientId, policyId: null, claimId: null }] }, select: { id: true, name: true }, orderBy: { createdAt: 'desc' }, take: 200 });
-  return { policy, evidence, today: mexicoDay(new Date()) };
+  return { policy, evidence, hasPaymentHistory:policy._count.payments>0, scheduleVersion:scheduleVersion(policy.payments), today: mexicoDay(new Date()) };
+}
+// The entire reviewed draft is applied atomically. Confirmed receipts and their evidence never get replaced.
+export async function editPolicySchedule(id:string,input:unknown,actor:Actor){
+  const data=editScheduleInput.parse(input),db=getDb();
+  await db.$transaction(async tx=>{
+    await lockPolicy(tx,id);
+    const policy=await activeFinancialPolicy(tx,id);
+    if(policy.currency==='UDI')throw new ResourceError('FINANCE_UDI_REVIEW',422);
+    const current=await tx.payment.findMany({where:{policyId:id,archivedAt:null}});
+    if(policy.updatedAt.getTime()!==new Date(data.expectedUpdatedAt).getTime()||scheduleVersion(current)!==data.expectedScheduleVersion)throw new ResourceError('RECORD_CHANGED',409);
+    const known=new Map(current.map(row=>[row.id,row]));
+    const ids=data.payments.flatMap(row=>row.id?[row.id]:[]);
+    if(new Set(ids).size!==ids.length||ids.some(key=>!known.has(key)))throw new ResourceError('FINANCE_RECEIPT_SCOPE',422);
+    validateContractSchedule({...policy,paymentFrequency:data.paymentFrequency},data.payments.map(row=>({...row,currency:policy.currency,dueDate:new Date(row.dueDate)})));
+    for(const paid of current.filter(row=>row.status==='PAID')){
+      const proposed=data.payments.find(row=>row.id===paid.id);
+      if(!proposed||Math.round(proposed.amount*100)!==Math.round(Number(paid.amount)*100)||proposed.dueDate!==policyDay(paid.dueDate))throw new ResourceError('FINANCE_PAID_LOCKED',409);
+    }
+    const removed=current.filter(row=>!ids.includes(row.id));
+    if(removed.length)await tx.payment.updateMany({where:{id:{in:removed.map(row=>row.id)},status:{not:'PAID'}},data:{archivedAt:new Date()}});
+    for(const row of data.payments){
+      if(row.id){
+        if(known.get(row.id)!.status!=='PAID')await tx.payment.update({where:{id:row.id},data:{amount:row.amount,dueDate:new Date(row.dueDate),status:row.dueDate<mexicoDay(new Date())?'OVERDUE':'PENDING'}});
+      }else await tx.payment.create({data:{policyId:id,currency:policy.currency,amount:row.amount,dueDate:new Date(row.dueDate),status:'PENDING'}});
+    }
+    const source=policy.sourceData&&typeof policy.sourceData==='object'&&!Array.isArray(policy.sourceData)?policy.sourceData as Prisma.InputJsonObject:{};
+    await tx.policy.update({where:{id},data:{paymentFrequency:data.paymentFrequency,sourceData:{...source,paymentsNeedReview:false,paymentScheduleReviewedAt:new Date().toISOString()}}});
+  });
+  await recordEvent(actor,'updated','polizas',id,'Calendario de recibos ajustado; pagos confirmados conservados');
 }
 export async function createPolicySchedule(id: string, input: unknown, actor: Actor) {
   const data = scheduleInput.parse(input), db = getDb();
@@ -40,9 +71,13 @@ export async function confirmPayment(id: string, input: unknown, actor: Actor, h
   const drive = driveId && context && headers ? await verifyDriveEvidence(context.policy.clientId,driveId,actor,headers) : null;
   if(driveId&&!drive)throw new ResourceError('FINANCE_EVIDENCE_SCOPE',422);
   await db.$transaction(async tx => {
+    const initial=await tx.payment.findUnique({where:{id},select:{policyId:true}});
+    if(initial)await lockPolicy(tx,initial.policyId);
     const payment = await tx.payment.findUnique({ where: { id }, include: { policy: { include: { client: true } } } });
     if (!payment || payment.archivedAt || payment.policy.archivedAt || payment.policy.client.archivedAt || payment.policy.status === 'CANCELLED') throw new ResourceError('RECORD_NOT_FOUND',404);
     if (payment.status === 'PAID') throw new ResourceError('FINANCE_ALREADY_PAID',409);
+    const calendar=await tx.payment.findMany({where:{policyId:payment.policyId,archivedAt:null}});
+    validateContractSchedule(payment.policy,calendar);
     if(drive){
       await tx.$queryRaw`SELECT id FROM "ClientDriveLink" WHERE id=${drive.linkId} FOR UPDATE`;
       const link=await tx.clientDriveLink.findFirst({where:{id:drive.linkId,clientId:payment.policy.clientId,fileId:drive.fileId,rootFolderId:drive.rootFolderId}});
@@ -74,7 +109,7 @@ export async function renewPolicy(id: string, input: unknown, actor: Actor) {
     await tx.policy.update({ where: { id }, data: { updatedAt: new Date() } });
     // Historical dates, premium and number stay intact. Existing receipts remain on their original term.
     const dueDate = previous.endDate;
-    const pending = await tx.renewal.findMany({ where: { policyId: id, archivedAt: null, status: { in: ['PENDING','CONTACTED'] } }, select: { id: true } });
+    const pending = await tx.renewal.findMany({ where: { policyId: id, archivedAt: null }, select: { id: true } });
     if (pending.length) await tx.renewal.updateMany({ where: { id: { in: pending.map(row => row.id) } }, data: { status: 'RENEWED' } });
     else await tx.renewal.create({ data: { policyId: id, dueDate, status: 'RENEWED', notes: 'Nueva vigencia vinculada desde el expediente.' } });
     const preparation=await tx.renewalPreparation.findUnique({where:{policyId:id}});

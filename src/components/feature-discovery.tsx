@@ -13,6 +13,8 @@ export function IntakeDiscovery() {
   return <FeatureDiscovery feature="intake"/>;
 }
 const discoveries={
+  review:{id:'revision-operativa',tour:'funcion:revision',title:'Lo que falta, en un solo lugar',body:'Encuentra pólizas sin producto o responsable y calendarios por conciliar. Abre cada registro y completa sus datos con la documentación real.',anchor:'2026-11-09-operation',art:'operation-review'},
+  schedule:{id:'calendario-revisado',tour:'funcion:calendario-revisado',title:'Ajusta el calendario completo',body:'Revisa fechas e importes juntos. Conserva los pagos confirmados y archiva los pendientes retirados al guardar la propuesta completa.',anchor:'2026-11-09-operation',art:'payment-schedule'},
   whatsappAssistance:{id:'atencion-whatsapp',tour:'funcion:atencion-whatsapp',title:'Cada solicitud, con un siguiente paso',body:'Prueba cómo orientar mensajes de ventas, renovaciones, pagos y siniestros. Revisa el borrador antes de llevarlo al redactor; la atención sigue siendo humana.',anchor:'2026-10-31-whatsapp-assistance',art:'whatsapp-assistance'},
   insurers:{id:'aseguradoras-productos',tour:'funcion:aseguradoras',title:'Una aseguradora, todos sus productos',body:'Abre una compañía para ver sus productos. Cada producto conserva su ramo y administrador; personaliza el perfil desde los tres puntos.',anchor:'2026-10-29-insurers',art:'insurer-catalog'},
   email:{id:'correos-personales',tour:'funcion:correos',title:'Tus correos, con tu estilo',body:'Crea plantillas, inserta variables como chips y revisa el mensaje con los datos de tu cliente antes de enviarlo.',anchor:'2026-10-29-email',art:'email-templates'},

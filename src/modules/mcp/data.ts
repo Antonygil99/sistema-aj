@@ -1,5 +1,6 @@
 import 'server-only';
 import {smartSearchWhere} from '@/modules/smart-search-server';
+import {lockPolicy} from '@/modules/polizas/contract-server';
 import { z } from 'zod';
 import { Prisma, type PrismaClient } from '@/generated/prisma/client';
 import { getDb } from '@/lib/db';
@@ -44,6 +45,8 @@ function fullInput(module:ResourceSlug,row:Row,patch:Record<string,unknown>):Rec
   return {...merged,expectedUpdatedAt:row.updatedAt.toISOString()};
 }
 function permittedOperation(module:McpModule,operation:McpOperation,data:Record<string,unknown>) {
+  if(module==='pagos'&&operation==='create')throw new McpError('FINANCE_USE_SCHEDULE',422);
+  if(module==='renovaciones'&&operation==='create'&&['RENEWED','LOST'].includes(String(data.status)))throw new McpError('FINANCE_USE_RENEWAL_FLOW',422);
   if(operation==='intake_link'||operation==='intake_draft')throw new McpError('USE_INTAKE_TOOL');
   if(operation==='upload'&&module!=='documentos')throw new McpError('INVALID_OPERATION');
   if(module==='documentos'&&operation==='create')throw new McpError('USE_UPLOAD_TOOL');
@@ -102,6 +105,10 @@ export async function applyProposal(actor:McpActor,id:string,options:{cancel?:bo
       const db=transactionalDb(tx),data=change.data as Record<string,unknown>;
       let row:Row|null=null;
       if(change.recordId) {
+        if(resource==='pagos'||resource==='renovaciones'){
+          const related=await delegate(tx,resource).findUnique({where:{id:change.recordId},select:{policyId:true}});
+          if(related?.policyId)await lockPolicy(tx,String(related.policyId));
+        }
         // Table identifier is from a closed server-owned map; record ID remains parameterized.
         await tx.$queryRaw(Prisma.sql`SELECT id FROM ${Prisma.raw('"'+models[resource]+'"')} WHERE id=${change.recordId} FOR UPDATE`);
         row=await delegate(db,resource).findUnique({where:{id:change.recordId}});

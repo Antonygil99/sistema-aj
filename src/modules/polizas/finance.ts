@@ -5,6 +5,7 @@ const amount = z.number().positive().max(9999999999.99).refine(n => Math.abs(n *
 const version = z.iso.datetime({ offset: true });
 export const scheduleInput = z.object({ expectedUpdatedAt: version, paymentFrequency: z.enum(['ONCE','MONTHLY','QUARTERLY','SEMIANNUAL','ANNUAL']),
   payments: z.array(z.object({ amount, dueDate: z.iso.date() }).strict()).min(1).max(120), reviewed: z.literal(true) }).strict();
+export const editScheduleInput=scheduleInput.extend({expectedScheduleVersion:z.string().regex(/^[a-f0-9]{64}$/),payments:z.array(z.object({id:z.string().min(1).max(100).optional(),amount,dueDate:z.iso.date()}).strict()).min(1).max(120)}).strict();
 export function scheduleIssues(policy: { premium: number; startDate: string; endDate: string }, rows: { amount: number; dueDate: string }[], frequency: string) {
   if (!rows.length || rows.length > 120) return 'Registra entre 1 y 120 recibos.';
   if (frequency === 'ONCE' && rows.length !== 1) return 'El pago único requiere un solo recibo.';
