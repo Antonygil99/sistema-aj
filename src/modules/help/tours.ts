@@ -16,7 +16,7 @@ function tableSteps(slug: ModuleSlug): TourStep[] {
   const article = config.article === 'una' ? 'una' : 'un';
   return [
     { targets: ['.resource-toolbar .segmented[role="tablist"]'], title: 'Activos y archivados', body: `Archivar oculta ${article} ${config.singular} sin borrarlo; lo encuentras aquí, en «Archivados», y lo puedes restaurar.` },
-    { targets: newButton, title: `Registrar ${article} ${config.singular}`, body: 'Abre el formulario. Los campos obligatorios están marcados y, si algo falta, te lo señalamos debajo del campo.' },
+    { targets: newButton, title: slug==='pagos'?'Preparar calendario':`Registrar ${article} ${config.singular}`, body: slug==='pagos'?'Elige la póliza y abre su expediente para preparar todos los recibos juntos.':'Abre el formulario. Los campos obligatorios están marcados y, si algo falta, te lo señalamos debajo del campo.' },
     { targets: filters, title: 'Buscar y filtrar', body: `Busca por ${config.searchHint.charAt(0).toLowerCase() + config.searchHint.slice(1)}.${config.statuses ? ' También puedes filtrar por estado.' : ''}` },
     { targets: firstRecord, title: 'Abrir un registro', body: 'Toca el primer dato para ver el detalle o editarlo. Los íconos de la derecha editan o archivan.' },
   ];

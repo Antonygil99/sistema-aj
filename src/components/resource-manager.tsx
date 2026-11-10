@@ -214,7 +214,7 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
       </div> : null}
       <span className="resource-count">{page.total} {page.total === 1 ? config.singular : config.plural}</span>
       {canEdit&&['clientes','prospectos'].includes(slug)?<Link className="button button-soft" href={'/importaciones?destino='+slug}>Importar</Link>:null}
-      {canEdit ? <button type="button" className="button" onClick={() => openEditor('new')}><Add aria-hidden="true"/>Nuev{config.article === 'una' ? 'a' : 'o'} {config.singular}</button> : <span className="badge">Acceso de consulta</span>}
+      {canEdit ? <button type="button" className="button" onClick={() => openEditor('new')}><Add aria-hidden="true"/>{slug==='pagos'?'Preparar calendario':`Nuev${config.article === 'una' ? 'a' : 'o'} ${config.singular}`} </button> : <span className="badge">Acceso de consulta</span>}
     </div>
     <form className="resource-filters" onSubmit={event => { event.preventDefault(); void load(0, { ...draft, q: draft.q.trim() }, false, boardTake); }}>
       <label className="search-field"><SearchNormal1 aria-hidden="true"/><span className="sr-only">Buscar</span><input type="search" value={draft.q} placeholder={config.searchHint} maxLength={100} onChange={event => setDraft({ ...draft, q: event.target.value })}/></label>
@@ -250,7 +250,7 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
       </> : <EmptyState illustration={(filtered ? 'busqueda' : config.illustration) as Illustration}
         title={filtered ? 'Sin coincidencias' : applied.archived ? `No hay ${config.plural} archivad${config.article === 'una' ? 'as' : 'os'}` : config.emptyTitle}
         message={filtered ? 'Prueba con otra búsqueda o quita los filtros.' : applied.archived ? 'Lo que archives aparecerá aquí para restaurarlo cuando lo necesites.' : config.emptyMessage}
-        action={filtered ? <button type="button" className="button button-soft" onClick={() => { const next = { q: '', status: '', archived: applied.archived }; setDraft(next); void load(0, next); }}>Limpiar filtros</button> : canEdit && !applied.archived ? <button type="button" className="button" onClick={() => openEditor('new')}><Add aria-hidden="true"/>Registrar {config.article} {config.singular}</button> : undefined}/>}
+        action={filtered ? <button type="button" className="button button-soft" onClick={() => { const next = { q: '', status: '', archived: applied.archived }; setDraft(next); void load(0, next); }}>Limpiar filtros</button> : canEdit && !applied.archived ? <button type="button" className="button" onClick={() => openEditor('new')}><Add aria-hidden="true"/>{slug==='pagos'?'Preparar calendario':`Registrar ${config.article} ${config.singular}`}</button> : undefined}/>}
     </div>
     {page.total > PAGE && view === 'list' ? <div className="document-pagination"><button type="button" className="text-button" disabled={loading || skip === 0} onClick={() => void load(Math.max(0, skip - PAGE), applied)}>Anterior</button><span>{skip + 1}–{Math.min(skip + PAGE, page.total)} de {page.total}</span><button type="button" className="text-button" disabled={loading || skip + PAGE >= page.total} onClick={() => void load(skip + PAGE, applied)}>Siguiente</button></div> : null}
     <Modal onAfterClose={editorOnly?()=>{if(savedInEditor.current)onSaved?.();else onDismiss?.();}:undefined} icon={readOnly?Eye:editingRow?Edit2:Add} open={modalOpen} onClose={() => void requestClose()} busy={saving} size="lg"
