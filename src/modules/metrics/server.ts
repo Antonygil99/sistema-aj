@@ -1,17 +1,18 @@
+import {getRequestDb} from '@/modules/areas/db';
 import 'server-only';
-import { getDb } from '@/lib/db';
+
 import { followUps } from '../polizas/delivery';
-import { prospectStages } from '../prospectos/pipeline';
+import { prospectStages,activeProspectStatuses } from '../prospectos/pipeline';
 import { delta, monthRange, ratio } from './period';
 // Dashboard numbers from real records (Ruta AJ, pilar 7: medición). Optionally scoped to one responsible.
 export async function dashboardMetrics(ownerEmail: string | null, now = new Date()) {
-  const db = getDb();
+  const db = (await getRequestDb());
   const period = monthRange(now);
   const month = { gte: period.start, lt: period.end }, previous = { gte: period.prevStart, lt: period.start };
   const prospectOwner = ownerEmail ? { ownerEmail } : {};
   const policyOwner = ownerEmail ? { ownerEmail } : {};
   const viaPolicy = ownerEmail ? { policy: { ownerEmail } } : {};
-  const activeProspect = { archivedAt: null, status: { in: prospectStages.map(stage => stage.id) } };
+  const activeProspect = { archivedAt: null, status: { in:[...activeProspectStatuses] } };
   const activePolicy = { archivedAt: null, status: 'ACTIVE' as const, ...policyOwner };
   const checks = { deliveryReceived: true, deliveryUnderstood: true, deliveryKnowsContact: true, deliveryKnowsWhenToNotify: true, deliveryKnowsFirstStep: true };
   const overdue = { archivedAt: null, status: { not: 'PAID' as const }, dueDate: { lt: period.today }, ...viaPolicy };
@@ -48,11 +49,11 @@ export async function dashboardMetrics(ownerEmail: string | null, now = new Date
   ]);
   const byStage = new Map(funnel.map(row => [row.status, row._count._all]));
   const sum = (rows: { currency: string; _sum: Record<string, unknown> }[], field: string) => Object.fromEntries(rows.map(row => [row.currency, Number(row._sum[field] ?? 0)]));
-  const activeProspects = prospectStages.reduce((total, stage) => total + (byStage.get(stage.id) ?? 0), 0);
+  const activeProspects = [...prospectStages,{id:'COMPARATIVO' as const}].reduce((total, stage) => total + (byStage.get(stage.id) ?? 0), 0);
   return {
     period: { label: period.label, previousLabel: period.previousLabel },
     prospects: { active: activeProspects, newThisMonth: newProspects, delta: delta(newProspects, newProspectsPrev, period.previousLabel) },
-    funnel: [...prospectStages.map(stage => ({ id: stage.id, label: stage.label, count: byStage.get(stage.id) ?? 0 })), { id: 'CLIENTE', label: 'Clientes este mes', count: converted }],
+    funnel: [...(byStage.get('COMPARATIVO')?[{id:'COMPARATIVO',label:'Comparativo guiado (anterior)',count:byStage.get('COMPARATIVO')??0}]:[]),...prospectStages.map(stage => ({ id: stage.id, label: stage.label, count: byStage.get(stage.id) ?? 0 })), { id: 'CLIENTE', label: 'Clientes este mes', count: converted }],
     lostThisMonth: lost,
     policies: { active: policies, premium: sum(premium, 'premium'), issued, delta: delta(issued, issuedPrev, period.previousLabel) },
     renewals30,

@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     if (q.length < 2) return NextResponse.json({ q, results: [] }, { headers: { 'Cache-Control': 'no-store' } });
     const slugs = Object.keys(resources) as ResourceSlug[];
     const [tables, extra] = await Promise.all([
-      Promise.all(slugs.map(async slug => (await searchResource(slug, q)).map(row => resourceResult(slug, JSON.parse(JSON.stringify(row)) as Row)))),
+      Promise.all(slugs.map(async slug => (await searchResource(slug, q,5,auth.actor)).map(row => resourceResult(slug, JSON.parse(JSON.stringify(row)) as Row)))),
       searchSupplement(q, auth.actor),
     ]);
     return NextResponse.json({ q, results: [...tables.flat(), ...extra, ...sectionResults(q, auth.actor.role)] }, { headers: { 'Cache-Control': 'no-store' } });

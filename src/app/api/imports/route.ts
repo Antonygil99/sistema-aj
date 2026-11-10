@@ -17,7 +17,7 @@ export async function POST(request:Request){
       const sheet=z.string().min(1).max(180).parse(form.get('sheet')),table=source.tables.find(t=>t.sheet===sheet);if(!table)throw new ImportError('IMPORT_SHEET_REQUIRED');
       const mapping=z.partialRecord(z.enum(importFields),z.number().int().min(0).max(59)).parse(JSON.parse(String(form.get('mapping')??'{}')));
       const countryCode=z.enum(['52']).optional().parse(form.get('countryCode')||undefined);
-      const result=await prepareBatch(actor,{target:targetSchema.parse(form.get('target')),sourceName:source.sourceName,sourceKind:source.sourceKind,countryCode,rows:mapContacts(table,mapping)},{sourceSha256:source.sourceSha256});
+      const result=await prepareBatch(actor,{target:targetSchema.parse(form.get('target')),...(form.get('line')?{line:form.get('line')}:{}),sourceName:source.sourceName,sourceKind:source.sourceKind,countryCode,rows:mapContacts(table,mapping)},{sourceSha256:source.sourceSha256});
       return Response.json(result,{status:201,headers:{'Cache-Control':'private, no-store'}});
     }
     return Response.json(await prepareBatch(actor,await importJson(request)),{status:201,headers:{'Cache-Control':'private, no-store'}});

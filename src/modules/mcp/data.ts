@@ -1,3 +1,5 @@
+import {scopedWhere} from '@/modules/areas/policy';
+import {assertRecordArea,prepareAreaWrite} from '@/modules/areas/server';
 import 'server-only';
 import {smartSearchWhere} from '@/modules/smart-search-server';
 import {lockPolicy} from '@/modules/polizas/contract-server';
@@ -22,18 +24,19 @@ const selectFor=(module:McpModule)=>Object.fromEntries(['id',...fields[module],'
 export const listInput=z.object({module:z.enum(Object.keys(models) as [McpModule,...McpModule[]]),query:z.string().trim().max(100).default(''),take:z.number().int().min(1).max(25).default(12),skip:z.number().int().min(0).max(10000).default(0),archived:z.boolean().default(false),clientId:z.string().min(1).max(100).optional()}).strict();
 export async function listRecords(actor:McpActor,input:z.input<typeof listInput>) {
   const query=listInput.parse(input),resource=query.module;checkPermission(actor.role,actor.scopes,'read',resource);
-  const where={archivedAt:query.archived?{not:null}:null,...await smartSearchWhere(resource,query.query),...(query.clientId?(fields[resource].includes('clientId')?{clientId:query.clientId}:{AND:[{id:query.clientId}]}):{})};
+  const where=scopedWhere(resource,{archivedAt:query.archived?{not:null}:null,...await smartSearchWhere(resource,query.query),...(query.clientId?(fields[resource].includes('clientId')?{clientId:query.clientId}:{AND:[{id:query.clientId}]}):{})},actor);
   const db=delegate(getDb(),resource);
   const [rows,total]=await Promise.all([db.findMany({where,select:selectFor(resource),orderBy:[{updatedAt:'desc'},{id:'asc'}],skip:query.skip,take:query.take}),db.count({where})]);
   return {module:resource,rows:jsonData(rows),total,skip:query.skip,take:query.take};
 }
 export async function recordDetail(actor:McpActor,module:McpModule,id:string) {
   checkPermission(actor.role,actor.scopes,'read',module);
+  await assertRecordArea(getDb(),module,id,actor);
   const row=await delegate(getDb(),module).findUnique({where:{id},select:selectFor(module)});
   if(!row)throw new McpError('RECORD_NOT_FOUND',404);
   if(module!=='clientes')return {module,rows:[jsonData(row)],total:1};
   const db=getDb();
-  const policies=await db.policy.findMany({where:{clientId:id,archivedAt:null},select:selectFor('polizas'),take:12,orderBy:{endDate:'asc'}});
+  const policies=await db.policy.findMany({where:scopedWhere('polizas',{clientId:id,archivedAt:null},actor),select:selectFor('polizas'),take:12,orderBy:{endDate:'asc'}});
   return {module,rows:[jsonData(row)],policies:jsonData(policies),total:1};
 }
 function fullInput(module:ResourceSlug,row:Row,patch:Record<string,unknown>):Record<string,unknown> {
@@ -58,6 +61,9 @@ export async function proposeChange(actor:McpActor,input:{module:McpModule;opera
   checkPermission(actor.role,actor.scopes,input.operation,input.module);
   const data=safePatch(input.module,input.data??{});permittedOperation(input.module,input.operation,data);
   const db=getDb();
+  const previous=input.recordId?await assertRecordArea(db,input.module,input.recordId,actor,true):undefined;
+  const normalized=await prepareAreaWrite(db,input.module,data,actor,previous);
+  if(['create','update'].includes(input.operation))Object.assign(data,normalized);
   if(await db.mcpChange.count({where:{userId:actor.id,status:'PENDING',expiresAt:{gt:new Date()}}})>=30)throw new McpError('TOO_MANY_PENDING_CHANGES',429);
   let version:Date|undefined;
   if(!['create','upload'].includes(input.operation)) {
@@ -103,6 +109,8 @@ export async function applyProposal(actor:McpActor,id:string,options:{cancel?:bo
       checkPermission(actor.role,actor.scopes,operation,resource);
       if(options.cancel){await tx.mcpChange.update({where:{id},data:{status:'CANCELLED',fileBytes:null}});return {status:'CANCELLED'};}
       const db=transactionalDb(tx),data=change.data as Record<string,unknown>;
+      if(change.recordId)await assertRecordArea(db,resource,change.recordId,actor,true);
+      await prepareAreaWrite(db,resource,data,actor);
       let row:Row|null=null;
       if(change.recordId) {
         if(resource==='pagos'||resource==='renovaciones'){
@@ -153,8 +161,10 @@ export async function applyProposal(actor:McpActor,id:string,options:{cancel?:bo
         }
       } else {
         const slug=resource as ResourceSlug;
-        if(operation==='create')result=await createResource(slug,data,db);
-        else if(operation==='update')result=await updateResource(slug,change.recordId!,fullInput(slug,row!,data),db);
+        if(change.recordId)await assertRecordArea(db,slug,change.recordId,actor,true);
+        await prepareAreaWrite(db,slug,data,actor);
+        if(operation==='create')result=await createResource(slug,data,db,actor);
+        else if(operation==='update')result=await updateResource(slug,change.recordId!,fullInput(slug,row!,data),db,actor);
         else if(operation==='archive'||operation==='restore')result=await archiveResource(slug,change.recordId!,operation==='archive',db);
         else if(operation==='delete') {
           if(slug==='productos'&&(await tx.product.findUnique({where:{id:change.recordId!},select:{imageKey:true}}))?.imageKey)throw new McpError('PRODUCT_IMAGE_DELETE_IN_CRM',409);

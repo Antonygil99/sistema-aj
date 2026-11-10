@@ -8,7 +8,7 @@ import { Avatar } from './ui/avatar';
 import { SignOutButton } from './sign-out-button';
 import { useAccountPanels } from './ui/account-panels';
 import { portalTarget } from './ui/modal';
-export type AccountUser = { name: string; email: string; image: string | null; role: 'USER' | 'ADMIN' | 'SUPERADMIN' };
+export type AccountUser = { name: string; email: string; image: string | null; role: 'USER' | 'ADMIN' | 'SUPERADMIN';productLines?:string[] };
 // Sidebar account row (photo, name, email). Opens a small menu beside the sidebar with the role and account actions.
 // The menu is position: fixed and portaled out of the sticky sidebar (its own stacking context), so neither the
 // sidebar scroll nor positioned page content can cover it, also in compact mode.

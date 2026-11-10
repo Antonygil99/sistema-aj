@@ -1,7 +1,8 @@
+import {getAreaDb} from '@/modules/areas/db';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { authenticate, apiError } from '@/lib/api';
-import { getDb } from '@/lib/db';
+
 import { getR2 } from '@/integrations/r2/server';
 import { FileError, isManagedKey } from '@/modules/documentos/file-policy';
 import { folderScope } from '@/modules/documentos/folders';
@@ -21,7 +22,7 @@ export async function PATCH(request: Request, { params }: Context) {
     const { id } = await params;
     const input = z.object({ folderId: z.string().min(1).max(100).nullable(), clientId: z.string().min(1).max(100).nullable(), expectedUpdatedAt: z.iso.datetime() }).strict().parse(await request.json());
     await folderScope(input.folderId, input.clientId);
-    const db = getDb();
+    const db = getAreaDb(auth.actor);
     const doc = await db.document.findUnique({ where: { id }, include: { policy: { select: { clientId: true } }, claim: { include: { policy: { select: { clientId: true } } } } } });
     if (!doc) return NextResponse.json({ error: 'DOCUMENT_NOT_FOUND' }, { status: 404 });
     const owner = doc.clientId ?? doc.policy?.clientId ?? doc.claim?.policy.clientId ?? null;
@@ -37,7 +38,7 @@ export async function DELETE(request: Request, { params }: Context) {
   const auth = await authenticate(request, 'SUPERADMIN'); if (auth.denied) return auth.denied;
   try {
     const { id } = await params;
-    const db = getDb();
+    const db = getAreaDb(auth.actor);
     const doc = await db.document.findUnique({ where: { id }, select: { id: true, name: true, storageKey: true } });
     if (!doc) return NextResponse.json({ error: 'DOCUMENT_NOT_FOUND' }, { status: 404 });
     await db.document.delete({ where: { id } });

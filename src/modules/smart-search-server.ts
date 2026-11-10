@@ -8,7 +8,7 @@ const clientJoin='LEFT JOIN "Client" c ON c.id=r."clientId"';
 const policyJoin='LEFT JOIN "Policy" p ON p.id=r."policyId" LEFT JOIN "Client" c ON c.id=p."clientId"';
 // Only these server-owned identifiers can enter raw SQL. Query text always uses bind parameters.
 const sources={
- prospectos:{table:'Prospect',join:'',fields:['r.id','r.name','r.email','r.phone']},
+ prospectos:{table:'Prospect',join:'',fields:['r.id','r.name','r.email','r.phone','r.vehicle','r."postalCode"']},
  clientes:{table:'Client',join:'LEFT JOIN "Policy" p ON p."clientId"=r.id AND p."archivedAt" IS NULL',fields:['r.id','r.name','r.email','r.phone','r."taxId"','p.number']},
  polizas:{table:'Policy',join:clientJoin,fields:['r.id','r.number','r.insurer','r.product','r.coverage','r.vehicle','r.plates','c.name','c.id','c."taxId"']},
  cotizaciones:{table:'Quote',join:clientJoin+' LEFT JOIN "Prospect" pr ON pr.id=r."prospectId"',fields:['r.id','r.reference','r.product','c.name','pr.name']},

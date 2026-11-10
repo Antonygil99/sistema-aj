@@ -1,4 +1,8 @@
 'use client';
+import {useBrokerScope} from './ui/broker-scope';
+import {actorLines,canOperateLine,defaultLine} from '@/modules/areas/policy';
+import {nextStage} from '@/modules/prospectos/pipeline';
+
 import {PolicyCatalogFields} from './policy-catalog-fields';
 import {productCompanyImage} from '@/modules/productos/images';
 import {InsurerPicker} from '@/components/ui/insurer-picker';
@@ -22,20 +26,23 @@ import { usePreferences } from './ui/preferences';
 import { isViewKey } from '@/modules/preferences';
 import { productLineLabels } from '@/modules/resources/config';
 type Page = { data: Row[]; total: number };
-type Filters = { q: string; status: string; archived: boolean };
+type Filters = { q: string; status: string; archived: boolean;line:string };
 const PAGE = 20;
 const nestedKey = (field: Field) => field.name.replace(/Id$/, '');
 // Generic CRM table: search, filters, active/archived views, create/edit modal, archive/restore, permanent delete.
 export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuery = '', openId, initialView = 'list', toolbarStart, insurerId, initialValues={}, editorOnly=false, onDismiss, onSaved }: { slug: ResourceSlug; initial: Page; canEdit: boolean; canDelete: boolean; initialQuery?: string; openId?: string; initialView?: 'list' | 'board'; toolbarStart?: ReactNode;insurerId?:string;initialValues?:Record<string,string>;editorOnly?:boolean;onDismiss?:()=>void;onSaved?:()=>void }) {
-  const config = resources[slug];
+  const actor=useBrokerScope();
+  const config=useMemo(()=>({...resources[slug],fields:resources[slug].fields.map(field=>field.name==='line'?{...field,defaultValue:defaultLine(actor),hiddenOptions:Object.keys(productLineLabels).filter(line=>!actorLines(actor).includes(line as keyof typeof productLineLabels))}:field.name==='ownerEmail'?{...field,defaultValue:actor?.email??''}:field)}),[slug,actor]);
+  const mayCreate=canEdit&&(!['prospectos','polizas','cotizaciones','pagos','renovaciones','siniestros','productos'].includes(slug)||actorLines(actor).length>0);
+  const canEditRow=(row:Row)=>canEdit&&(!['productos','prospectos','polizas','cotizaciones'].includes(slug)||canOperateLine(actor,row.line));
   const router = useRouter();
   const [openingPayment, setOpeningPayment] = useState(false);
   // A global-search result arrives with ?open=<id>: start with that record's card open.
   const [initialRow] = useState(() => openId ? initial.data.find(row => row.id === openId) ?? null : null);
   const [page, setPage] = useState(initial);
   const [skip, setSkip] = useState(0);
-  const [draft, setDraft] = useState<Filters>({ q: initialQuery, status: '', archived: false });
-  const [applied, setApplied] = useState<Filters>({ q: initialQuery, status: '', archived: false });
+  const [draft, setDraft] = useState<Filters>({ q: initialQuery, status: '', archived: false,line:'' });
+  const [applied, setApplied] = useState<Filters>({ q: initialQuery, status: '', archived: false,line:'' });
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState<Row | 'new' | null>(editorOnly?'new':initialRow);
   const [modalOpen, setModalOpen] = useState(editorOnly||Boolean(initialRow));
@@ -63,6 +70,7 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
     try {
       const params = new URLSearchParams({ take: String(take), skip: String(nextSkip), q: filters.q, archived: filters.archived ? '1' : '0' });
       if (insurerId) params.set('insurerId',insurerId);
+      if(filters.line)params.set('line',filters.line);
       if (filters.status) params.set('status', filters.status);
       const result = await apiFetch<Page>(`/api/crm/${slug}?${params}`);
       setPage(result); setSkip(nextSkip); setApplied(filters);
@@ -140,6 +148,7 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
     catch (error) { toast({ kind: 'error', title: 'No se pudo recargar', message: error instanceof Error ? error.message : undefined }); }
   }
   async function setArchived(row: Row, archived: boolean) {
+    if(!canEditRow(row))return;
     const name = config.title(row);
     if (archived && !await confirm({ title: `Archivar ${config.singular}`, message: `«${name}» dejará de aparecer en los listados. Su historial se conserva y podrás restaurarl${config.article === 'una' ? 'a' : 'o'} cuando quieras.`, confirmLabel: 'Archivar' })) return;
     try {
@@ -159,10 +168,10 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
       await load(page.data.length === 1 && skip ? skip - PAGE : skip, applied, true);
     } catch (error) { toast({ kind: error instanceof ApiError && error.code === 'HAS_RELATIONS' ? 'warning' : 'error', title: 'No se eliminó', message: error instanceof Error ? error.message : undefined }); }
   }
-  const filtered = Boolean(applied.q || applied.status);
+  const filtered = Boolean(applied.q || applied.status || applied.line);
   const actions = (row: Row) => ({ edit: () => openEditor(row), archive: () => void setArchived(row, !row.archivedAt), remove: canDelete ? () => void remove(row) : undefined });
   const editingRow = editing && editing !== 'new' ? editing : null;
-  const readOnly = !canEdit || Boolean(editingRow?.archivedAt) || (slug==='pagos'&&editingRow?.status==='PAID');
+  const readOnly = !canEdit || (editing==='new'&&!mayCreate) || Boolean(editingRow&&!canEditRow(editingRow)) || Boolean(editingRow?.archivedAt) || (slug==='pagos'&&editingRow?.status==='PAID');
   const creatingSchedule=slug==='pagos'&&editing==='new';
   const needsRenewalFlow=slug==='renovaciones'&&['RENEWED','LOST'].includes(values.status)&&(!editingRow||values.status!==editingRow.status);
   const needsPaymentConfirmation = slug === 'pagos' && values.status === 'PAID' && editingRow?.status !== 'PAID';
@@ -214,19 +223,20 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
       </div> : null}
       <span className="resource-count">{page.total} {page.total === 1 ? config.singular : config.plural}</span>
       {canEdit&&['clientes','prospectos'].includes(slug)?<Link className="button button-soft" href={'/importaciones?destino='+slug}>Importar</Link>:null}
-      {canEdit ? <button type="button" className="button" onClick={() => openEditor('new')}><Add aria-hidden="true"/>{slug==='pagos'?'Preparar calendario':`Nuev${config.article === 'una' ? 'a' : 'o'} ${config.singular}`} </button> : <span className="badge">Acceso de consulta</span>}
+      {mayCreate ? <button type="button" className="button" onClick={() => openEditor('new')}><Add aria-hidden="true"/>{slug==='pagos'?'Preparar calendario':`Nuev${config.article === 'una' ? 'a' : 'o'} ${config.singular}`} </button> : <span className="badge">Acceso de consulta</span>}
     </div>
     <form className="resource-filters" onSubmit={event => { event.preventDefault(); void load(0, { ...draft, q: draft.q.trim() }, false, boardTake); }}>
       <label className="search-field"><SearchNormal1 aria-hidden="true"/><span className="sr-only">Buscar</span><input type="search" value={draft.q} placeholder={config.searchHint} maxLength={100} onChange={event => setDraft({ ...draft, q: event.target.value })}/></label>
+      {['prospectos','polizas','cotizaciones','productos'].includes(slug)?<label className="sr-label"><span className="sr-only">Ramo</span><Select value={draft.line} onChange={event=>{const next={...draft,line:event.target.value};setDraft(next);void load(0,next);}}><option value="">Todos los ramos</option>{(slug==='productos'?Object.keys(productLineLabels):actorLines(actor)).map(line=><option key={line} value={line}>{productLineLabels[line as keyof typeof productLineLabels]}</option>)}</Select></label>:null}
       {config.statuses && !(config.board && view === 'board') ? <label className="sr-label"><span className="sr-only">Estado</span><Select value={draft.status} onChange={event => { const next = { ...draft, status: event.target.value }; setDraft(next); void load(0, next); }}><option value="">Todos los estados</option>{Object.entries(config.statuses).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</Select></label> : null}
       <button className="button button-soft" disabled={loading}>Buscar</button>
       <button type="button" className="icon-button" aria-label="Actualizar listado" disabled={loading} onClick={() => void load(skip, applied)}><Refresh2 aria-hidden="true" className={loading ? 'is-spinning' : ''}/></button>
     </form>
     <div ref={listRef} className="resource-list" aria-busy={loading}>
       {page.data.length && config.board && view === 'board' && !applied.archived ? <>
-        <div className="delivery-board pipeline-board">{config.board.columns.map(column => { const items = page.data.filter(row => row.status === column); return <section key={column} className="delivery-column" aria-label={`${config.statuses?.[column] ?? column}: ${items.length}`}>
+        <div className="delivery-board pipeline-board">{config.board.columns.filter(column=>!config.board?.legacy?.includes(column)||page.data.some(row=>row.status===column)).map(column => { const items = page.data.filter(row => row.status === column); return <section key={column} className="delivery-column" aria-label={`${config.statuses?.[column] ?? column}: ${items.length}`}>
           <header><strong>{config.statuses?.[column] ?? column}</strong><span className="delivery-count">{items.length}</span></header>
-          <div className="delivery-column-body">{items.map(row => { const progress = config.progress?.(row); const index = config.board!.columns.indexOf(column); const next = config.board!.columns[index + 1]; const owner = typeof row.ownerEmail === 'string' ? row.ownerEmail : null; return <article key={row.id} className="delivery-card pipeline-card">
+          <div className="delivery-column-body">{items.map(row => { const progress = config.progress?.(row); const index = config.board!.columns.indexOf(column); const next = slug==='prospectos'?nextStage(String(row.status)):config.board!.columns[index + 1]; const owner = typeof row.ownerEmail === 'string' ? row.ownerEmail : null; return <article key={row.id} className="delivery-card pipeline-card">
             <button type="button" className="pipeline-card-main" onClick={() => openEditor(row)}>
               <span className="delivery-card-top"><span className="delivery-card-title"><strong>{config.title(row)}</strong><small>{config.columns[0].detail?.(row) || config.columns[1]?.value(row)}</small></span><span className="delivery-owner" title={teammateLabel(team, owner)}>{owner ? initials(teammateLabel(team, owner)) : '—'}</span></span>
               {progress ? <><span className="delivery-progress" aria-hidden="true"><i style={{ width: `${Math.round(progress.done / progress.total * 100)}%` }}/></span><span className="delivery-card-meta">{progress.label}</span></> : null}
@@ -236,27 +246,27 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
         </section>; })}</div>
         <p className="lead-small">{config.board.hidden}</p>
       </>
-      : page.data.length && config.layout === 'cards' ? <div className="catalog-grid">{page.data.map(row => <CatalogCard key={row.id} row={row} config={config} team={team} canEdit={canEdit} {...actions(row)}/>)}</div>
+      : page.data.length && config.layout === 'cards' ? <div className="catalog-grid">{page.data.map(row => <CatalogCard key={row.id} row={row} config={config} team={team} canEdit={canEditRow(row)} {...actions(row)}/>)}</div>
       : page.data.length ? <>
         <div className="table-wrap resource-table"><table><thead><tr>{config.columns.map(column => <th key={column.label}>{column.label}</th>)}{config.statuses ? <th>Estado</th> : null}<th><span className="sr-only">Acciones</span></th></tr></thead>
           <tbody>{page.data.map(row => { const status = statusOf(row); const act = actions(row); return <tr key={row.id} data-row>
             {config.columns.map((column, index) => <td key={column.label}>{index === 0 ? <button type="button" className="row-link" onClick={act.edit}>{column.value(row) || '—'}</button> : column.value(row) || '—'}{column.detail?.(row) ? <small>{column.detail(row)}</small> : null}</td>)}
             {status ? <td><StatusPill label={status.label} tone={status.tone}/></td> : null}
-            <td className="row-actions"><button type="button" className="icon-button" aria-label={`${canEdit && !row.archivedAt ? 'Editar' : 'Ver'} ${config.title(row)}`} onClick={act.edit}>{canEdit && !row.archivedAt ? <Edit2 aria-hidden="true"/> : <Eye aria-hidden="true"/>}</button>
-              {canEdit ? <button type="button" className="icon-button" aria-label={`${row.archivedAt ? 'Restaurar' : 'Archivar'} ${config.title(row)}`} onClick={act.archive}>{row.archivedAt ? <ArrowRotateLeft aria-hidden="true"/> : <Archive aria-hidden="true"/>}</button> : null}
+            <td className="row-actions"><button type="button" className="icon-button" aria-label={`${canEditRow(row) && !row.archivedAt ? 'Editar' : 'Ver'} ${config.title(row)}`} onClick={act.edit}>{canEditRow(row) && !row.archivedAt ? <Edit2 aria-hidden="true"/> : <Eye aria-hidden="true"/>}</button>
+              {canEditRow(row) ? <button type="button" className="icon-button" aria-label={`${row.archivedAt ? 'Restaurar' : 'Archivar'} ${config.title(row)}`} onClick={act.archive}>{row.archivedAt ? <ArrowRotateLeft aria-hidden="true"/> : <Archive aria-hidden="true"/>}</button> : null}
               {act.remove ? <button type="button" className="icon-button is-danger" aria-label={`Eliminar ${config.title(row)}`} onClick={act.remove}><Trash aria-hidden="true"/></button> : null}</td>
           </tr>; })}</tbody></table></div>
-        <ul className="resource-cards">{page.data.map((row, index) => <SwipeCard key={row.id} row={row} config={config} status={statusOf(row)} canEdit={canEdit} hint={index === 0} {...actions(row)}/>)}</ul>
+        <ul className="resource-cards">{page.data.map((row, index) => <SwipeCard key={row.id} row={row} config={config} status={statusOf(row)} canEdit={canEditRow(row)} hint={index === 0} {...actions(row)}/>)}</ul>
       </> : <EmptyState illustration={(filtered ? 'busqueda' : config.illustration) as Illustration}
         title={filtered ? 'Sin coincidencias' : applied.archived ? `No hay ${config.plural} archivad${config.article === 'una' ? 'as' : 'os'}` : config.emptyTitle}
         message={filtered ? 'Prueba con otra búsqueda o quita los filtros.' : applied.archived ? 'Lo que archives aparecerá aquí para restaurarlo cuando lo necesites.' : config.emptyMessage}
-        action={filtered ? <button type="button" className="button button-soft" onClick={() => { const next = { q: '', status: '', archived: applied.archived }; setDraft(next); void load(0, next); }}>Limpiar filtros</button> : canEdit && !applied.archived ? <button type="button" className="button" onClick={() => openEditor('new')}><Add aria-hidden="true"/>{slug==='pagos'?'Preparar calendario':`Registrar ${config.article} ${config.singular}`}</button> : undefined}/>}
+        action={filtered ? <button type="button" className="button button-soft" onClick={() => { const next = { q: '', status: '', archived: applied.archived,line:'' }; setDraft(next); void load(0, next); }}>Limpiar filtros</button> : mayCreate && !applied.archived ? <button type="button" className="button" onClick={() => openEditor('new')}><Add aria-hidden="true"/>{slug==='pagos'?'Preparar calendario':`Registrar ${config.article} ${config.singular}`}</button> : undefined}/>}
     </div>
     {page.total > PAGE && view === 'list' ? <div className="document-pagination"><button type="button" className="text-button" disabled={loading || skip === 0} onClick={() => void load(Math.max(0, skip - PAGE), applied)}>Anterior</button><span>{skip + 1}–{Math.min(skip + PAGE, page.total)} de {page.total}</span><button type="button" className="text-button" disabled={loading || skip + PAGE >= page.total} onClick={() => void load(skip + PAGE, applied)}>Siguiente</button></div> : null}
     <Modal onAfterClose={editorOnly?()=>{if(savedInEditor.current)onSaved?.();else onDismiss?.();}:undefined} icon={readOnly?Eye:editingRow?Edit2:Add} open={modalOpen} onClose={() => void requestClose()} busy={saving} size="lg"
       title={creatingSchedule?'Preparar calendario':editing === 'new' ? `Nuev${config.article === 'una' ? 'a' : 'o'} ${config.singular}` : readOnly ? capitalize(config.singular) : `Editar ${config.singular}`}
       description={editingRow?.archivedAt ? 'Archivado: restáuralo para poder editarlo.' : editingRow ? `Registrado el ${new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium' }).format(new Date(editingRow.createdAt))}` : 'Los campos marcados con * son obligatorios.'}
-      footer={<>{editingRow && canEdit && !(slug==='pagos'&&editingRow.status==='PAID') ? <button type="button" className="text-button" disabled={saving} onClick={() => void setArchived(editingRow, !editingRow.archivedAt)}>{editingRow.archivedAt ? <><ArrowRotateLeft aria-hidden="true"/>Restaurar</> : <><Archive aria-hidden="true"/>Archivar</>}</button> : null}
+      footer={<>{editingRow && canEditRow(editingRow) && !(slug==='pagos'&&editingRow.status==='PAID') ? <button type="button" className="text-button" disabled={saving} onClick={() => void setArchived(editingRow, !editingRow.archivedAt)}>{editingRow.archivedAt ? <><ArrowRotateLeft aria-hidden="true"/>Restaurar</> : <><Archive aria-hidden="true"/>Archivar</>}</button> : null}
         {editingRow && canDelete && !(slug==='pagos'&&editingRow.status==='PAID') ? <button type="button" className="text-button is-danger" disabled={saving} onClick={() => void remove(editingRow)}><Trash aria-hidden="true"/>Eliminar</button> : null}
         {editingRow && config.modalLinks ? config.modalLinks(editingRow).map(link => <Link key={link.href} className={link.primary ? 'button button-soft' : 'text-button'} href={link.href}>{link.label}</Link>) : null}
         <span className="modal-footer-spacer"/>
@@ -264,9 +274,9 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
         {!readOnly&&!creatingSchedule ? <button type="submit" form={`form-${slug}`} className="button" disabled={saving || needsPaymentConfirmation || needsRenewalFlow}><TickCircle aria-hidden="true"/>{saving ? 'Guardando…' : 'Guardar'}</button> : null}</>}>
       <form id={`form-${slug}`} className="resource-form" onSubmit={save} noValidate={false}>
         {config.guide?.(values.status ?? '') ? <blockquote className="delivery-guide form-guide"><MessageText aria-hidden="true"/><span><small>Mensaje guía · {config.statuses?.[values.status] ?? ''}</small>{config.guide(values.status ?? '')}</span></blockquote> : null}
-        {config.fields.filter(field => (!creatingSchedule||field.name==='policyId') && !(slug==='polizas'&&['insurer','product'].includes(field.name)) && !(needsPaymentConfirmation && field.name === 'paidAt') && (!field.showWhen || field.showWhen.values.includes(values[field.showWhen.field] ?? ''))).flatMap((field, index) => [field.section ? <h3 key={`section-${field.name}`} className="form-section">{field.section}{config.progress ? <span className="delivery-score">{config.progress(values as unknown as Row).done}/{config.progress(values as unknown as Row).total}</span> : null}</h3> : null, slug==='polizas'&&field.name==='productId'?<PolicyCatalogFields key={field.name} values={{insurer:values.insurer??'',product:values.product??'',productId:values.productId??'',ownerEmail:values.ownerEmail}} label={labels.productId} disabled={readOnly||saving} error={fieldErrors.productId||fieldErrors.insurer||fieldErrors.product} onChange={(patch,label)=>{setValues(current=>({...current,...patch}));if(label!==undefined)setLabels(current=>({...current,productId:label}));setFieldErrors(current=>Object.fromEntries(Object.entries(current).filter(([key])=>!['productId','insurer','product'].includes(key))));}}/>:<FieldInput key={field.name} field={field} value={values[field.name] ?? ''} label={labels[field.name] ?? ''} disabled={readOnly || saving || (!!editingRow&&['pagos','renovaciones'].includes(slug)&&field.name==='policyId')} autoFocus={index === 0 && !readOnly && field.type !== 'image'}
-          team={['productos','polizas'].includes(slug)?team.filter(member=>member.role==='ADMIN'||member.role==='SUPERADMIN'):team} error={fieldErrors[field.name]} image={field.type === 'image' ? { current: !editingRow?null:removeImage?productCompanyImage(editingRow):config.image?.(editingRow)??null, inherited:!!productCompanyImage(editingRow)&&(removeImage||!editingRow?.imageType),hasOwnImage:!!editingRow?.imageType&&!removeImage,file: imageFile, onFile: file => { setImageFile(file); setRemoveImage(false); }, onRemove: () => { setImageFile(null); setRemoveImage(true); } } : undefined}
-          onChange={(value, label, related) => { if (fieldErrors[field.name]) setFieldErrors(current => { const next = { ...current }; delete next[field.name]; return next; }); setValues(current => ({ ...current, [field.name]: value, ...(related && config.prefill ? config.prefill(field.name, related, current) : {}) })); if (label !== undefined) setLabels(current => ({ ...current, [field.name]: label })); }}/>])}
+        {config.fields.filter(field => (!creatingSchedule||field.name==='policyId') && !(slug==='polizas'&&['insurer','product'].includes(field.name)) && !(needsPaymentConfirmation && field.name === 'paidAt') && (!field.showWhen || field.showWhen.values.includes(values[field.showWhen.field] ?? ''))).flatMap((field, index) => [field.section ? <h3 key={`section-${field.name}`} className="form-section">{field.section}{config.progress ? <span className="delivery-score">{config.progress(values as unknown as Row).done}/{config.progress(values as unknown as Row).total}</span> : null}</h3> : null, slug==='polizas'&&field.name==='productId'?<PolicyCatalogFields key={field.name} values={{insurer:values.insurer??'',product:values.product??'',productId:values.productId??'',ownerEmail:values.ownerEmail,line:values.line}} label={labels.productId} disabled={readOnly||saving} error={fieldErrors.productId||fieldErrors.insurer||fieldErrors.product} onChange={(patch,label)=>{setValues(current=>({...current,...patch}));if(label!==undefined)setLabels(current=>({...current,productId:label}));setFieldErrors(current=>Object.fromEntries(Object.entries(current).filter(([key])=>!['productId','insurer','product'].includes(key))));}}/>:<FieldInput key={field.name} field={slug==='prospectos'&&field.name==='status'&&values.line!=='MEDICAL'?{...field,hint:'Actualiza la etapa según el seguimiento real de esta oportunidad.'}:field} value={values[field.name] ?? ''} label={labels[field.name] ?? ''} disabled={readOnly || saving || (slug==='prospectos'&&Boolean(values.clientId)&&['name','email','phone'].includes(field.name)) || (!!editingRow&&['pagos','renovaciones'].includes(slug)&&field.name==='policyId')} autoFocus={index === 0 && !readOnly && field.type !== 'image'}
+          team={['productos','polizas','prospectos'].includes(slug)?team.filter(member=>member.role==='SUPERADMIN'||member.role==='ADMIN'&&member.productLines?.includes(values.line)):team} error={fieldErrors[field.name]} image={field.type === 'image' ? { current: !editingRow?null:removeImage?productCompanyImage(editingRow):config.image?.(editingRow)??null, inherited:!!productCompanyImage(editingRow)&&(removeImage||!editingRow?.imageType),hasOwnImage:!!editingRow?.imageType&&!removeImage,file: imageFile, onFile: file => { setImageFile(file); setRemoveImage(false); }, onRemove: () => { setImageFile(null); setRemoveImage(true); } } : undefined}
+          onChange={(value, label, related) => { if (fieldErrors[field.name]) setFieldErrors(current => { const next = { ...current }; delete next[field.name]; return next; }); setValues(current => ({ ...current, ...(field.name==='line'&&slug==='polizas'?{productId:'',product:'',insurer:'',ownerEmail:actor?.email??''}:{}),[field.name]: value, ...(related && config.prefill ? config.prefill(field.name, related, current) : {}) })); if (label !== undefined) setLabels(current => ({ ...current, [field.name]: label })); }}/>])}
         {creatingSchedule||needsRenewalFlow?<div role="note" className="payment-next-step"><span className="payment-next-step-icon"><TickCircle aria-hidden="true"/></span><div><h3>{creatingSchedule?'Prepara todos los recibos juntos':'Completa el cierre desde su expediente'}</h3><p>{creatingSchedule?'Elige la póliza y revisa su calendario completo. Los recibos deben sumar la prima y conservar su moneda.':'Registra la nueva vigencia o el motivo de no renovación. El seguimiento, la actividad y los eventos se actualizarán con el flujo correspondiente.'}</p><button type="button" className="button button-soft" disabled={!values.policyId||openingPayment||saving} onClick={()=>void openContractFlow()}>{openingPayment?'Abriendo…':creatingSchedule?'Preparar calendario en el expediente':'Ir a la renovación'}<ArrowRight aria-hidden="true"/></button></div></div>:null}
         {editingRow&&['pagos','renovaciones'].includes(slug)&&!needsPaymentConfirmation&&!needsRenewalFlow?<button type="button" className="text-button form-wide" disabled={openingPayment||saving} onClick={()=>void openContractFlow()}>{slug==='pagos'?'Revisar calendario completo en el expediente':'Revisar preparación y nueva vigencia'}<ArrowRight aria-hidden="true"/></button>:null}
         {needsPaymentConfirmation ? <div role="note" className="payment-next-step" aria-label="Confirmar el pago en el expediente">
@@ -302,7 +312,7 @@ function FieldInput({ field, value, label, disabled, autoFocus, onChange, team, 
   else if (field.type === 'textarea') control = <textarea {...common} value={value} maxLength={field.maxLength} rows={4} onChange={event => onChange(event.target.value)}/>;
   else if (field.type === 'select' || field.type === 'currency') control = <Select {...common} value={value} onChange={event => onChange(event.target.value)}>{!field.required ? <option value="">Sin especificar</option> : null}{Object.entries(field.type === 'currency' ? currencies : field.options ?? {}).filter(([key]) => !field.hiddenOptions?.includes(key) || key === value).map(([key, text]) => <option key={key} value={key}>{text}</option>)}</Select>;
   else control = <input {...common} value={value} maxLength={field.maxLength} placeholder={field.placeholder}
-    type={field.type === 'money' ? 'text' : field.type === 'date' ? 'date' : field.type} inputMode={field.type === 'money' ? 'decimal' : undefined}
+    min={field.type==='number'?0:undefined} max={field.name==='age'?120:undefined} step={field.type==='number'?1:undefined} type={field.type === 'money' ? 'text' : field.type === 'date' ? 'date' : field.type} inputMode={field.type === 'money' ? 'decimal' : undefined}
     autoComplete={field.type === 'email' ? 'email' : field.type === 'tel' ? 'tel' : field.name === 'name' ? 'name' : 'off'} onChange={event => onChange(event.target.value)}/>;
   return <div className={`form-field${field.wide || field.type === 'textarea' ? ' is-wide' : ''}${error ? ' is-invalid' : ''}`}>
     {field.type === 'relation' ? <span className="form-label">{title}</span> : null}

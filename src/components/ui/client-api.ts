@@ -5,6 +5,12 @@ export class ApiError extends Error {
   constructor(public readonly code: string, public readonly status: number, message: string, public readonly issues: Issue[] = []) { super(message); }
 }
 export const errorMessages: Record<string, string> = {
+  AREA_FORBIDDEN:'Esta operación pertenece a otra área de seguros. Consulta tus áreas con el superadmin.',
+  AREA_OWNER_INVALID:'El responsable debe tener habilitado el ramo de esta operación.',
+  PROSPECT_LINE_HISTORY:'Esta oportunidad ya contiene un diagnóstico. Conserva su ramo y crea otra oportunidad para otro seguro.',
+  PROSPECT_CLIENT_MISMATCH:'La oportunidad pertenece a otro expediente.',
+  PROSPECT_LINE_MISMATCH:'El ramo de la póliza debe coincidir con el de la oportunidad.',
+
   TEMPLATE_NOT_FOUND:'La plantilla no pertenece a tu cuenta o ya fue eliminada.',TEMPLATE_LIMIT:'Puedes guardar hasta 100 plantillas personales.',EMAIL_CONTEXT_INVALID:'La póliza o el recibo no corresponde a este expediente o aviso.',EMAIL_VARIABLES_PENDING:'Completa las variables del mensaje antes de enviarlo.',
   SOURCE_IN_USE:'El archivo o referencia se conserva porque está vinculado a una preparación de renovación o a un pago confirmado. Revisa esa preparación antes de desvincularla.',
   DRIVE_FOLDER_URL:'Usa el enlace HTTPS de una carpeta en drive.google.com.',DRIVE_NOT_CONNECTED:'Guarda la carpeta y autoriza tu cuenta de Google Drive.',DRIVE_RECONNECT:'Renueva la autorización de Google Drive desde Conexiones.',DRIVE_ACCESS_DENIED:'Tu cuenta de Google no puede consultar ese archivo o carpeta. Revisa también que Google Drive API esté habilitada.',DRIVE_OUTSIDE_FOLDER:'El elemento no pertenece a la carpeta vinculada o es un acceso directo.',DRIVE_FOLDER_INVALID:'Selecciona una carpeta válida de Google Drive.',DRIVE_UNAVAILABLE:'No se pudo consultar Drive. Reintenta sin cambiar los permisos.',

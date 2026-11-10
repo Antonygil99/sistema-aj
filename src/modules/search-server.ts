@@ -1,3 +1,4 @@
+import {getAreaDb} from '@/modules/areas/db';
 import 'server-only';
 import { smartSearchWhere } from './smart-search-server';
 import { conversationScope } from './whatsapp/channels';
@@ -8,7 +9,7 @@ import { documentResult, folderResult, userResult, type SearchResult } from './s
 
 // Independent lookups start together. Private sources retain the same owner/role checks as their modules.
 export async function searchSupplement(q: string, actor: import('@/lib/api').Actor): Promise<SearchResult[]> {
-  const db = getDb();
+  const db = getAreaDb(actor);
   const [documents, folders, users, extra] = await Promise.all([
     (async () => db.document.findMany({ where: { archivedAt: null, ...await smartSearchWhere('documentos', q) }, take: 6, orderBy: { createdAt: 'desc' }, select: { id: true, name: true, mimeType: true, client: { select: { name: true } }, policy: { select: { number: true } } } }))(),
     (async () => db.documentFolder.findMany({ where: { ...await smartSearchWhere('carpetas', q), archivedAt: null }, take: 4, orderBy: { name: 'asc' }, select: { id: true, name: true, clientId: true, client: { select: { name: true } } } }))(),
@@ -26,7 +27,7 @@ async function searchUsers(q: string) {
 }
 
 export async function extraResults(q:string,actor:import('@/lib/api').Actor):Promise<SearchResult[]>{
- const db=getDb(),admin=hasRole(actor.role,'ADMIN');
+ const db=getAreaDb(actor),admin=hasRole(actor.role,'ADMIN');
  const [insurers,meetings,conversations,procedures,notices,deliveries,links,templates]=await Promise.all([
  (async()=>db.insurer.findMany({where:await smartSearchWhere('aseguradoras',q),take:5,select:{id:true,name:true}}))(),
  actor.id?(async()=>db.calendarMeeting.findMany({where:{...await smartSearchWhere('agenda',q),userId:actor.id!,status:{not:'CANCELLED'}},take:5,select:{id:true,title:true},orderBy:{startAt:'desc'}}))():Promise.resolve([]),

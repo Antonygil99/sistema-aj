@@ -1,7 +1,8 @@
+import {getAreaDb} from '@/modules/areas/db';
 import {randomUUID} from 'node:crypto';
 import {z} from 'zod';
 import {authenticate,apiError} from '@/lib/api';
-import {getDb} from '@/lib/db';
+
 import {getR2} from '@/integrations/r2/server';
 import {boundedFormData,FileError,IMAGE_TYPES,isInsurerImageKey,validateFile} from '@/modules/documentos/file-policy';
 import {recordEvent} from '@/modules/events';
@@ -13,7 +14,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
  const auth=await authenticate(request,'ADMIN');if(auth.denied)return auth.denied;
  let uploaded:string|null=null;
  try{
-  const id=z.string().min(1).max(100).parse((await params).id),db=getDb();
+  const id=z.string().min(1).max(100).parse((await params).id),db=getAreaDb(auth.actor);
   const old=await db.insurer.findUnique({where:{id}});if(!old)return Response.json({error:'RECORD_NOT_FOUND'},{status:404,headers});
   const form=await boundedFormData(request);if([...form.keys()].some(k=>!['description','expectedUpdatedAt','removeImage','file'].includes(k)))throw new FileError('INVALID_INPUT',400);
   const d=input.parse({description:form.get('description'),expectedUpdatedAt:form.get('expectedUpdatedAt'),removeImage:form.get('removeImage')??'0'});

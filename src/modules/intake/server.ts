@@ -1,3 +1,4 @@
+import {getRequestDb} from '@/modules/areas/db';
 import 'server-only';
 import type { Actor } from '@/lib/api';
 import { getDb } from '@/lib/db';
@@ -24,13 +25,13 @@ async function ensure(clientId:string,actor:Actor,db=getDb()){
   return row;
 }
 export async function staffIntake(clientId:string,actor:Actor){
-  const client=await assertIntakeAccess(clientId,actor), row=await getDb().clientIntake.findUnique({where:{clientId}});
+  const client=await assertIntakeAccess(clientId,actor), row=await (await getRequestDb()).clientIntake.findUnique({where:{clientId}});
   return {client:{name:client.name,email:client.email,phone:client.phone,taxId:client.taxId,updatedAt:client.updatedAt},
     intake:row?{status:row.status,revision:row.revision,answers:row.answers,approvedAnswers:row.approvedAnswers,approvedAt:row.approvedAt,expiresAt:row.expiresAt,linkActive:!!row.tokenHash&&!!row.expiresAt&&row.expiresAt>new Date()}:null};
 }
 export async function pendingIntakes(actor:Actor){
   if(!actor.id||!['ADMIN','SUPERADMIN'].includes(actor.role))return [];
-  return getDb().clientIntake.findMany({where:{status:'SUBMITTED',client:{archivedAt:null},...(actor.role==='SUPERADMIN'?{}:{OR:[{createdById:actor.id},{client:{policies:{some:{archivedAt:null,ownerEmail:actor.email}}}}]})},select:{revision:true,client:{select:{id:true,name:true}}},orderBy:{updatedAt:'asc'},take:10});
+  return (await getRequestDb()).clientIntake.findMany({where:{status:'SUBMITTED',client:{archivedAt:null},...(actor.role==='SUPERADMIN'?{}:{OR:[{createdById:actor.id},{client:{policies:{some:{archivedAt:null,ownerEmail:actor.email}}}}]})},select:{revision:true,client:{select:{id:true,name:true}}},orderBy:{updatedAt:'asc'},take:10});
 }
 export async function rotateIntakeLink(clientId:string,actor:Actor,db=getDb()){
   const row=await ensure(clientId,actor,db), token=randomSecret(), pin=makePin(), tokenHash=hashSecret(token),expiresAt=new Date(Date.now()+7*86400000);
@@ -42,7 +43,7 @@ export async function rotateIntakeLink(clientId:string,actor:Actor,db=getDb()){
 }
 export async function revokeIntakeLink(clientId:string,actor:Actor){
   await assertIntakeAccess(clientId,actor);
-  await getDb().$transaction(async tx=>{
+  await (await getRequestDb()).$transaction(async tx=>{
     await tx.clientIntake.updateMany({where:{clientId},data:{tokenHash:null,pinHash:null,expiresAt:null,accessHash:null,accessExpiresAt:null}});
     await tx.crmEvent.create({data:eventData(actor,'updated','fichas',clientId,'Enlace de ficha revocado')});
   });
@@ -68,7 +69,7 @@ export async function unlockIntake(token:string,pin:string){
 }
 export async function publicIntake(secret:string){
   if(!/^[A-Za-z0-9_-]{43}$/.test(secret))throw invalidLink();
-  const row=await getDb().clientIntake.findUnique({where:{accessHash:hashSecret(secret)},include:{client:{select:{archivedAt:true}}}}),now=new Date();
+  const row=await (await getRequestDb()).clientIntake.findUnique({where:{accessHash:hashSecret(secret)},include:{client:{select:{archivedAt:true}}}}),now=new Date();
   if(!row||!row.tokenHash||!row.accessExpiresAt||row.accessExpiresAt<=now||!row.expiresAt||row.expiresAt<=now||row.client.archivedAt)throw invalidLink();
   // Do not expose other CRM fields, policy numbers or the approved master profile publicly.
   return {revision:row.revision,answers:row.answers,status:row.status};
@@ -114,7 +115,7 @@ export async function approveIntake(clientId:string,input:unknown,actor:Actor){
 // LLMs can propose basic contact drafts only; privacy/medical/banking contents never enter a tool result.
 export async function intakeState(clientId:string,actor:Actor){
   await assertIntakeAccess(clientId,actor);
-  const row=await getDb().clientIntake.findUnique({where:{clientId},select:{status:true,revision:true,approvedAt:true}});
+  const row=await (await getRequestDb()).clientIntake.findUnique({where:{clientId},select:{status:true,revision:true,approvedAt:true}});
   return {status:row?.status??'NOT_STARTED',revision:row?.revision??0,approved:!!row?.approvedAt,url:`/crm/clientes/${clientId}#ficha-cliente`};
 }
 export async function prepareIntakeDraft(input:unknown,actor:Actor,db=getDb()){

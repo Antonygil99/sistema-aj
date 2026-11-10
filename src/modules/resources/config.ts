@@ -1,5 +1,6 @@
+import {businessLineLabels} from '../areas/policy';
 import {productImage} from '../productos/images';
-import { diagnosisProgress, diagnosisQuestions, prospectStages, stageLabels, stageMessage } from '../prospectos/pipeline';
+import { autoProfileFields, diagnosisProgress, diagnosisQuestions, prospectStages, stageLabels, stageMessage } from '../prospectos/pipeline';
 // Shared, serializable-free description of each CRM table: used by the API (search, nullable fields)
 // and by the browser (columns, forms, labels). Keep it free of server imports.
 export type ResourceSlug = 'prospectos' | 'clientes' | 'polizas' | 'cotizaciones' | 'pagos' | 'renovaciones' | 'siniestros' | 'actividades' | 'productos';
@@ -11,7 +12,7 @@ export type Field = {
   // Options listed only while they are the current value (e.g. CLIENTE, reachable only through conversion).
   hiddenOptions?: string[]; maxLength?: number; placeholder?: string; hint?: string; wide?: boolean;
   // 'owner' picks a teammate (stored as email); 'image' is uploaded separately after saving the record.
-  type: 'text' | 'textarea' | 'email' | 'tel' | 'money' | 'currency' | 'date' | 'select' | 'relation' | 'owner' | 'image' | 'insurer';
+  type: 'number' | 'text' | 'textarea' | 'email' | 'tel' | 'money' | 'currency' | 'date' | 'select' | 'relation' | 'owner' | 'image' | 'insurer';
   options?: Record<string, string>; relation?: RelationSlug; defaultValue?: string;
   // Only shown (and sent) while another field has one of these values.
   showWhen?: { field: string; values: string[] };
@@ -27,7 +28,7 @@ export type ResourceConfig = {
   // Filling a relation can prefill empty fields (e.g. a catalog product fills insurer and responsible).
   prefill?: (field: string, related: Row, values: Record<string, string>) => Record<string, string>;
   // Pipeline view: columns of the status field; progress(row) feeds the card bar; guide(status) is the stage's key message.
-  board?: { columns: string[]; hidden: string }; progress?: (row: Row) => { done: number; total: number; label: string };
+  board?: { columns: string[]; hidden: string; legacy?:string[] }; progress?: (row: Row) => { done: number; total: number; label: string };
   guide?: (status: string) => string | null; modalLinks?: (row: Row) => { label: string; href: string; primary?: boolean }[];
   // Fields that become null when omitted in a full-form update.
   nullable: string[];
@@ -35,7 +36,7 @@ export type ResourceConfig = {
 
 export const currencies = { MXN: 'MXN · Peso mexicano', USD: 'USD · Dólar' };
 export const frequencies = { ONCE: 'Pago único', MONTHLY: 'Mensual', QUARTERLY: 'Trimestral', SEMIANNUAL: 'Semestral', ANNUAL: 'Anual' };
-export const productLineLabels = { MEDICAL: 'Gastos médicos', AUTO: 'Autos', LIFE: 'Vida', HOME: 'Hogar', OTHER: 'Otro' };
+export const productLineLabels = businessLineLabels;
 const text = (value: unknown) => typeof value === 'string' && value.trim() ? value : '';
 const nested = (row: Row, path: string) => path.split('.').reduce<unknown>((value, key) => value && typeof value === 'object' ? (value as Record<string, unknown>)[key] : undefined, row);
 export function formatDate(value: unknown) {
@@ -68,30 +69,39 @@ export const resources: Record<ResourceSlug, ResourceConfig> = {
     slug: 'prospectos', singular: 'prospecto', plural: 'prospectos', article: 'un', illustration: 'prospectos',
     emptyTitle: 'Tu primera oportunidad empieza aquí', emptyMessage: 'Registra a las personas interesadas y acompáñalas de curiosas a clientes recomendadoras.', searchHint: 'Nombre, correo o teléfono',
     statuses: stageLabels,
-    statusTones: { CURIOSO: 'lilac', DIAGNOSTICADO: 'blue', COMPARATIVO: 'sand', EMISION: 'green', CLIENTE: 'green', PERDIDO: 'red' },
-    board: { columns: prospectStages.map(stage => stage.id), hidden: 'Los convertidos en cliente y los perdidos siguen en la vista de lista.' },
-    progress: row => ({ done: diagnosisProgress(row), total: diagnosisQuestions.length, label: `Diagnóstico ${diagnosisProgress(row)}/${diagnosisQuestions.length}` }),
+    statusTones: { INFORMACION_RECIBIDA:'blue',PROPUESTA_ENVIADA:'sand',DOCUMENTACION:'lilac', CURIOSO: 'lilac', DIAGNOSTICADO: 'blue', COMPARATIVO: 'sand', EMISION: 'green', CLIENTE: 'green', PERDIDO: 'red' },
+    board: { columns: [...prospectStages.slice(0,3).map(s=>s.id),'COMPARATIVO',...prospectStages.slice(3).map(s=>s.id),'PERDIDO'],legacy:['COMPARATIVO'], hidden:'Las oportunidades convertidas en cliente se conservan en la vista de lista. Las etapas anteriores no se modifican automáticamente.' },
+    progress: row => ['AUTO','MEDICAL'].includes(String(row.line))?({ done: diagnosisProgress(row), total: row.line==='AUTO'?autoProfileFields.length:diagnosisQuestions.length, label: `${row.line==='AUTO'?'Ficha de Autos':'Diagnóstico'} ${diagnosisProgress(row)}/${row.line==='AUTO'?autoProfileFields.length:diagnosisQuestions.length}` }):({done:row.status==='CURIOSO'?0:1,total:1,label:'Seguimiento comercial'}),
     guide: status => stageMessage(status),
     modalLinks: row => row.convertedClientId ? [{ label: 'Ver cliente', href: `/crm/clientes/${encodeURIComponent(String(row.convertedClientId))}` }]
-      : row.status === 'PERDIDO' ? [] : [{ label: 'Convertir en cliente', href: `/crm/clientes/nuevo?prospect=${encodeURIComponent(row.id)}`, primary: row.status === 'EMISION' }],
+      : row.clientId ? [{label:'Continuar contratación en su expediente',href:`/crm/clientes/nuevo?prospect=${encodeURIComponent(row.id)}`,primary:row.status==='EMISION'},{label:'Ver cliente',href:`/crm/clientes/${encodeURIComponent(String(row.clientId))}`}] : row.status === 'PERDIDO' ? [] : [{ label: 'Convertir en cliente', href: `/crm/clientes/nuevo?prospect=${encodeURIComponent(row.id)}`, primary: row.status === 'EMISION' }],
+    prefill:(field,related):Record<string,string>=>field==='clientId'?{name:String(related.name??''),email:String(related.email??''),phone:String(related.phone??'')}:{},
     fields: [
+      {name:'line',label:'Seguro de interés',type:'select',required:true,options:businessLineLabels,defaultValue:'MEDICAL'},
+      {name:'clientId',label:'Cliente existente',type:'relation',relation:'clientes',hint:'Selecciona su expediente para iniciar una nueva oportunidad sin darlo de alta otra vez.'},
       { name: 'name', label: 'Nombre completo', type: 'text', required: true, maxLength: 250 },
       { name: 'email', label: 'Correo electrónico', type: 'email', maxLength: 254 },
       { name: 'phone', label: 'Teléfono', type: 'tel', maxLength: 30, placeholder: '+52…', hint: 'De 8 a 15 dígitos; puede iniciar con +.' },
+      {name:'sex',label:'Sexo',type:'select',options:{FEMENINO:'Femenino',MASCULINO:'Masculino',NO_ESPECIFICADO:'No especificado'},section:'Datos para Autos',showWhen:{field:'line',values:['AUTO']}},
+      {name:'age',label:'Edad',type:'number',showWhen:{field:'line',values:['AUTO']},hint:'Edad en años al capturar esta oportunidad.'},
+      {name:'postalCode',label:'Código postal',type:'text',maxLength:5,placeholder:'97000',showWhen:{field:'line',values:['AUTO']}},
+      {name:'vehicle',label:'Vehículo',type:'textarea',maxLength:1000,placeholder:'Marca, modelo, año y versión. Añade el uso si ya lo conoces.',showWhen:{field:'line',values:['AUTO']}},
+      {name:'paymentFrequency',label:'Periodicidad de pago',type:'select',options:frequencies,showWhen:{field:'line',values:['AUTO']}},
+      {name:'paymentMethod',label:'Medio de pago',type:'select',options:{TARJETA:'Tarjeta',TRANSFERENCIA:'Transferencia',DOMICILIACION:'Domiciliación',EFECTIVO:'Efectivo',POR_DEFINIR:'Por definir'},showWhen:{field:'line',values:['AUTO']}},
       { name: 'source', label: 'Origen', type: 'text', required: true, maxLength: 250, defaultValue: 'manual', placeholder: 'Referido, WhatsApp, sitio web…' },
-      { name: 'status', label: 'Etapa', type: 'select', required: true, defaultValue: 'CURIOSO', hiddenOptions: ['CLIENTE'], hint: 'Al responder las 5 preguntas pasa solo a Diagnosticado.' },
+      { name: 'status', label: 'Etapa', type: 'select', required: true, defaultValue: 'CURIOSO', hiddenOptions: ['CLIENTE','COMPARATIVO'], hint: 'Al responder las 5 preguntas pasa solo a Diagnosticado.' },
       owner(),
       { name: 'referredByClientId', label: 'Referido por', type: 'relation', relation: 'clientes', hint: 'Cliente que lo recomendó.' },
       { name: 'notes', label: 'Notas', type: 'textarea', maxLength: 5000, wide: true },
-      { name: 'diagProtect', label: diagnosisQuestions[0].question, type: 'textarea', maxLength: 2000, wide: true, section: 'Diagnóstico · 5 preguntas' },
-      { name: 'diagDependents', label: diagnosisQuestions[1].question, type: 'textarea', maxLength: 2000, wide: true },
-      { name: 'diagCare', label: diagnosisQuestions[2].question, type: 'text', maxLength: 2000, wide: true },
-      { name: 'diagCoverage', label: '¿Tiene IMSS o una póliza actual?', type: 'text', maxLength: 2000, placeholder: 'IMSS, póliza actual, ninguna…' },
-      { name: 'diagMedicalHistory', label: '¿Tiene antecedentes médicos?', type: 'select', options: { SI: 'Sí, existen', NO: 'No', NO_SABE: 'No lo sabe' }, hint: 'Solo si existen; nunca registres el detalle.' },
-      { name: 'diagPain', label: diagnosisQuestions[4].question, type: 'select', wide: true, options: { PRIMA: 'Pagar una prima', DECIDIR: 'No poder decidir dónde atenderse', AMBAS: 'Ambas por igual' } },
+      { name: 'diagProtect', label: diagnosisQuestions[0].question, type: 'textarea', maxLength: 2000, wide: true, section: 'Diagnóstico · 5 preguntas', showWhen:{field:'line',values:['MEDICAL']} },
+      { name: 'diagDependents', label: diagnosisQuestions[1].question, type: 'textarea', maxLength: 2000, wide: true, showWhen:{field:'line',values:['MEDICAL']} },
+      { name: 'diagCare', label: diagnosisQuestions[2].question, type: 'text', maxLength: 2000, wide: true, showWhen:{field:'line',values:['MEDICAL']} },
+      { name: 'diagCoverage', label: '¿Tiene IMSS o una póliza actual?', type: 'text', maxLength: 2000, placeholder: 'IMSS, póliza actual, ninguna…', showWhen:{field:'line',values:['MEDICAL']} },
+      { name: 'diagMedicalHistory', label: '¿Tiene antecedentes médicos?', type: 'select', options: { SI: 'Sí, existen', NO: 'No', NO_SABE: 'No lo sabe' }, hint: 'Solo si existen; nunca registres el detalle.', showWhen:{field:'line',values:['MEDICAL']} },
+      { name: 'diagPain', label: diagnosisQuestions[4].question, type: 'select', wide: true, options: { PRIMA: 'Pagar una prima', DECIDIR: 'No poder decidir dónde atenderse', AMBAS: 'Ambas por igual' }, showWhen:{field:'line',values:['MEDICAL']} },
     ],
-    columns: [{ label: 'Nombre', value: row => text(row.name), detail: row => text(row.source) }, contact, { label: 'Diagnóstico', value: row => `${diagnosisProgress(row)}/${diagnosisQuestions.length}`, detail: row => text(nested(row, 'referredBy.name')) ? `Referido por ${text(nested(row, 'referredBy.name'))}` : '' }],
-    title: row => text(row.name), nullable: ['email', 'phone', 'notes', 'ownerEmail', 'referredByClientId', 'diagProtect', 'diagDependents', 'diagCare', 'diagCoverage', 'diagMedicalHistory', 'diagPain'],
+    columns: [{ label: 'Nombre', value: row => text(row.name), detail: row => businessLineLabels[row.line as keyof typeof businessLineLabels]??text(row.source) }, contact, { label: 'Ficha', value: row => `${diagnosisProgress(row)}/${row.line==='AUTO'?autoProfileFields.length:diagnosisQuestions.length}`, detail: row => text(nested(row, 'referredBy.name')) ? `Referido por ${text(nested(row, 'referredBy.name'))}` : '' }],
+    title: row => text(row.name), nullable: ['clientId','sex','age','postalCode','vehicle','paymentFrequency','paymentMethod','email', 'phone', 'notes', 'ownerEmail', 'referredByClientId', 'diagProtect', 'diagDependents', 'diagCare', 'diagCoverage', 'diagMedicalHistory', 'diagPain'],
   },
   clientes: {
     slug: 'clientes', singular: 'cliente', plural: 'clientes', article: 'un', illustration: 'clientes',
@@ -109,7 +119,7 @@ export const resources: Record<ResourceSlug, ResourceConfig> = {
     slug: 'polizas', singular: 'póliza', plural: 'pólizas', article: 'una', illustration: 'polizas',
     emptyTitle: 'Sin pólizas registradas', emptyMessage: 'Registra la cobertura de cada cliente con su vigencia y prima.', searchHint: 'Número, aseguradora, cliente, vehículo o placas',
     statuses: { ACTIVE: 'Activa', EXPIRED: 'Vencida', CANCELLED: 'Cancelada' }, statusTones: { ACTIVE: 'green', EXPIRED: 'sand', CANCELLED: 'red' },
-    fields: [
+    fields: [{name:'line',label:'Ramo',type:'select',options:businessLineLabels,required:true,defaultValue:'MEDICAL'},
       { name: 'number', label: 'Número completo de póliza (incluye prefijo y ceros)', type: 'text', required: true, maxLength: 250 },
       { name: 'clientId', label: 'Cliente', type: 'relation', relation: 'clientes', required: true },
       { name: 'productId', label: 'Producto del catálogo', type: 'relation', relation: 'productos', hint: 'Completa aseguradora, producto y responsable.' },
@@ -123,9 +133,9 @@ export const resources: Record<ResourceSlug, ResourceConfig> = {
       { name: 'endDate', label: 'Fin de vigencia', type: 'date', required: true },
       { name: 'status', label: 'Estado', type: 'select', required: true, defaultValue: 'ACTIVE' },
       owner(),
-      { name: 'vehicle', label: 'Vehículo', type: 'textarea', maxLength: 1000, wide: true, section: 'Vehículo (solo autos)' },
-      { name: 'plates', label: 'Placas', type: 'text', maxLength: 250 },
-      { name: 'vehicleUse', label: 'Uso del vehículo', type: 'text', maxLength: 250, placeholder: 'Particular, comercial, carga…' },
+      { name: 'vehicle', label: 'Vehículo', type: 'textarea', maxLength: 1000, wide: true, section: 'Vehículo (solo autos)', showWhen:{field:'line',values:['AUTO']} },
+      { name: 'plates', label: 'Placas', type: 'text', maxLength: 250, showWhen:{field:'line',values:['AUTO']} },
+      { name: 'vehicleUse', label: 'Uso del vehículo', type: 'text', maxLength: 250, placeholder: 'Particular, comercial, carga…', showWhen:{field:'line',values:['AUTO']} },
     ],
     columns: [
       { label: 'Póliza', value: row => text(row.number), detail: row => [text(row.insurer), text(row.product), text(row.coverage)].filter(Boolean).join(' · ') },
@@ -144,7 +154,7 @@ export const resources: Record<ResourceSlug, ResourceConfig> = {
     slug: 'cotizaciones', singular: 'cotización', plural: 'cotizaciones', article: 'una', illustration: 'cotizaciones',
     emptyTitle: 'Sin cotizaciones todavía', emptyMessage: 'Prepara propuestas para tus prospectos y clientes, y sigue su respuesta.', searchHint: 'Referencia, producto o nombre',
     statuses: { DRAFT: 'Borrador', SENT: 'Enviada', ACCEPTED: 'Aceptada', REJECTED: 'Rechazada' }, statusTones: { DRAFT: 'neutral', SENT: 'blue', ACCEPTED: 'green', REJECTED: 'red' },
-    fields: [
+    fields: [{name:'line',label:'Ramo',type:'select',options:businessLineLabels,required:true,defaultValue:'MEDICAL'},
       { name: 'reference', label: 'Referencia', type: 'text', required: true, maxLength: 250 },
       { name: 'product', label: 'Producto', type: 'text', required: true, maxLength: 250 },
       { name: 'prospectId', label: 'Prospecto', type: 'relation', relation: 'prospectos', hint: 'Elige un prospecto o un cliente, no ambos.' },

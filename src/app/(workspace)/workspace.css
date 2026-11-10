@@ -214,14 +214,14 @@
 }
 @media(max-width:760px){.workspace .quick-panel>a{min-height:48px}}
 /* Embudo de prospectos (Ruta AJ, etapas 1–4) */
-.workspace .pipeline-board{grid-template-columns:repeat(4,minmax(220px,1fr))}
+.workspace .pipeline-board{grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:minmax(220px,1fr)}
 .workspace .pipeline-card{padding:0;gap:0}
 .workspace .pipeline-card-main{display:grid;gap:10px;width:100%;padding:12px;background:none;border:0;text-align:left;font:inherit;color:inherit}
 .workspace .pipeline-advance{justify-content:center;width:100%;border-top:1px solid var(--line);border-radius:0 0 14px 14px;min-height:38px}
 .workspace .pipeline-advance svg{width:14px;height:14px}
 .workspace .form-section{grid-column:1/-1;display:flex;align-items:center;gap:8px;margin:10px 0 0;padding-top:16px;border-top:1px solid var(--line);font-size:14px;font-weight:600}
 .workspace .form-guide{grid-column:1/-1}
-@media(max-width:760px){.workspace .pipeline-board{grid-template-columns:repeat(4,82%)}.workspace .pipeline-advance{min-height:44px}}
+@media(max-width:760px){.workspace .pipeline-board{grid-template-columns:none;grid-auto-columns:82%}.workspace .pipeline-advance{min-height:44px}}
 /* Resumen con métricas reales (dataviz: stat tiles, embudo ordinal, medidor, vista de tabla) */
 .workspace .segmented a{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:9px;font-size:12px;font-weight:500;color:var(--c-5d6a64);white-space:nowrap}.workspace .segmented a[aria-current=page]{background:var(--c-ffffff);color:var(--c-1d2823);box-shadow:0 1px 4px var(--c-10201914)}
 .workspace .overview-section-label{flex-wrap:wrap}.workspace .overview-section-label .segmented{flex-direction:row}

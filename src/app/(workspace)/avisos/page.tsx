@@ -1,6 +1,7 @@
+import {getRequestDb} from '@/modules/areas/db';
 import { requireUser } from '@/lib/session';
 import { hasRole, normalizeEmail } from '@/lib/access-policy';
-import { getDb } from '@/lib/db';
+
 import { listNotices, listTemplates, refreshNotices } from '@/modules/email/notices-server';
 import { recordPageView } from '@/modules/page-events';
 import { NoticesBoard } from '@/components/notices-board';
@@ -15,7 +16,7 @@ export default async function Avisos({ searchParams }: { searchParams: Promise<{
   const email = normalizeEmail(user.email);
   const [pending, resolved, templates] = await Promise.all([listNotices({ scope, email }), listNotices({ scope, email, resolved: true }), canAct ? listTemplates() : Promise.resolve([])]);
   const ownerEmails = [...new Set([...pending, ...resolved].flatMap(notice => notice.ownerEmail ? [notice.ownerEmail] : []))];
-  const owners = Object.fromEntries((ownerEmails.length ? await getDb().authUser.findMany({ where: { email: { in: ownerEmails } }, select: { email: true, name: true } }) : []).map(owner => [owner.email.toLowerCase(), owner.name]));
+  const owners = Object.fromEntries((ownerEmails.length ? await (await getRequestDb()).authUser.findMany({ where: { email: { in: ownerEmails } }, select: { email: true, name: true } }) : []).map(owner => [owner.email.toLowerCase(), owner.name]));
   await recordPageView(user, 'avisos', 'avisos', 'Avisos a clientes');
   return <><div className="eyebrow">SEGUIMIENTO</div><h1>Avisos a clientes</h1>
     <p className="lead-small">Avisos según los tiempos configurados por el asesor responsable. Puedes ajustarlos desde Plantillas. Nada sale solo: envía el correo sugerido, registra que avisaste por otro medio o descártalo.</p>

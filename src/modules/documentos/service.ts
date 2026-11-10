@@ -1,6 +1,7 @@
-import { getDb } from '@/lib/db';
+import {getRequestDb} from '@/modules/areas/db';
+
 export async function list(take: number, skip: number) {
-  const db = getDb();
+  const db = (await getRequestDb());
   const where = { archivedAt: null };
   const [data, total] = await db.$transaction([
     // Bucket keys stay server-side; downloads go through /api/documents/[id]/download.

@@ -1,19 +1,20 @@
+import {getRequestDb} from '@/modules/areas/db';
 import 'server-only';
-import { getDb } from '@/lib/db';
+
 import type { ModuleSlug } from '@/modules/catalog';
 import { followUps } from '@/modules/polizas/delivery';
 import { scopeWhere } from '@/modules/documentos/folders';
 import { monthRange } from './period';
 import { countKpi as card, moneySeries, percentage, calendarMonth, type ModuleMetrics } from './module-types';
 export async function moduleMetrics(slug:ModuleSlug,clientId:string|null=null,now=new Date()):Promise<ModuleMetrics>{
- const db=getDb();const p=monthRange(now);const month={gte:p.start,lt:p.end};const active={archivedAt:null};
+ const db=(await getRequestDb());const p=monthRange(now);const month={gte:p.start,lt:p.end};const active={archivedAt:null};
  const coverage={...active,status:'ACTIVE' as const,startDate:{lte:p.today},endDate:{gte:p.today}};
  const coming={...active,status:'ACTIVE' as const,endDate:{gte:p.today,lte:new Date(p.today.getTime()+60*86400000)}};
  const checks={deliveryReceived:true,deliveryUnderstood:true,deliveryKnowsContact:true,deliveryKnowsWhenToNotify:true,deliveryKnowsFirstStep:true};
- const result:ModuleMetrics={scope:'Todo el equipo · sin aplicar búsqueda ni filtros del listado',asOf:now.toISOString(),cards:[]};
+ const result:ModuleMetrics={scope:'Registros accesibles para tu cuenta · sin aplicar búsqueda ni filtros del listado',asOf:now.toISOString(),cards:[]};
  switch(slug){
  case 'prospectos':{
-  const [open,emission,total,converted]=await Promise.all([db.prospect.count({where:{...active,status:{in:['CURIOSO','DIAGNOSTICADO','COMPARATIVO','EMISION']}}}),db.prospect.count({where:{...active,status:'EMISION'}}),db.prospect.count({where:active}),db.prospect.count({where:{...active,convertedClientId:{not:null}}})]);
+  const [open,emission,total,converted]=await Promise.all([db.prospect.count({where:{...active,status:{in:['CURIOSO','INFORMACION_RECIBIDA','DIAGNOSTICADO','COMPARATIVO','PROPUESTA_ENVIADA','DOCUMENTACION','EMISION']}}}),db.prospect.count({where:{...active,status:'EMISION'}}),db.prospect.count({where:active}),db.prospect.count({where:{...active,convertedClientId:{not:null}}})]);
   result.cards=[card('En seguimiento',open,'Curiosos, diagnosticados, comparativos y en emisión; excluye clientes y perdidos.'),card('En emisión',emission,'Prospectos en la etapa Emisión, pendientes de convertir en cliente.'),card('Convertidos en cliente',converted,'Prospectos con un expediente enlazado mediante la conversión del CRM.'),{label:'Conversión acumulada',value:percentage(converted,total),detail:`${converted} de ${total} prospectos`,definition:'Convertidos con expediente / todos los prospectos no archivados. Es acumulada, no una cohorte mensual.'}];break;}
  case 'clientes':{
   const [total,covered,noContact,referrers]=await Promise.all([db.client.count({where:active}),db.client.count({where:{...active,policies:{some:coverage}}}),db.client.count({where:{...active,AND:[{OR:[{email:null},{email:''}]},{OR:[{phone:null},{phone:''}]}]}}),db.client.count({where:{...active,referrals:{some:active}}})]);

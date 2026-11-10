@@ -1,10 +1,11 @@
+import {getRequestDb} from '@/modules/areas/db';
 import { requireUser } from '@/lib/session';
-import { getDb } from '@/lib/db';
+
 import { normalizeEmail } from '@/lib/access-policy';
 import { UserManager } from '@/components/user-manager';
 export default async function Users() {
   await requireUser('SUPERADMIN');
-  const db = getDb();
+  const db = (await getRequestDb());
   const grants = await db.accessGrant.findMany({ select: { id: true, email: true, role: true, enabled: true }, orderBy: { createdAt: 'asc' } });
   // Google profile (name and photo) exists only after the person's first sign-in.
   const profiles = await db.authUser.findMany({ where: { email: { in: grants.map(grant => grant.email) } }, select: { email: true, name: true, image: true } });

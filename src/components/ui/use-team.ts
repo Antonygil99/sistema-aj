@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { apiFetch } from './client-api';
-export type Teammate = { email: string; name: string | null; role: string };
+export type Teammate = { email: string; name: string | null; role: string;productLines?:string[] };
 let cache: Promise<Teammate[]> | null = null;
 // Teammates for "responsable" pickers; fetched once per page load and shared by every form.
 export function useTeam() {

@@ -1,11 +1,12 @@
+import {getRequestDb} from '@/modules/areas/db';
 import 'server-only';
-import { getDb } from '@/lib/db';
+
 import { monthRange } from './period';
 import { calendarMonth } from './module-types';
 export type RadarRow={id:string;client:string;number:string;date:string;amount:string;currency:string;href:string};
 export type RadarPage={rows:RadarRow[];total:number;label:string;skip:number};
 export async function radar(kind:'renewals'|'payments',skip=0,now=new Date()):Promise<RadarPage>{
- const db=getDb(),p=monthRange(now);
+ const db=(await getRequestDb()),p=monthRange(now);
  if(kind==='renewals'){
   const where={archivedAt:null,status:'ACTIVE' as const,endDate:{gte:p.today,lte:new Date(p.today.getTime()+60*86400000)}};
   const [rows,total]=await Promise.all([db.policy.findMany({where,skip,take:20,orderBy:[{endDate:'asc'},{id:'asc'}],select:{id:true,number:true,endDate:true,premium:true,currency:true,client:{select:{id:true,name:true}}}}),db.policy.count({where})]);

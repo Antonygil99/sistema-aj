@@ -1,7 +1,8 @@
+import {getRequestDb} from '@/modules/areas/db';
 import 'server-only';
 import { createHash } from 'node:crypto';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
-import { getDb } from '@/lib/db';
+
 import type { Actor } from '@/lib/api';
 import { getR2, storageStatus } from '@/integrations/r2/server';
 import { createResend, EmailError, sender, type ResendConfig } from '@/integrations/resend/client';
@@ -24,13 +25,13 @@ import {deliverableWhere} from '@/modules/documentos/delivery';
 
 export type EmailHistoryItem = { id: string; kind: string; subject: string; to: string[]; status: EmailStatus; sentByName: string; attachments: string[]; createdAt: string; sentAt: string | null };
 export async function emailHistory(clientId: string, take = 20): Promise<EmailHistoryItem[]> {
-  const rows = await getDb().emailMessage.findMany({ where: { clientId }, orderBy: { createdAt: 'desc' }, take, select: { id: true, kind: true, subject: true, to: true, status: true, sentByName: true, attachments: true, createdAt: true, sentAt: true } });
+  const rows = await (await getRequestDb()).emailMessage.findMany({ where: { clientId }, orderBy: { createdAt: 'desc' }, take, select: { id: true, kind: true, subject: true, to: true, status: true, sentByName: true, attachments: true, createdAt: true, sentAt: true } });
   return rows.map(row => ({ ...row, attachments: Array.isArray(row.attachments) ? row.attachments.flatMap(item => typeof item === 'object' && item && 'name' in item && typeof item.name === 'string' ? [item.name] : []) : [], createdAt: row.createdAt.toISOString(), sentAt: row.sentAt?.toISOString() ?? null }));
 }
 // Everything the composer needs for one client: who can receive, what can be attached, whether a welcome went out
 // and the suggested text (the team's template filled with the client's, and the notice's, data).
 export async function emailOptions(clientId: string, { kind, noticeId, actor,templateId,policyId,paymentId }: { kind: TemplateKind; noticeId?: string | null; actor: Actor;templateId?:string|null;policyId?:string|null;paymentId?:string|null }) {
-  const db = getDb();
+  const db = (await getRequestDb());
   const client = await db.client.findUnique({ where: { id: clientId }, select: { id: true, name: true, email: true, contacts: { orderBy: { name: 'asc' }, select: { name: true, email: true, role: true } } } });
   if (!client) throw new EmailError('CLIENT_NOT_FOUND', 404);
   const [documents, welcome] = await Promise.all([
@@ -83,7 +84,7 @@ export async function sendClientEmail(actor: Actor, input: ComposeInput) {
   if(!actor.id)throw new EmailError('FORBIDDEN',403);
   if(input.documentIds.length&&(!input.deliveryConfirmation?.verified||!input.deliveryConfirmation.reference.trim()))throw new EmailError('EMAIL_IDENTITY_REQUIRED',422);
   if(/\{[^{}]+\}/.test(input.subject+' '+input.message))throw new EmailError('EMAIL_VARIABLES_PENDING',422);
-  const db = getDb();
+  const db = (await getRequestDb());
   const dedupeKey = `compose:${input.requestId}`;
   const previous = await db.emailMessage.findUnique({ where: { dedupeKey } });
   if (previous?.status === 'SENDING') throw new EmailError('EMAIL_IN_PROGRESS', 409);
@@ -117,18 +118,18 @@ export async function sendClientEmail(actor: Actor, input: ComposeInput) {
 
 // Client contacts (people besides the client who may receive emails about it).
 async function contactClient(clientId: string) {
-  const client = await getDb().client.findUnique({ where: { id: clientId }, select: { id: true, name: true } });
+  const client = await (await getRequestDb()).client.findUnique({ where: { id: clientId }, select: { id: true, name: true } });
   if (!client) throw new EmailError('CLIENT_NOT_FOUND', 404);
   return client;
 }
 export type ContactRow = { id: string; name: string; email: string | null; phone: string | null; role: string };
 const contactSelect = { id: true, name: true, email: true, phone: true, role: true } as const;
 export async function listContacts(clientId: string): Promise<ContactRow[]> {
-  return getDb().clientContact.findMany({ where: { clientId }, orderBy: { name: 'asc' }, select: contactSelect });
+  return (await getRequestDb()).clientContact.findMany({ where: { clientId }, orderBy: { name: 'asc' }, select: contactSelect });
 }
 export async function saveContact(actor: Actor, clientId: string, input: ContactInput, contactId?: string) {
   const client = await contactClient(clientId);
-  const db = getDb();
+  const db = (await getRequestDb());
   const data = { name: input.name, email: input.email, phone: input.phone, role: input.role };
   let contact: ContactRow;
   if (contactId) {
@@ -141,22 +142,22 @@ export async function saveContact(actor: Actor, clientId: string, input: Contact
 }
 export async function deleteContact(actor: Actor, clientId: string, contactId: string) {
   const client = await contactClient(clientId);
-  const result = await getDb().clientContact.deleteMany({ where: { id: contactId, clientId } });
+  const result = await (await getRequestDb()).clientContact.deleteMany({ where: { id: contactId, clientId } });
   if (!result.count) throw new EmailError('CONTACT_NOT_FOUND', 404);
   await recordEvent(actor, 'updated', 'clientes', client.id, client.name, { contact: 'removed' });
 }
 
 // Automatic emails to teammates: one per recipient, deduplicated so a retry never repeats them (false = already sent).
 export async function preferencesOf(emails: string[]) {
-  const rows = emails.length ? await getDb().userPreference.findMany({ where: { email: { in: emails } }, select: { email: true, data: true } }) : [];
+  const rows = emails.length ? await (await getRequestDb()).userPreference.findMany({ where: { email: { in: emails } }, select: { email: true, data: true } }) : [];
   const byEmail = new Map(rows.map(row => [row.email.toLowerCase(), ({...readPreferences(row.data).notifications,renewalDays:readPreferences(row.data).renewalDays})]));
   return (email: string): NotificationSettings & {renewalDays:number[]} => byEmail.get(email) ?? {...readPreferences(null).notifications,renewalDays:[60,45,30]};
 }
 export async function operators() {
-  return getDb().accessGrant.findMany({ where: { enabled: true, role: { in: ['ADMIN', 'SUPERADMIN'] } }, select: { email: true, role: true, enabled: true } });
+  return (await getRequestDb()).accessGrant.findMany({ where: { enabled: true, role: { in: ['ADMIN', 'SUPERADMIN'] } }, select: { email: true, role: true, enabled: true } });
 }
 export async function sendTeamNotice(config: ResendConfig, notice: { kind: string; dedupeKey: string; to: string; rendered: Rendered; recordModule?: string; recordId?: string }) {
-  const db = getDb();
+  const db = (await getRequestDb());
   let row;
   try { row = await db.emailMessage.create({ data: { kind: notice.kind, dedupeKey: notice.dedupeKey, to: [notice.to], subject: notice.rendered.subject, recordModule: notice.recordModule, recordId: notice.recordId, sentByName: 'Sistema AJ' } }); }
   catch (error) { if (isDuplicate(error)) return false; throw error; }
@@ -170,7 +171,7 @@ export async function sendTeamNotice(config: ResendConfig, notice: { kind: strin
 export async function notifyNewProspect(prospectId: string, actor: Actor) {
   try {
     const config = resendConfig(); if (!config) return;
-    const prospect = await getDb().prospect.findUnique({ where: { id: prospectId }, select: { id: true, name: true, phone: true, email: true, source: true, ownerEmail: true } });
+    const prospect = await (await getRequestDb()).prospect.findUnique({ where: { id: prospectId }, select: { id: true, name: true, phone: true, email: true, source: true, ownerEmail: true } });
     if (!prospect) return;
     const grants = await operators();
     const settings = await preferencesOf(grants.map(grant => grant.email.toLowerCase()));
@@ -183,7 +184,7 @@ export async function notifyNewProspect(prospectId: string, actor: Actor) {
 export async function notifyNewClaim(claimId: string, actor: Actor) {
   try {
     const config = resendConfig(); if (!config) return;
-    const claim = await getDb().claim.findUnique({ where: { id: claimId }, select: { id: true, reference: true, occurredAt: true, policy: { select: { number: true, ownerEmail: true, client: { select: { id: true, name: true } } } } } });
+    const claim = await (await getRequestDb()).claim.findUnique({ where: { id: claimId }, select: { id: true, reference: true, occurredAt: true, policy: { select: { number: true, ownerEmail: true, client: { select: { id: true, name: true } } } } } });
     if (!claim) return;
     const grants = await operators();
     const settings = await preferencesOf(grants.map(grant => grant.email.toLowerCase()));
@@ -199,7 +200,7 @@ const agendaKey = (meetingId: string, kind: string, version: string, at: Date) =
 export async function syncMeetingReminders(meetingId: string) {
   try {
     const config = resendConfig(); if (!config) return;
-    const db = getDb();
+    const db = (await getRequestDb());
     const meeting = await db.calendarMeeting.findUnique({ where: { id: meetingId }, include: { user: { select: { email: true } } } });
     if (!meeting) return;
     const now = new Date();
@@ -233,7 +234,7 @@ export async function syncMeetingReminders(meetingId: string) {
 }
 // Daily job: schedules reminders that just entered Resend's 30-day window and cleans up after cancelled meetings.
 export async function syncUpcomingReminders(now = new Date()) {
-  const meetings = await getDb().calendarMeeting.findMany({
+  const meetings = await (await getRequestDb()).calendarMeeting.findMany({
     where: { OR: [{ status: 'SYNCED', startAt: { gt: now, lte: new Date(now.getTime() + 31 * 86400000) } }, { status: { not: 'SYNCED' }, emails: { some: { status: 'SCHEDULED', scheduledAt: { gt: now } } } }] },
     select: { id: true }, orderBy: { startAt: 'asc' }, take: 200,
   });
@@ -243,7 +244,7 @@ export async function syncUpcomingReminders(now = new Date()) {
 
 // Delivery events from Resend's webhook.
 export async function applyEmailEvent(type: string, resendId: string) {
-  const db = getDb();
+  const db = (await getRequestDb());
   const row = await db.emailMessage.findUnique({ where: { resendId }, select: { id: true, status: true, sentAt: true } });
   if (!row) return false;
   const status = nextStatus(row.status, type);

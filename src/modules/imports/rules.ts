@@ -1,3 +1,4 @@
+import {businessLines} from '@/modules/areas/policy';
 import { z } from 'zod';
 import { createSchema as prospectSchema } from '@/modules/prospectos/schema';
 import { createSchema as clientSchema } from '@/modules/clientes/schema';
@@ -10,7 +11,7 @@ export const fieldNames:Record<ImportField,string>={name:'Nombre completo',email
 const cell=z.string().max(500).optional();
 export const contactRowSchema=z.object({name:cell,email:cell,phone:cell,taxId:cell,source:cell,sourceRef:z.string().max(100).optional(),uncertainFields:z.array(z.enum(importFields)).max(5).optional()}).strict();
 export type ContactInput=z.infer<typeof contactRowSchema>;
-export const prepareImportSchema=z.object({target:targetSchema,sourceName:z.string().trim().min(1).max(180),sourceKind:z.enum(['TABLE','EXCEL','CSV','IMAGE','PDF']).default('TABLE'),countryCode:z.enum(['52']).optional(),rows:z.array(contactRowSchema).min(1).max(MAX_IMPORT_ROWS)}).strict();
+export const prepareImportSchema=z.object({target:targetSchema,line:z.enum(businessLines).optional(),sourceName:z.string().trim().min(1).max(180),sourceKind:z.enum(['TABLE','EXCEL','CSV','IMAGE','PDF']).default('TABLE'),countryCode:z.enum(['52']).optional(),rows:z.array(contactRowSchema).min(1).max(MAX_IMPORT_ROWS)}).strict();
 export type PrepareImport=z.infer<typeof prepareImportSchema>;
 export class ImportError extends Error{constructor(public code:string,public status=400){super(code);}}
 export const normalizeName=(value:string)=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/\s+/g,' ').toLocaleUpperCase('es-MX');

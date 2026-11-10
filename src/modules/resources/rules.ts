@@ -1,3 +1,4 @@
+import {businessLines} from '../areas/policy';
 // Pure request rules for the generic CRM tables (validation, search filters, full-form updates). Unit tested.
 import { z } from 'zod';
 import { resources, type ResourceSlug } from './config';
@@ -34,7 +35,7 @@ export const searchFields: Record<ResourceSlug, string[]> = {
 };
 export const listQuery = z.object({
   take: z.coerce.number().int().min(1).max(100).default(20), skip: z.coerce.number().int().min(0).max(100000).default(0),
-  insurerId:z.string().min(1).max(100).optional(),
+  insurerId:z.string().min(1).max(100).optional(),line:z.enum(businessLines).optional(),
   q: z.string().trim().max(100).default(''), status: z.string().max(40).optional(), archived: z.enum(['0', '1']).default('0'),
 }).strict();
 // "policy.client.name" -> { policy: { client: { name: { contains, mode } } } }
@@ -47,7 +48,7 @@ export function listFilter(slug: ResourceSlug, input: unknown) {
   const statuses = resources[slug].statuses;
   if (query.status && !(statuses && Object.hasOwn(statuses, query.status))) throw new ResourceError('INVALID_STATUS', 400);
   const where = {
-    ...(query.insurerId?{insurerId:query.insurerId}:{}),
+    ...(query.insurerId?{insurerId:query.insurerId}:{}),...(query.line&&['prospectos','polizas','productos','cotizaciones'].includes(slug)?{line:query.line}:{}),
     archivedAt: query.archived === '1' ? { not: null } : null,
     ...(query.status ? { status: query.status } : {}),
     ...(query.q ? { OR: searchFields[slug].map(path => searchClause(path, query.q)) } : {}),

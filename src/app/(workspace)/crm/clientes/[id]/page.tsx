@@ -1,3 +1,4 @@
+import {getRequestDb} from '@/modules/areas/db';
 import { ClientProceduresPanel } from '@/components/client-procedures-panel';
 import { ClientIntakePanel } from '@/components/client-intake-panel';
 import { PolicyFinancePanel } from '@/components/policy-finance-panel';
@@ -6,7 +7,7 @@ import Link from 'next/link';
 import { PolicySourceDetails } from '@/components/policy-source-details';
 import { Edit2, ArrowLeft } from '@/components/icons';
 import { notFound } from 'next/navigation';
-import { getDb } from '@/lib/db';
+
 import { requireUser } from '@/lib/session';
 import { hasRole } from '@/lib/access-policy';
 import { coverageState, frequencies } from '@/modules/clientes/dossier-policy';
@@ -18,12 +19,12 @@ import { emailHistory, listContacts } from '@/modules/email/server';
 import { ClientContacts } from '@/components/client-contacts';
 import { DossierEmails } from '@/components/dossier-emails';
 export default async function Dossier({params}:{params:Promise<{id:string}>}) {
-  const user=await requireUser();const {id}=await params;const client=await getDb().client.findUnique({where:{id},include:{policies:{where:{archivedAt:null},orderBy:{endDate:'desc'},include:{payments:{where:{archivedAt:null},orderBy:{dueDate:'asc'}},claims:{where:{archivedAt:null}},activities:{where:{archivedAt:null,kind:{not:null}},select:{kind:true,status:true,dueDate:true}}}},activities:{where:{archivedAt:null},orderBy:{createdAt:'desc'},take:20},convertedFrom:{select:{id:true,name:true}},_count:{select:{referrals:true}}}});if(!client)notFound();
+  const user=await requireUser();const {id}=await params;const client=await (await getRequestDb()).client.findUnique({where:{id},include:{policies:{where:{archivedAt:null},orderBy:{endDate:'desc'},include:{payments:{where:{archivedAt:null},orderBy:{dueDate:'asc'}},claims:{where:{archivedAt:null}},activities:{where:{archivedAt:null,kind:{not:null}},select:{kind:true,status:true,dueDate:true}}}},activities:{where:{archivedAt:null},orderBy:{createdAt:'desc'},take:20},convertedFrom:{select:{id:true,name:true}},_count:{select:{referrals:true}}}});if(!client)notFound();
   await recordPageView(user, 'expedientes', client.id, client.name);
   const [contacts, emails] = await Promise.all([listContacts(client.id), emailHistory(client.id)]);
   const canEdit = hasRole(user.role, 'ADMIN');
   const day=(date:Date)=>date.toISOString().slice(0,10);const today=mexicoDay(new Date());
-  return <><Link className="back" href="/crm/clientes"><ArrowLeft size={16} aria-hidden="true"/> Expedientes</Link><div className="eyebrow">EXPEDIENTE DEL CLIENTE</div><div className="contact-toolbar"><h1>{client.name}</h1><span className="badge">{coverageState(client.policies,today)}</span></div>{client.archivedAt?<p className="notice">Este expediente está archivado. Restáuralo desde la lista de clientes para volver a mostrarlo en Expedientes.</p>:null}<p className="lead-small">{client.convertedFrom?<>Llegó como prospecto · <Link href={'/crm/prospectos?q='+encodeURIComponent(client.convertedFrom.name)+'&open='+client.convertedFrom.id}>ver diagnóstico</Link> · </>:null}Referidos que ha recomendado: {client._count.referrals}</p><p>{client.email||'Sin correo'} · {client.phone||'Sin teléfono'} · RFC: {client.taxId||'Sin registrar'}</p><div className="wizard-actions"><Link className="button" href={`/crm/documentos?clientId=${id}`}>Abrir documentos</Link>{canEdit&&!client.archivedAt?<Link className="text-button" href={`/drive?clientId=${id}`}>Referencias de Google Drive</Link>:null}<Link className="text-button" href={`/crm/clientes?view=list&q=${encodeURIComponent(client.name)}`}><Edit2 aria-hidden="true"/>Editar datos de contacto</Link></div>
+  return <><Link className="back" href="/crm/clientes"><ArrowLeft size={16} aria-hidden="true"/> Expedientes</Link><div className="eyebrow">EXPEDIENTE DEL CLIENTE</div><div className="contact-toolbar"><h1>{client.name}</h1><span className="badge">{coverageState(client.policies,today)}</span></div>{client.archivedAt?<p className="notice">Este expediente está archivado. Restáuralo desde la lista de clientes para volver a mostrarlo en Expedientes.</p>:null}<p className="lead-small">{client.convertedFrom[0]?<>Llegó como prospecto · <Link href={'/crm/prospectos?q='+encodeURIComponent(client.convertedFrom[0].name)+'&open='+client.convertedFrom[0].id}>ver diagnóstico</Link> · </>:null}Referidos que ha recomendado: {client._count.referrals}</p><p>{client.email||'Sin correo'} · {client.phone||'Sin teléfono'} · RFC: {client.taxId||'Sin registrar'}</p><div className="wizard-actions"><Link className="button" href={`/crm/documentos?clientId=${id}`}>Abrir documentos</Link>{canEdit&&!client.archivedAt?<Link className="text-button" href={`/drive?clientId=${id}`}>Referencias de Google Drive</Link>:null}<Link className="text-button" href={`/crm/clientes?view=list&q=${encodeURIComponent(client.name)}`}><Edit2 aria-hidden="true"/>Editar datos de contacto</Link></div>
   {canEdit?<ClientIntakePanel clientId={client.id}/>:null}{canEdit&&!client.archivedAt?<ClientProceduresPanel clientId={client.id}/>:null}
   <ClientContacts clientId={client.id} initial={contacts} canEdit={canEdit}/>
   <p className="lead-small">Activo indica cobertura vigente. Los recibos pendientes o vencidos se muestran por separado y no cancelan automáticamente una póliza.</p>

@@ -20,8 +20,8 @@ test('un prospecto curioso con las 5 respuestas pasa solo a diagnosticado y nunc
 });
 
 test('las etapas avanzan en el orden de la Ruta AJ y se detienen en emisión', () => {
-  assert.equal(nextStage('CURIOSO'), 'DIAGNOSTICADO');
-  assert.equal(nextStage('COMPARATIVO'), 'EMISION');
+  assert.equal(nextStage('CURIOSO'), 'INFORMACION_RECIBIDA');
+  assert.equal(nextStage('COMPARATIVO'), 'DOCUMENTACION');
   assert.equal(nextStage('EMISION'), null, 'emitir se hace convirtiendo en cliente');
   assert.equal(nextStage('PERDIDO'), null);
   assert.match(stageMessage('COMPARATIVO') ?? '', /uso real/);

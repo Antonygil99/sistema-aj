@@ -18,7 +18,7 @@ export async function actorFromClaims(claims:JWTPayload):Promise<McpActor> {
   const role=permittedRole(grant,user.emailVerified,email,process.env.AJ_SUPERADMIN_EMAIL);
   if(!role)throw new McpError('ACCESS_DISABLED',403);
   const scopes=claims.scope.split(' ').filter(scope=>consent.scopes.includes(scope));
-  return {id:userId,email,name:user.name,role,clientId,scopes,issuedAt:claims.iat};
+  return {id:userId,email,name:user.name,role,productLines:grant?.productLines??[],clientId,scopes,issuedAt:claims.iat};
 }
 export async function revalidateActor(actor:McpActor) {
   return actorFromClaims({sub:actor.id,client_id:actor.clientId,iat:actor.issuedAt,scope:actor.scopes.join(' ')});

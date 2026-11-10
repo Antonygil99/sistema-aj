@@ -17,6 +17,7 @@ import { TourProvider } from './ui/tours';
 import { AccountPanelsProvider } from './ui/account-panels';
 import { TooltipLayer } from './ui/tooltip-layer';
 import type { Preferences } from '@/modules/preferences';
+import {BrokerScopeProvider} from './ui/broker-scope';
 const groups: { label: string; slugs: ModuleSlug[] }[] = [
   { label: 'Relaciones', slugs: ['prospectos', 'clientes', 'cotizaciones'] },
   { label: 'Operación', slugs: ['polizas', 'entregas', 'pagos', 'renovaciones', 'siniestros'] },
@@ -24,7 +25,7 @@ const groups: { label: string; slugs: ModuleSlug[] }[] = [
 ];
 const roles = { USER: 'Usuario', ADMIN: 'Administrador', SUPERADMIN: 'Superadmin' };
 export function WorkspaceShell({ children, user, preferences }: { children: ReactNode; user: AccountUser; preferences: Preferences }) {
-  return <PreferencesProvider initial={preferences}><WorkspaceFrame user={user}>{children}</WorkspaceFrame></PreferencesProvider>;
+  return <BrokerScopeProvider actor={user}><PreferencesProvider initial={preferences}><WorkspaceFrame user={user}>{children}</WorkspaceFrame></PreferencesProvider></BrokerScopeProvider>;
 }
 // The theme attribute is server-rendered on the shell (no flash) and mirrored on <html> for what lives in <body>.
 function WorkspaceFrame({ children, user }: { children: ReactNode; user: AccountUser }) {

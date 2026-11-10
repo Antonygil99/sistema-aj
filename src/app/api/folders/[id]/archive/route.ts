@@ -1,7 +1,8 @@
+import {getAreaDb} from '@/modules/areas/db';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { authenticate, apiError } from '@/lib/api';
-import { getDb } from '@/lib/db';
+
 import { recordEvent } from '@/modules/events';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -11,7 +12,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   try {
     const id = z.string().min(1).max(100).parse((await params).id);
     const { archived } = z.object({ archived: z.boolean() }).strict().parse(await request.json());
-    const db = getDb();
+    const db = getAreaDb(auth.actor);
     const result = await db.documentFolder.updateMany({ where: { id, archivedAt: archived ? null : { not: null } }, data: { archivedAt: archived ? new Date() : null } });
     const folder = await db.documentFolder.findUnique({ where: { id }, select: { id: true, name: true } });
     if (!folder) return NextResponse.json({ error: 'FOLDER_NOT_FOUND' }, { status: 404 });

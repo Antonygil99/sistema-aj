@@ -1,5 +1,6 @@
+import {getRequestDb} from '@/modules/areas/db';
 import 'server-only';
-import { getDb } from '@/lib/db';
+
 import { resendConfig } from '@/integrations/resend/server';
 import { daysBetween, formatDay, formatMoney, mexicoDay, noticeKindLabels, storedDay, type NoticeKind, milestoneFor } from './notices';
 import { normalizeAddress } from './rules';
@@ -13,7 +14,7 @@ const days = (count: number) => count === 1 ? '1 día' : `${count} días`;
 // Records without a responsible appear for every administrator. Nothing to report means no email. One per day.
 export async function sendDailyDigests(now = new Date()) {
   const config = resendConfig(); if (!config) return 0;
-  const db = getDb();
+  const db = (await getRequestDb());
   const today = mexicoDay(now);
   const base = appUrl();
   const grants = await operators();

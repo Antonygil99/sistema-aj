@@ -1,7 +1,8 @@
+import {getAreaDb} from '@/modules/areas/db';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { authenticate, apiError } from '@/lib/api';
-import { getDb } from '@/lib/db';
+
 import { recordEvent } from '@/modules/events';
 import { getDocumentFiles } from '@/modules/documentos/files';
 import { FileError } from '@/modules/documentos/file-policy';
@@ -12,7 +13,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
   try {
     const id = z.string().min(1).max(100).parse((await context.params).id);
     const url = await getDocumentFiles().download(id);
-    const document = await getDb().document.findUnique({ where: { id }, select: { name: true } });
+    const document = await getAreaDb(auth.actor).document.findUnique({ where: { id }, select: { name: true } });
     await recordEvent(auth.actor, 'downloaded', 'documentos', id, document?.name ?? 'Archivo');
     return new NextResponse(null, { status: 303, headers: { Location: url, 'Cache-Control': 'private, no-store', 'Referrer-Policy': 'no-referrer' } });
   } catch (error) {

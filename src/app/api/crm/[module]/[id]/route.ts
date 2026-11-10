@@ -16,7 +16,7 @@ export async function GET(request: Request, context: Context) {
   try {
     const { module, id } = await context.params;
     if (!isResourceSlug(module)) return NextResponse.json({ error: 'MODULE_NOT_FOUND' }, { status: 404 });
-    const data = await findResource(module, recordId.parse(id));
+    const data = await findResource(module, recordId.parse(id),auth.actor);
     if (!data) return NextResponse.json({ error: 'RECORD_NOT_FOUND' }, { status: 404 });
     await recordEvent(auth.actor, 'viewed', module, data.id, resources[module].title(plain(data)));
     return NextResponse.json({ data: redact(module, data, auth.actor.role) }, { headers: noStore });
@@ -27,7 +27,7 @@ export async function PATCH(request: Request, context: Context) {
   try {
     const { module, id } = await context.params;
     if (!isResourceSlug(module)) return NextResponse.json({ error: 'MODULE_NOT_FOUND' }, { status: 404 });
-    const data = await updateResource(module, recordId.parse(id), await request.json());
+    const data = await updateResource(module, recordId.parse(id), await request.json(),undefined,auth.actor);
     if (data) await recordEvent(auth.actor, 'updated', module, data.id, resources[module].title(plain(data)));
     return NextResponse.json({ data }, { headers: noStore });
   } catch (error) { return apiError(error); }

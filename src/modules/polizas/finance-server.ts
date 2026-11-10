@@ -1,6 +1,7 @@
+import {getRequestDb} from '@/modules/areas/db';
 import 'server-only';
 import {verifyDriveEvidence} from '@/modules/drive/server';
-import { getDb } from '@/lib/db';
+
 import { ResourceError } from '@/modules/resources/rules';
 import { recordEvent, eventData } from '@/modules/events';
 import type { Actor } from '@/lib/api';
@@ -11,7 +12,7 @@ import {editScheduleInput} from './finance';
 import {activeFinancialPolicy,lockPolicy,scheduleVersion,validateContractSchedule} from './contract-server';
 
 export async function policyFinance(id: string) {
-  const db = getDb();
+  const db = (await getRequestDb());
   const policy = await db.policy.findUnique({ where: { id }, include: { _count:{select:{payments:true}}, payments: { where: { archivedAt: null }, orderBy: [{ dueDate: 'asc' }, { id: 'asc' }], include: { evidenceDriveLink: {select:{id:true,name:true}}, evidenceDocument: { select: { id: true, name: true, archivedAt: true } } } }, previousPolicy: { select: { id: true, number: true, startDate: true, endDate: true } }, nextPolicy: { select: { id: true, number: true, startDate: true, endDate: true } } } });
   if (!policy) throw new ResourceError('RECORD_NOT_FOUND',404);
   const evidence = await db.document.findMany({ where: { archivedAt: null, OR: [{ policyId: id }, { clientId: policy.clientId, policyId: null, claimId: null }] }, select: { id: true, name: true }, orderBy: { createdAt: 'desc' }, take: 200 });
@@ -19,7 +20,7 @@ export async function policyFinance(id: string) {
 }
 // The entire reviewed draft is applied atomically. Confirmed receipts and their evidence never get replaced.
 export async function editPolicySchedule(id:string,input:unknown,actor:Actor){
-  const data=editScheduleInput.parse(input),db=getDb();
+  const data=editScheduleInput.parse(input),db=(await getRequestDb());
   await db.$transaction(async tx=>{
     await lockPolicy(tx,id);
     const policy=await activeFinancialPolicy(tx,id);
@@ -47,7 +48,7 @@ export async function editPolicySchedule(id:string,input:unknown,actor:Actor){
   await recordEvent(actor,'updated','polizas',id,'Calendario de recibos ajustado; pagos confirmados conservados');
 }
 export async function createPolicySchedule(id: string, input: unknown, actor: Actor) {
-  const data = scheduleInput.parse(input), db = getDb();
+  const data = scheduleInput.parse(input), db = (await getRequestDb());
   await db.$transaction(async tx => {
     await tx.$queryRaw`SELECT id FROM "Policy" WHERE id = ${id} FOR UPDATE`;
     const policy = await tx.policy.findUnique({ where: { id }, include: { client: true, _count: { select: { payments: true } } } });
@@ -64,7 +65,7 @@ export async function createPolicySchedule(id: string, input: unknown, actor: Ac
   await recordEvent(actor,'updated','polizas',id,'Calendario de recibos revisado');
 }
 export async function confirmPayment(id: string, input: unknown, actor: Actor, headers?: Headers) {
-  const data = confirmationInput.parse(input), db = getDb();
+  const data = confirmationInput.parse(input), db = (await getRequestDb());
   if (data.paidAt > mexicoDay(new Date())) throw new ResourceError('FINANCE_FUTURE_PAYMENT',422);
   const driveId = data.evidenceDocumentId.startsWith('drive:') ? data.evidenceDocumentId.slice(6) : null;
   const context = driveId ? await db.payment.findUnique({where:{id},select:{policy:{select:{clientId:true}}}}) : null;
@@ -93,7 +94,7 @@ export async function confirmPayment(id: string, input: unknown, actor: Actor, h
   await recordEvent(actor,'updated','pagos',id,'Pago confirmado con evidencia');
 }
 export async function renewPolicy(id: string, input: unknown, actor: Actor) {
-  const data = renewalInput.parse(input), db = getDb();
+  const data = renewalInput.parse(input), db = (await getRequestDb());
   const renewed = await db.$transaction(async tx => {
     await tx.$queryRaw`SELECT id FROM "Policy" WHERE id = ${id} FOR UPDATE`;
     const previous = await tx.policy.findUnique({ where: { id }, include: { client: true, nextPolicy: { select: { id: true } } } });
@@ -102,7 +103,7 @@ export async function renewPolicy(id: string, input: unknown, actor: Actor) {
     if (previous.updatedAt.toISOString() !== new Date(data.expectedUpdatedAt).toISOString()) throw new ResourceError('RECORD_CHANGED',409);
     if (data.startDate < policyDay(previous.endDate)) throw new ResourceError('FINANCE_RENEWAL_DATES',422);
     const next = await tx.policy.create({ data: { number: data.number, insurer: previous.insurer, product: previous.product, productId: previous.productId, clientId: previous.clientId,
-      currency: previous.currency, premium: data.premium, paymentFrequency: previous.paymentFrequency, ownerEmail: previous.ownerEmail,
+      line:previous.line,currency: previous.currency, premium: data.premium, paymentFrequency: previous.paymentFrequency, ownerEmail: previous.ownerEmail,
       coverage: previous.coverage, vehicle: previous.vehicle, plates: previous.plates, vehicleUse: previous.vehicleUse,
       startDate: new Date(data.startDate), endDate: new Date(data.endDate), previousPolicyId: id,
       sourceData: { paymentsNeedReview: true, renewalCreatedFrom: id } } });

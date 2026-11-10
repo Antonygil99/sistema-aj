@@ -1,6 +1,7 @@
+import {getRequestDb} from '@/modules/areas/db';
 import {readPreferences,defaultNoticeSchedule} from '@/modules/preferences';
 import 'server-only';
-import { getDb } from '@/lib/db';
+
 import type { Actor } from '@/lib/api';
 import { EmailError } from '@/integrations/resend/client';
 import { recordEvent } from '@/modules/events';
@@ -16,7 +17,7 @@ const lower = (email: string | null) => email ? email.toLowerCase() : null;
 // qualifies (paid receipt, renewed or cancelled policy, closed claim) or that a newer milestone replaced.
 // Idempotent: runs from the daily job and every time someone opens Avisos.
 export async function refreshNotices(now = new Date()) {
-  const db = getDb();
+  const db = (await getRequestDb());
   const today = mexicoDay(now);
   const openClient = { archivedAt: null };
   const [policies, payments, claims] = await Promise.all([
@@ -48,7 +49,7 @@ export async function refreshNotices(now = new Date()) {
 
 // Pending notices (or the ones resolved in the last 14 days), most urgent first. "Mine" includes unassigned ones.
 export async function listNotices({ scope, email, resolved = false, now = new Date() }: { scope: 'mine' | 'all'; email: string | null; resolved?: boolean; now?: Date }): Promise<NoticeView[]> {
-  const db = getDb();
+  const db = (await getRequestDb());
   const today = mexicoDay(now);
   const notices = await db.clientNotice.findMany({
     where: { ...(resolved ? { status: { in: ['SENT', 'NOTIFIED', 'DISMISSED'] }, resolvedAt: { gte: new Date(now.getTime() - 14 * 86400000) } } : { status: 'PENDING' }), ...(scope === 'mine' && email ? { OR: [{ ownerEmail: email.toLowerCase() }, { ownerEmail: null }] } : {}) },
@@ -82,12 +83,12 @@ export async function listNotices({ scope, email, resolved = false, now = new Da
   return resolved ? views : views.sort((a, b) => (a.kind === 'SINIESTRO' ? 7 : a.daysLeft) - (b.kind === 'SINIESTRO' ? 7 : b.daysLeft));
 }
 async function noticeOrThrow(id: string) {
-  const notice = await getDb().clientNotice.findUnique({ where: { id }, include: { client: { select: { name: true } } } });
+  const notice = await (await getRequestDb()).clientNotice.findUnique({ where: { id }, include: { client: { select: { name: true } } } });
   if (!notice) throw new EmailError('NOTICE_NOT_FOUND', 404);
   return notice;
 }
 export async function resolveNotice(actor: Actor, id: string, action: NoticeAction) {
-  const db = getDb();
+  const db = (await getRequestDb());
   const notice = await noticeOrThrow(id);
   const label = `${noticeKindLabels[notice.kind as NoticeKind] ?? notice.kind} · ${notice.client.name}`;
   if (action.action === 'reopen') {
@@ -101,7 +102,7 @@ export async function resolveNotice(actor: Actor, id: string, action: NoticeActi
 }
 // The record data a notice's email can use ({poliza}, {vence}, {monto}…).
 export async function noticeDraftValues(noticeId: string, clientId: string): Promise<{ kind: TemplateKind; values: Partial<Record<Placeholder, string>> }> {
-  const db = getDb();
+  const db = (await getRequestDb());
   const notice = await noticeOrThrow(noticeId);
   if (notice.clientId !== clientId) throw new EmailError('NOTICE_NOT_FOUND', 404);
   if (notice.status !== 'PENDING') throw new EmailError('NOTICE_ALREADY_RESOLVED', 409);
@@ -122,26 +123,26 @@ export async function noticeDraftValues(noticeId: string, clientId: string): Pro
   };
 }
 export async function markNoticeSent(actor: Actor, noticeId: string, clientId: string, emailId: string) {
-  await getDb().clientNotice.updateMany({ where: { id: noticeId, clientId, status: 'PENDING' }, data: { status: 'SENT', channel: 'EMAIL', emailId, resolvedAt: new Date(), resolvedByName: actor.name, resolvedByEmail: actor.email } });
+  await (await getRequestDb()).clientNotice.updateMany({ where: { id: noticeId, clientId, status: 'PENDING' }, data: { status: 'SENT', channel: 'EMAIL', emailId, resolvedAt: new Date(), resolvedByName: actor.name, resolvedByEmail: actor.email } });
 }
 
 // Team-wide texts. A kind without a saved row uses the suggested default.
 export async function savedTemplate(kind: TemplateKind): Promise<TemplateText | null> {
-  const row = await getDb().emailTemplate.findUnique({ where: { kind }, select: { subject: true, body: true } });
+  const row = await (await getRequestDb()).emailTemplate.findUnique({ where: { kind }, select: { subject: true, body: true } });
   return row ?? null;
 }
 export async function listTemplates() {
-  const rows = await getDb().emailTemplate.findMany();
+  const rows = await (await getRequestDb()).emailTemplate.findMany();
   return templateKinds.map(kind => {
     const row = rows.find(item => item.kind === kind);
     return { kind, subject: row?.subject ?? null, body: row?.body ?? null, updatedByName: row?.updatedByName ?? null, updatedAt: row?.updatedAt.toISOString() ?? null };
   });
 }
 export async function saveTemplate(actor: Actor, kind: TemplateKind, input: TemplateText) {
-  await getDb().emailTemplate.upsert({ where: { kind }, create: { kind, ...input, updatedByName: actor.name, updatedByEmail: actor.email }, update: { ...input, updatedByName: actor.name, updatedByEmail: actor.email } });
+  await (await getRequestDb()).emailTemplate.upsert({ where: { kind }, create: { kind, ...input, updatedByName: actor.name, updatedByEmail: actor.email }, update: { ...input, updatedByName: actor.name, updatedByEmail: actor.email } });
   await recordEvent(actor, 'updated', 'plantillas', kind, kind);
 }
 export async function resetTemplate(actor: Actor, kind: TemplateKind) {
-  await getDb().emailTemplate.deleteMany({ where: { kind } });
+  await (await getRequestDb()).emailTemplate.deleteMany({ where: { kind } });
   await recordEvent(actor, 'restored', 'plantillas', kind, kind);
 }

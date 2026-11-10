@@ -5,8 +5,9 @@ import { ZodError } from 'zod';
 import { currentUser } from './session';
 import { getAuth } from './auth';
 import { hasRole, normalizeEmail, trustedMutation, type AccessRole } from './access-policy';
+import {authorizeAreaRequest} from '@/modules/areas/server';
 // Who performed a request; the internal token acts as an integration, never as a person.
-export type Actor = { id: string | null; name: string; email: string | null; role: AccessRole };
+export type Actor = { id: string | null; name: string; email: string | null; role: AccessRole;productLines?:readonly string[] };
 export async function authenticate(request: Request, minimum: AccessRole = 'USER'): Promise<{ denied: NextResponse; actor?: never } | { actor: Actor; denied?: never }> {
   const token = process.env.AJ_API_TOKEN;
   const authorization = request.headers.get('authorization');
@@ -24,8 +25,10 @@ export async function authenticate(request: Request, minimum: AccessRole = 'USER
     const user = await currentUser(request.headers);
     if (!user) return { denied: NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 }) };
     if (!hasRole(user.role, minimum)) return { denied: NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 }) };
-    return { actor: { id: user.id, name: user.name, email: normalizeEmail(user.email), role: user.role } };
-  } catch { return { denied: NextResponse.json({ error: 'SERVICE_UNAVAILABLE' }, { status: 503 }) }; }
+    const actor:Actor={ id: user.id, name: user.name, email: normalizeEmail(user.email), role: user.role,productLines:user.productLines };
+    await authorizeAreaRequest(request,actor);
+    return { actor };
+  } catch(error) { return { denied: apiError(error) }; }
 }
 export async function authorize(request: Request, minimum: AccessRole = 'USER') {
   return (await authenticate(request, minimum)).denied;

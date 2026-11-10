@@ -1,12 +1,13 @@
+import {getRequestDb} from '@/modules/areas/db';
 import 'server-only';
 import {driveEvidenceOptions,verifyDriveEvidence} from '@/modules/drive/server';
-import {getDb} from '@/lib/db';
+
 import type {Actor} from '@/lib/api';
 import {eventData} from '@/modules/events';
 import {preparationSchema,premiumComparison,canTransitionPreparation} from './preparation';
 import {ResourceError} from '@/modules/resources/rules';
 export async function renewalPreparation(policyId:string,actor?:Actor,headers?:Headers){
-  const db=getDb(),policy=await db.policy.findFirst({where:{id:policyId,archivedAt:null,client:{archivedAt:null}},select:{id:true,number:true,premium:true,currency:true,startDate:true,endDate:true,clientId:true,ownerEmail:true,updatedAt:true}});
+  const db=(await getRequestDb()),policy=await db.policy.findFirst({where:{id:policyId,archivedAt:null,client:{archivedAt:null}},select:{id:true,number:true,premium:true,currency:true,startDate:true,endDate:true,clientId:true,ownerEmail:true,updatedAt:true}});
   if(!policy)throw new ResourceError('RECORD_NOT_FOUND',404);
   const [draft,documents,history]=await Promise.all([db.renewalPreparation.findUnique({where:{policyId}}),db.document.findMany({where:{archivedAt:null,OR:[{policyId},{clientId:policy.clientId,policyId:null,claimId:null}]},select:{id:true,name:true},take:200,orderBy:{createdAt:'desc'}}),db.crmEvent.findMany({where:{module:'renovaciones',recordId:policyId},select:{id:true,label:true,actorName:true,createdAt:true,details:true},take:30,orderBy:{createdAt:'desc'}})]);
   let driveDocuments:Awaited<ReturnType<typeof driveEvidenceOptions>>=[],driveMessage='';
@@ -14,7 +15,7 @@ export async function renewalPreparation(policyId:string,actor?:Actor,headers?:H
   return {policy,draft,documents:[...documents,...driveDocuments],history,driveMessage};
 }
 export async function saveRenewalPreparation(policyId:string,input:unknown,actor:Actor,headers?:Headers){
-  const d=preparationSchema.parse(input),db=getDb();
+  const d=preparationSchema.parse(input),db=(await getRequestDb());
   if(!actor.id||actor.role==='USER')throw new ResourceError('FORBIDDEN',403);
   const driveSources=new Map<string,Awaited<ReturnType<typeof verifyDriveEvidence>>>();
   const sourcePolicy=await db.policy.findFirst({where:{id:policyId,archivedAt:null},select:{clientId:true}});

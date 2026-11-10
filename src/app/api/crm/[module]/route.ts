@@ -18,7 +18,7 @@ export async function GET(request: Request, context: Context) {
     const params = Object.fromEntries(new URL(request.url).searchParams);
     if (slug === 'documentos') return NextResponse.json(await listDocuments(Number(params.take ?? 20) || 20, Number(params.skip ?? 0) || 0), { headers: noStore });
     if (!isResourceSlug(slug)) return NextResponse.json({ error: 'MODULE_NOT_FOUND' }, { status: 404 });
-    const result = await listResource(slug, params);
+    const result = await listResource(slug, params,auth.actor);
     await recordEvent(auth.actor, 'viewed', slug, slug, `Listado de ${slug}`);
     return NextResponse.json({ ...result, data: result.data.map(row => redact(slug, row, auth.actor.role)) }, { headers: noStore });
   } catch (error) { return apiError(error); }
@@ -30,7 +30,7 @@ export async function POST(request: Request, context: Context) {
   if (slug === 'documentos') return NextResponse.json({ error: 'USE_DOCUMENT_UPLOAD' }, { status: 405, headers: { Allow: 'GET' } });
   if (!isResourceSlug(slug)) return NextResponse.json({ error: 'MODULE_NOT_FOUND' }, { status: 404 });
   try {
-    const data = await createResource(slug, await request.json());
+    const data = await createResource(slug, await request.json(),undefined,auth.actor);
     await recordEvent(auth.actor, 'created', slug, data.id, resources[slug].title(JSON.parse(JSON.stringify(data)) as Row));
     // Teammates hear about new prospects and claims by email (today typed by a person, later taken by the assistants).
     if (slug === 'prospectos') after(() => notifyNewProspect(data.id, auth.actor));

@@ -1,9 +1,10 @@
+import {getAreaDb} from '@/modules/areas/db';
 import { randomUUID } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { authenticate, apiError } from '@/lib/api';
 import {preserveCompanyImage,productImageSource} from '@/modules/aseguradoras/server';
-import { getDb } from '@/lib/db';
+
 import { getR2 } from '@/integrations/r2/server';
 import { boundedFormData, FileError, IMAGE_TYPES, isProductImageKey, validateFile } from '@/modules/documentos/file-policy';
 import { recordEvent } from '@/modules/events';
@@ -21,7 +22,7 @@ function failure(error: unknown) {
 export async function GET(request: Request, { params }: Context) {
   const auth = await authenticate(request); if (auth.denied) return auth.denied;
   try {
-    const product = await productImageSource(getDb(),productId.parse((await params).id));
+    const product = await productImageSource(getAreaDb(auth.actor),productId.parse((await params).id));
     if (!product) return NextResponse.json({ error: 'FILE_NOT_FOUND' }, { status: 404, headers: noStore });
     const url = await getR2().downloadUrl(product.key, product.name);
     return new NextResponse(null, { status: 303, headers: { Location: url, 'Cache-Control': 'private, no-store', 'Referrer-Policy': 'no-referrer' } });
@@ -32,7 +33,7 @@ export async function POST(request: Request, { params }: Context) {
   const auth = await authenticate(request, 'ADMIN'); if (auth.denied) return auth.denied;
   try {
     const id = productId.parse((await params).id);
-    const db = getDb();
+    const db = getAreaDb(auth.actor);
     const product = await db.product.findUnique({ where: { id }, select: { id: true, name: true, imageKey: true,insurerId:true } });
     if (!product) return NextResponse.json({ error: 'RECORD_NOT_FOUND' }, { status: 404, headers: noStore });
     const form = await boundedFormData(request);
@@ -57,7 +58,7 @@ export async function DELETE(request: Request, { params }: Context) {
   const auth = await authenticate(request, 'ADMIN'); if (auth.denied) return auth.denied;
   try {
     const id = productId.parse((await params).id);
-    const db = getDb();
+    const db = getAreaDb(auth.actor);
     const product = await db.product.findUnique({ where: { id }, select: { name: true, imageKey: true,insurerId:true } });
     if (!product) return NextResponse.json({ error: 'RECORD_NOT_FOUND' }, { status: 404, headers: noStore });
     if(product.imageKey)await preserveCompanyImage(db,product.insurerId);

@@ -1,7 +1,8 @@
+import {getAreaDb} from '@/modules/areas/db';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { authenticate, apiError } from '@/lib/api';
-import { getDb } from '@/lib/db';
+
 import { logCutoff } from '@/modules/log-retention';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -11,7 +12,7 @@ export async function GET(request: Request) {
   try {
     const sinceParam = new URL(request.url).searchParams.get('since');
     const since = sinceParam ? new Date(z.iso.datetime({ offset: true }).parse(sinceParam)) : null;
-    const db = getDb(), now = new Date();
+    const db = getAreaDb(auth.actor), now = new Date();
     const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
     const week = new Date(today.getTime() + 7 * 86400000);
     const [events, recent, overdue, renewals, followUpsDue] = await Promise.all([

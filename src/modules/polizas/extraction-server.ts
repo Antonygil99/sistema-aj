@@ -1,8 +1,9 @@
+import {getRequestDb} from '@/modules/areas/db';
 import 'server-only';
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import {PDFDocument} from 'pdf-lib';
-import {getDb} from '@/lib/db';
+
 import type {Actor} from '@/lib/api';
 import {getPreferences} from '@/modules/preferences-server';
 import {assistantModels} from '@/modules/preferences';
@@ -22,7 +23,7 @@ export async function extractPolicy(file:File,actor:Actor){
   const provider=assistantModels.find(m=>m.id===model)!.provider;
   if(!(provider==='anthropic'?process.env.ANTHROPIC_API_KEY:process.env.OPENAI_API_KEY)?.trim())throw new ResourceError('AI_NOT_CONFIGURED',503);
   const now=BigInt(Date.now()),cutoff=now-3600000n,key='policy-extract:'+actor.id;
-  const rows=await getDb().$queryRaw<{count:number}[]>`INSERT INTO "AuthRateLimit" (id,key,count,"lastRequest") VALUES (${key},${key},1,${now}) ON CONFLICT (key) DO UPDATE SET count=CASE WHEN "AuthRateLimit"."lastRequest"<${cutoff} THEN 1 ELSE "AuthRateLimit".count+1 END,"lastRequest"=CASE WHEN "AuthRateLimit"."lastRequest"<${cutoff} THEN ${now} ELSE "AuthRateLimit"."lastRequest" END RETURNING count`;
+  const rows=await (await getRequestDb()).$queryRaw<{count:number}[]>`INSERT INTO "AuthRateLimit" (id,key,count,"lastRequest") VALUES (${key},${key},1,${now}) ON CONFLICT (key) DO UPDATE SET count=CASE WHEN "AuthRateLimit"."lastRequest"<${cutoff} THEN 1 ELSE "AuthRateLimit".count+1 END,"lastRequest"=CASE WHEN "AuthRateLimit"."lastRequest"<${cutoff} THEN ${now} ELSE "AuthRateLimit"."lastRequest" END RETURNING count`;
   if(rows[0].count>10)throw new ResourceError('AI_RATE_LIMITED',429);
   const base64=Buffer.from(bytes).toString('base64'),jsonSchema=z.toJSONSchema(extractedPolicySchema),signal=AbortSignal.timeout(45000);
   try{

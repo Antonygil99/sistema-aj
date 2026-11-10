@@ -35,7 +35,7 @@ function moduleTour(slug: ModuleSlug): Tour {
   const base = { id: `modulo:${slug}`, kind: 'module' as const, title: entry.label, summary: entry.description, route: `/crm/${slug}` };
   const intro = (body: string): TourStep => ({ title: entry.label, body });
   if (slug === 'prospectos') return { ...base, steps: [
-    intro('Aquí sigues a cada prospecto por la Ruta AJ: curioso, diagnosticado, comparativo guiado y emisión.'),
+    intro('Elige el seguro de interés y sigue sus etapas: Curioso, Información recibida, Diagnosticado, Propuesta enviada, Documentación y Emisión. Los datos que se solicitan cambian según el ramo.'),
     { targets: ['.resource-toolbar .segmented[aria-label="Forma de ver"]'], title: 'Embudo o lista', body: 'El embudo muestra a cada prospecto en su etapa; la lista sirve para buscar y filtrar por estado. Recordamos la vista que elijas.' },
     { targets: newButton, title: 'Registrar un prospecto', body: 'Captura sus datos y, cuando puedas, las 5 preguntas del diagnóstico. Al responderlas pasa solo a «Diagnosticado».' },
     { targets: ['.pipeline-board .pipeline-card'], title: 'Tarjeta del prospecto', body: 'Tócala para ver o editar. Dentro está «Convertir en cliente», que abre su expediente sin volver a capturar datos.' },

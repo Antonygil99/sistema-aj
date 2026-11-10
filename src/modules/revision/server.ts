@@ -1,13 +1,14 @@
+import {getRequestDb} from '@/modules/areas/db';
 import 'server-only';
 import {Prisma} from '@/generated/prisma/client';
-import {getDb} from '@/lib/db';
+
 import {smartSearchWhere} from '../smart-search-server';
 import {z} from 'zod';
 import {reviewKinds,type ReviewRow} from './types';
 export const reviewQuery=z.object({kind:z.enum(Object.keys(reviewKinds) as [keyof typeof reviewKinds,...(keyof typeof reviewKinds)[]]).default('all'),q:z.string().trim().max(100).default(''),skip:z.coerce.number().int().min(0).max(100000).default(0)}).strict();
 
 export async function reviewQueue(input:unknown){
-  const query=reviewQuery.parse(input),db=getDb(),take=20;
+  const query=reviewQuery.parse(input),db=(await getRequestDb()),take=20;
   const grants=await db.accessGrant.findMany({where:{enabled:true,role:{in:['ADMIN','SUPERADMIN']}},select:{email:true}});
   const badOwner={OR:[{ownerEmail:null},{NOT:{ownerEmail:{in:grants.map(row=>row.email),mode:'insensitive' as const}}}]};
   const active={archivedAt:null,status:'ACTIVE' as const,client:{archivedAt:null}};

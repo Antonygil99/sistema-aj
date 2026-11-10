@@ -1,4 +1,6 @@
 import 'server-only';
+import {prepareAreaWrite,assertRecordArea} from '@/modules/areas/server';
+import {scopedWhere,type AreaActor} from '@/modules/areas/policy';
 import {lockPolicy,validateReceiptUpdate,validateContractSchedule,transferAutomaticFollowUps,markScheduleForReview,activeFinancialPolicy} from '@/modules/polizas/contract-server';
 import {validateRenewalWrite} from '@/modules/renovaciones/contract-server';
 import {smartSearchWhere} from '@/modules/smart-search-server';
@@ -20,7 +22,7 @@ type Delegate = {
 const policyWithClient = { select: { id: true, number: true, client: { select: { id: true, name: true } } } };
 const productSummary = { select: { id: true, name: true, insurer: true, imageType: true, updatedAt: true,insurerProfile:insurerImageMetadata } };
 const definitions: Record<ResourceSlug, { model: string; include?: object; omit?: object; orderBy: object[] }> = {
-  prospectos: { model: 'prospect', include: { referredBy: { select: { id: true, name: true } }, convertedClient: { select: { id: true, name: true } } }, orderBy: [{ createdAt: 'desc' }] },
+  prospectos: { model: 'prospect', include: { client:{select:{id:true,name:true}},referredBy: { select: { id: true, name: true } }, convertedClient: { select: { id: true, name: true } } }, orderBy: [{ createdAt: 'desc' }] },
   clientes: { model: 'client', orderBy: [{ createdAt: 'desc' }] },
   polizas: { model: 'policy', include: { client: { select: { id: true, name: true } }, catalogProduct: productSummary }, orderBy: [{ endDate: 'asc' }] },
   cotizaciones: { model: 'quote', include: { client: { select: { id: true, name: true } }, prospect: { select: { id: true, name: true } } }, orderBy: [{ createdAt: 'desc' }] },
@@ -34,10 +36,10 @@ const definitions: Record<ResourceSlug, { model: string; include?: object; omit?
 function delegate(client: unknown, slug: ResourceSlug) { return (client as Record<string, Delegate>)[definitions[slug].model]; }
 const withInclude = (slug: ResourceSlug) => ({ ...(definitions[slug].include ? { include: definitions[slug].include } : {}), ...(definitions[slug].omit ? { omit: definitions[slug].omit } : {}) });
 
-export async function listResource(slug: ResourceSlug, input: unknown) {
+export async function listResource(slug: ResourceSlug, input: unknown,actor?:AreaActor) {
   const { query } = listFilter(slug, input);
   const {where:base}=listFilter(slug,{...query,q:''});
-  const where={...base,...await smartSearchWhere(slug,query.q,getDb(),{includePrivateNotes:true})};
+  const where=scopedWhere(slug,{...base,...await smartSearchWhere(slug,query.q,getDb(),{includePrivateNotes:true})},actor);
   const db = getDb(), model = delegate(db, slug);
   const [data, total] = await Promise.all([
     model.findMany({ where, take: query.take, skip: query.skip, orderBy: [...definitions[slug].orderBy, { id: 'desc' }], ...withInclude(slug) }),
@@ -46,25 +48,29 @@ export async function listResource(slug: ResourceSlug, input: unknown) {
   return { data, total, take: query.take, skip: query.skip };
 }
 // Global search: a few active matches per table, without counting.
-export async function searchResource(slug: ResourceSlug, q: string, take = 5) {
+export async function searchResource(slug: ResourceSlug, q: string, take = 5,actor?:AreaActor) {
   const { where:base } = listFilter(slug, { take });
-  const where={...base,...await smartSearchWhere(slug,q,getDb(),{includePrivateNotes:true})};
+  const where=scopedWhere(slug,{...base,...await smartSearchWhere(slug,q,getDb(),{includePrivateNotes:true})},actor);
   return delegate(getDb(), slug).findMany({ where, take, orderBy: [...definitions[slug].orderBy, { id: 'desc' }], ...withInclude(slug) });
 }
-export async function findResource(slug: ResourceSlug, id: string) {
+export async function findResource(slug: ResourceSlug, id: string,actor?:AreaActor) {
+  if(actor)await assertRecordArea(getDb(),slug,id,actor);
   return delegate(getDb(), slug).findUnique({ where: { id }, ...withInclude(slug) });
 }
-export async function createResource(slug: ResourceSlug, input: unknown, db = getDb()) {
-  let data = applyRules(slug, schemas[slug].parse(input) as Record<string, unknown>);
-  if(slug==='polizas'){data=await resolvePolicyCatalog(db,data);if(data.ownerEmail&&!await db.accessGrant.findFirst({where:{email:String(data.ownerEmail),enabled:true,role:{in:['ADMIN','SUPERADMIN']}}}))throw new ResourceError('POLICY_OWNER_INVALID',422);}
+export async function createResource(slug: ResourceSlug, input: unknown, db = getDb(),actor?:AreaActor) {
+  const normalized=await prepareAreaWrite(db,slug,input as Record<string,unknown>,actor);
+  let data = applyRules(slug, schemas[slug].parse(normalized) as Record<string, unknown>);
+  if(slug==='polizas'){data=await resolvePolicyCatalog(db,data,undefined,actor);if(data.ownerEmail&&!await db.accessGrant.findFirst({where:{email:String(data.ownerEmail),enabled:true,role:{in:['ADMIN','SUPERADMIN']}}}))throw new ResourceError('POLICY_OWNER_INVALID',422);}
   if(slug==='productos')return db.$transaction(async tx=>{if(!data.ownerEmail||!await tx.accessGrant.findFirst({where:{email:String(data.ownerEmail),enabled:true,role:{in:['ADMIN','SUPERADMIN']}}}))throw new ResourceError('PRODUCT_OWNER_INVALID',422);const insurer=await ensureInsurer(tx,String(data.insurer));return delegate(tx,slug).create({data:{...data,insurerId:insurer.id},...withInclude(slug)});});
   if (slug === 'pagos') throw new ResourceError('FINANCE_USE_SCHEDULE',422);
   if(slug==='renovaciones')return db.$transaction(async tx=>{await lockPolicy(tx,String(data.policyId));await validateRenewalWrite(tx,data);return delegate(tx,slug).create({data,...withInclude(slug)});});
   return delegate(db, slug).create({ data, ...withInclude(slug) });
 }
 // Optimistic concurrency: the update only applies to the version the user edited.
-export async function updateResource(slug: ResourceSlug, id: string, input: unknown, db = getDb()) {
-  const { expectedUpdatedAt, data } = parseUpdate(slug, input);
+export async function updateResource(slug: ResourceSlug, id: string, input: unknown, db = getDb(),actor?:AreaActor) {
+  const previous=actor?await assertRecordArea(db,slug,id,actor,true):undefined;
+  const normalized=await prepareAreaWrite(db,slug,input as Record<string,unknown>,actor,previous??undefined);
+  const { expectedUpdatedAt, data } = parseUpdate(slug, normalized);
   if(slug==='productos'){const product=await db.product.findUnique({where:{id},select:{imageKey:true,insurerId:true,updatedAt:true}});if(product?.imageKey&&product.updatedAt.getTime()===expectedUpdatedAt.getTime())await preserveCompanyImage(db,product.insurerId);}
   return db.$transaction(async tx => {
     let assignment: {oldOwner:string|null;newOwner:string|null}|undefined;
@@ -74,7 +80,7 @@ export async function updateResource(slug: ResourceSlug, id: string, input: unkn
     if(slug==='productos'){if(!data.ownerEmail||!await tx.accessGrant.findFirst({where:{email:String(data.ownerEmail),enabled:true,role:{in:['ADMIN','SUPERADMIN']}}}))throw new ResourceError('PRODUCT_OWNER_INVALID',422);data.insurerId=(await ensureInsurer(tx,String(data.insurer))).id;}
     if (slug === 'polizas') {
       const existing = await tx.policy.findUnique({ where: { id }, include: { nextPolicy: { select: { id: true } } } });
-      Object.assign(data,await resolvePolicyCatalog(tx,data,existing??undefined));
+      Object.assign(data,await resolvePolicyCatalog(tx,data,existing??undefined,actor));
       if(existing){
         assignment={oldOwner:existing.ownerEmail,newOwner:typeof data.ownerEmail==='string'?data.ownerEmail:null};
         const changed=['currency','paymentFrequency'].some(key=>(data[key]??null)!==(existing[key as 'currency'|'paymentFrequency']??null))||Number(data.premium)!==Number(existing.premium)||new Date(data.startDate as Date).getTime()!==existing.startDate.getTime()||new Date(data.endDate as Date).getTime()!==existing.endDate.getTime();
@@ -95,6 +101,7 @@ export async function updateResource(slug: ResourceSlug, id: string, input: unkn
       if (data.status === 'PAID') throw new ResourceError('FINANCE_USE_CONFIRMATION',422);
     }
     // "Cliente" is only valid for a prospect that went through the conversion flow.
+    if(slug==='prospectos'&&previous&&data.line!==previous.line&&['diagProtect','diagDependents','diagCare','diagCoverage','diagMedicalHistory','diagPain'].some(key=>previous[key]))throw new ResourceError('PROSPECT_LINE_HISTORY',409);
     if (slug === 'prospectos' && data.status === 'CLIENTE' && !(await tx.prospect.findUnique({ where: { id }, select: { convertedClientId: true } }))?.convertedClientId) throw new ResourceError('USE_CONVERSION', 422);
     const result = await delegate(tx, slug).updateMany({ where: { id, updatedAt: expectedUpdatedAt }, data });
     if (!result.count) {

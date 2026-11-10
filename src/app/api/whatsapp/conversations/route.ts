@@ -1,6 +1,7 @@
+import {getAreaDb} from '@/modules/areas/db';
 import {smartSearchWhere} from '@/modules/smart-search-server';
 import { authenticate, apiError } from '@/lib/api';
-import { getDb } from '@/lib/db';
+
 import { ownChannels, channelCredentials } from '@/modules/whatsapp/channels';
 import { z } from 'zod';
 export const runtime = 'nodejs';
@@ -9,7 +10,7 @@ export async function GET(request: Request) {
   try {
     const { q, skip } = z.object({ q: z.string().trim().max(100).default(''), skip: z.coerce.number().int().min(0).max(100000).default(0) }).parse(Object.fromEntries(new URL(request.url).searchParams));
     const channels=await ownChannels(auth.actor),scope={phoneNumberId:{in:channels.flatMap(c=>c.phoneNumberId?[c.phoneNumberId]:[])}};
-    const db = getDb(), where = {...scope,...await smartSearchWhere('whatsapp',q)};
+    const db = getAreaDb(auth.actor), where = {...scope,...await smartSearchWhere('whatsapp',q)};
     const [rows, total, open] = await Promise.all([
       db.whatsAppConversation.findMany({ where, skip, take: 30, orderBy: [{ lastMessageAt: 'desc' }, { id: 'desc' }], include: { messages: { orderBy: [{ sentAt: 'desc' }, { id: 'desc' }], take: 1 } } }),
       db.whatsAppConversation.count({ where }), db.whatsAppConversation.count({ where: { ...scope,closed: false } }),

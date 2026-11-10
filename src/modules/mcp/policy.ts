@@ -13,10 +13,10 @@ export const fieldLabels:Record<string,string>={name:'Nombre',email:'Correo',pho
 Object.assign(fieldLabels,{nombre:'Nombre',correo:'Correo',telefono:'Teléfono'});
 // Explicit administrative projections; no free-text diagnoses, claim narratives, bank details, tokens or file contents.
 export const fields: Record<McpModule, readonly string[]> = {
-  prospectos:['name','email','phone','source','status','ownerEmail'],
+  prospectos:['name','email','phone','source','status','ownerEmail','line','clientId','sex','age','postalCode','vehicle','paymentFrequency','paymentMethod'],
   clientes:['name','email','phone','taxId'],
-  polizas:['number','clientId','insurer','product','productId','status','startDate','endDate','premium','currency','paymentFrequency','ownerEmail'],
-  cotizaciones:['reference','prospectId','clientId','product','amount','currency','status','validUntil'],
+  polizas:['line','number','clientId','insurer','product','productId','status','startDate','endDate','premium','currency','paymentFrequency','ownerEmail'],
+  cotizaciones:['line','reference','prospectId','clientId','product','amount','currency','status','validUntil'],
   pagos:['policyId','amount','currency','dueDate','status'],
   renovaciones:['policyId','dueDate','status'],
   siniestros:['reference','policyId','status','occurredAt'],

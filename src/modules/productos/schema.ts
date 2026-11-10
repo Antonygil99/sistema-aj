@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { text, ownerEmail } from '../shared/validation';
-export const productLines = ['MEDICAL', 'AUTO', 'LIFE', 'HOME', 'OTHER'] as const;
+export {businessLines as productLines} from '../areas/policy';
+import {businessLines as productLines} from '../areas/policy';
 // The image travels separately (multipart to /api/products/[id]/image); this schema covers the catalog data.
 export const createSchema = z.object({
   name: text, insurer: text, line: z.enum(productLines).default('MEDICAL'),

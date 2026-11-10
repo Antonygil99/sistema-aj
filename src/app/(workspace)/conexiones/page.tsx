@@ -1,6 +1,7 @@
+import {getRequestDb} from '@/modules/areas/db';
 import type { Metadata } from 'next';
 import { requireUser } from '@/lib/session';
-import { getDb } from '@/lib/db';
+
 import { purgeExpiredUploads } from '@/modules/mcp/actor';
 import { mcpResource } from '@/modules/mcp/policy';
 import { Connections } from '@/components/mcp/connections';
@@ -8,7 +9,7 @@ import './connections.css';
 export const metadata:Metadata={title:'Conexiones · Sistema AJ'};
 export default async function ConnectionsPage() {
   const user=await requireUser();await purgeExpiredUploads();
-  const db=getDb();
+  const db=(await getRequestDb());
   const consents=await db.oauthConsent.findMany({where:{userId:user.id},select:{clientId:true,scopes:true,createdAt:true},orderBy:{createdAt:'desc'}});
   const clients=await db.oauthClient.findMany({where:{clientId:{in:consents.map(c=>c.clientId)}},select:{clientId:true,name:true}});
   const renewable=await db.oauthRefreshToken.findMany({where:{userId:user.id,revoked:null,expiresAt:{gt:new Date()},scopes:{has:'offline_access'}},select:{clientId:true},distinct:['clientId']});

@@ -4,7 +4,7 @@ import { CloseCircle, SearchNormal1 } from '@/components/icons';
 import { relationLabel, type RelationSlug, type Row } from '@/modules/resources/config';
 import { apiFetch } from './client-api';
 // Searchable combobox over another CRM table (clients, policies, prospects, claims).
-export function RelationPicker({ relation, value, initialLabel, onChange, label, required, disabled, insurerId }: { relation: RelationSlug; value: string; initialLabel: string; onChange: (id: string, label: string, row?: Row) => void; label: string; required?: boolean; disabled?: boolean; insurerId?:string }) {
+export function RelationPicker({ relation, value, initialLabel, onChange, label, required, disabled, insurerId,line }: { relation: RelationSlug; value: string; initialLabel: string; onChange: (id: string, label: string, row?: Row) => void; label: string; required?: boolean; disabled?: boolean; insurerId?:string;line?:string }) {
   const [query, setQuery] = useState('');
   const [options, setOptions] = useState<{ id: string; label: string; row: Row }[]>([]);
   const [open, setOpen] = useState(false);
@@ -23,7 +23,7 @@ export function RelationPicker({ relation, value, initialLabel, onChange, label,
       setLoading(true);
       setFailed(false);
       try {
-        const result = await apiFetch<{ data: Row[];total?:number }>(`/api/crm/${relation}?take=20&q=${encodeURIComponent(query.trim())}${insurerId?'&insurerId='+encodeURIComponent(insurerId):''}`, { signal: controller.signal });
+        const result = await apiFetch<{ data: Row[];total?:number }>(`/api/crm/${relation}?take=20&q=${encodeURIComponent(query.trim())}${insurerId?'&insurerId='+encodeURIComponent(insurerId):''}${line?'&line='+encodeURIComponent(line):''}`, { signal: controller.signal });
         if(controller.signal.aborted)return;
         setOptions(result.data.map(row => ({ id: row.id, label: relationLabel[relation](row) || row.id, row })));
         setMore((result.total??0)>result.data.length);
@@ -32,7 +32,7 @@ export function RelationPicker({ relation, value, initialLabel, onChange, label,
       finally { if (!controller.signal.aborted) setLoading(false); }
     }, 180);
     return () => { controller.abort(); clearTimeout(timer); };
-  }, [open, query, relation, insurerId]);
+  }, [open, query, relation, insurerId,line]);
   useEffect(() => {
     if (!open) return;
     const outside = (event: PointerEvent) => { if (!box.current?.contains(event.target as Node)) setOpen(false); };

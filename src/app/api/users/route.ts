@@ -1,3 +1,4 @@
+import {businessLines} from '@/modules/areas/policy';
 import { z } from 'zod';
 import { currentUser } from '@/lib/session';
 import { normalizeEmail, trustedMutation } from '@/lib/access-policy';
@@ -21,16 +22,16 @@ export async function PATCH(request: Request) {
   try {
     const user = await manager(request);
     if(!user) return Response.json({ error: 'FORBIDDEN' }, { status: 403 });
-    const input = z.object({ email: z.email().transform(normalizeEmail), role: z.enum(['USER','ADMIN']), enabled: z.boolean() }).strict().parse(await request.json());
+    const input = z.object({ email: z.email().transform(normalizeEmail), role: z.enum(['USER','ADMIN']), enabled: z.boolean(),productLines:z.array(z.enum(businessLines)).max(businessLines.length).transform(lines=>[...new Set(lines)]).optional() }).strict().parse(await request.json());
     if(input.email === normalizeEmail(process.env.AJ_SUPERADMIN_EMAIL ?? '')) return Response.json({ error: 'PRIMARY_ADMIN_PROTECTED' }, { status: 409 });
     const data = await getDb().$transaction(async tx => {
       const previous = await tx.accessGrant.findUnique({ where: { email: input.email } });
-      const grant = await tx.accessGrant.upsert({ where: { email: input.email }, create: input, update: { role: input.role, enabled: input.enabled } });
+      const grant = await tx.accessGrant.upsert({ where: { email: input.email }, create: input, update: { role: input.role, enabled: input.enabled,...(input.productLines?{productLines:input.productLines}:{}) } });
       if(!input.enabled) {
         const target = await tx.authUser.findUnique({ where: { email: input.email } });
         if(target) await tx.authSession.deleteMany({ where: { userId: target.id } });
       }
-      await tx.accessAudit.create({ data: { actorId: user.id, targetEmail: input.email, change: { role: input.role, enabled: input.enabled } } });
+      await tx.accessAudit.create({ data: { actorId: user.id, targetEmail: input.email, change: { role: input.role, enabled: input.enabled,productLines:grant.productLines } } });
       await tx.crmEvent.create({ data: eventData(user, 'access_changed', 'usuarios', input.email, input.email, { before: previous ? { role: previous.role, enabled: previous.enabled } : null, after: { role: input.role, enabled: input.enabled } }) });
       return grant;
     });
