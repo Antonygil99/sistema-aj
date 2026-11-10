@@ -3,7 +3,7 @@ import {cache} from 'react';
 import {headers} from 'next/headers';
 import {getDb} from '@/lib/db';
 import {ResourceError} from '@/modules/resources/rules';
-import {areaWhere,unrestrictedAreas,type AreaActor} from './policy';
+import {actorLines,areaWhere,businessLines,unrestrictedAreas,type AreaActor} from './policy';
 const modelModules:Record<string,string>={prospect:'prospectos',policy:'polizas',quote:'cotizaciones',payment:'pagos',renewal:'renovaciones',claim:'siniestros',activity:'actividades',document:'documentos',product:'productos',insuranceProcedure:'procedimientos',renewalPreparation:'preparacion',clientNotice:'avisos',emailMessage:'correos',crmEvent:'eventos'};
 const relations:Record<string,Record<string,string>>={client:{policies:'policy',quotes:'quote',activities:'activity',documents:'document',referrals:'prospect',opportunities:'prospect',convertedFrom:'prospect',procedures:'insuranceProcedure',notices:'clientNotice'},policy:{payments:'payment',renewals:'renewal',claims:'claim',documents:'document',activities:'activity',procedures:'insuranceProcedure'},prospect:{quotes:'quote',activities:'activity'},documentFolder:{documents:'document'}};
 type Args=Record<string,unknown>;
@@ -13,7 +13,13 @@ function modelScope(model:string,actor:AreaActor){
  if(['procedimientos','preparacion'].includes(resource))return areaWhere('pagos',actor);
  if(resource==='avisos')return {ownerEmail:actor.email??'__no_identity__'};
  if(resource==='correos')return {sentByEmail:actor.email??'__no_identity__'};
- if(resource==='eventos')return {actorEmail:actor.email??'__no_identity__'};
+ if(resource==='eventos'){
+  const own={actorEmail:actor.email??'__no_identity__'};
+  // Both brokers can follow shared opportunities and contacts, including referrals.
+  // Other brokers' WhatsApp, email, private tasks and audit-only events remain excluded.
+  return actor.role==='ADMIN'&&actorLines(actor).length===businessLines.length?
+   {OR:[own,{auditOnly:false,module:{in:['prospectos','clientes','productos','aseguradoras']}}]}:own;
+ }
  return areaWhere(resource,actor);
 }
 // Keep unique IDs at the root of findUnique's extended unique selector.

@@ -6,7 +6,11 @@ export type AreaActor = { role:string; email:string|null; id?:string|null; produ
 export function unrestrictedAreas(actor?:AreaActor) { return !actor || actor.role==='SUPERADMIN' || (actor.id===null && actor.email===null); }
 export function actorLines(actor?:AreaActor):BusinessLine[] { return unrestrictedAreas(actor)?[...businessLines]:businessLines.filter(line=>actor?.productLines?.includes(line)); }
 export function canOperateLine(actor:AreaActor|undefined,line:unknown) { return unrestrictedAreas(actor) || actorLines(actor).includes(line as BusinessLine); }
-export function defaultLine(actor?:AreaActor):BusinessLine { const lines=actorLines(actor);return lines.length===1?lines[0]:lines.includes('MEDICAL')?'MEDICAL':lines[0]??'MEDICAL'; }
+// The first configured area is the preferred one; enabling more areas must not change it.
+export function defaultLine(actor?:AreaActor):BusinessLine {
+ if(unrestrictedAreas(actor))return 'MEDICAL';
+ return actor?.productLines?.find((line):line is BusinessLine=>businessLines.includes(line as BusinessLine))??'MEDICAL';
+}
 // Catalog and basic customer contacts are shared. Operational records are not.
 export function areaWhere(module:string,actor?:AreaActor):Record<string,unknown> {
   if(unrestrictedAreas(actor))return {};

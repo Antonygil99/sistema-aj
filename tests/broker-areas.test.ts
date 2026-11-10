@@ -1,11 +1,18 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {actorLines,areaWhere,canOperateLine,defaultLine,scopedWhere} from '../src/modules/areas/policy';
+import {actorLines,areaWhere,businessLines,canOperateLine,defaultLine,scopedWhere} from '../src/modules/areas/policy';
 import {createSchema} from '../src/modules/prospectos/schema';
 import {applyProspectRules,diagnosisProgress,nextStage} from '../src/modules/prospectos/pipeline';
 import {formToBody,resources,rowToForm,type Row} from '../src/modules/resources/config';
 const joel={role:'ADMIN',email:'auto@example.invalid',productLines:['AUTO']};
 const ale={role:'ADMIN',email:'vida@example.invalid',productLines:['MEDICAL','LIFE']};
+test('shared areas permit referrals in both directions and keep each broker preferred line',()=>{
+ const sharedJoel={...joel,productLines:['AUTO','HOME','OTHER','MEDICAL','LIFE','ACCIDENT','TRAVEL']};
+ const sharedAle={...ale,productLines:['MEDICAL','LIFE','ACCIDENT','AUTO','HOME','TRAVEL','OTHER']};
+ assert.equal(defaultLine(sharedJoel),'AUTO');assert.equal(defaultLine(sharedAle),'MEDICAL');
+ for(const line of businessLines){assert.equal(canOperateLine(sharedJoel,line),true);assert.equal(canOperateLine(sharedAle,line),true);}
+ assert.equal(canOperateLine({...joel,productLines:['NOT_A_LINE']},'AUTO'),false);
+});
 test('areas restrict operations but share catalog and basic contact records',()=>{
  assert.equal(defaultLine(joel),'AUTO');assert.equal(defaultLine(ale),'MEDICAL');
  assert.equal(canOperateLine(joel,'MEDICAL'),false);assert.equal(canOperateLine(ale,'AUTO'),false);

@@ -4,10 +4,17 @@ import {areaReadArguments,getAreaDb} from '../../src/modules/areas/db';
 import {prepareAreaWrite,assertRecordArea} from '../../src/modules/areas/server';
 import {conversionProspect,finishConversion,createDossierPolicy} from '../../src/modules/clientes/prospect-conversion';
 import {policyInput} from '../../src/modules/clientes/dossier-policy';
+import {businessLines} from '../../src/modules/areas/policy';
 import type {Prisma} from '../../src/generated/prisma/client';
 import {getDb} from '../../src/lib/db';
 const actor={role:'ADMIN',email:'auto@example.invalid',productLines:['AUTO']};
 const asDb=(value:unknown)=>value as Prisma.TransactionClient;
+test('shared brokers receive prospect events for referrals without other private event streams',()=>{
+ const shared={...actor,productLines:businessLines};
+ const scope=(areaReadArguments('crmEvent',{},shared).where as {AND:unknown[]}).AND[1];
+ assert.deepEqual(scope,{OR:[{actorEmail:actor.email},{auditOnly:false,module:{in:['prospectos','clientes','productos','aseguradoras']}}]});
+ assert.deepEqual(areaReadArguments('crmEvent',{},actor).where,{AND:[{},{actorEmail:actor.email}]});
+});
 test('client nested operations, counts and unique lookups retain area filters',()=>{
  const args=areaReadArguments('client',{where:{id:'shared'},include:{policies:{include:{payments:true}},opportunities:true,_count:{select:{policies:true}}}},actor);
  const include=args.include as Record<string,Record<string,unknown>>;
