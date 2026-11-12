@@ -39,7 +39,7 @@ test('full form round trip preserves linked client, zero age and payment fields'
  assert.equal('diagProtect' in body,false);
 });
 test('new stages preserve historical comparativo and never advance emission into loss',()=>{
- const sequence=['CURIOSO','INFORMACION_RECIBIDA','DIAGNOSTICADO','PROPUESTA_ENVIADA','DOCUMENTACION','EMISION'];
+ const sequence=['CURIOSO','INFORMACION_RECIBIDA','DIAGNOSTICADO','PROPUESTA_ENVIADA','DOCUMENTACION','EMISION_SOLICITADA','INFORMACION_ADICIONAL','REENVIO_EMISION'];
  sequence.slice(0,-1).forEach((stage,index)=>assert.equal(nextStage(stage),sequence[index+1]));
  assert.equal(nextStage('EMISION'),null);assert.equal(nextStage('PERDIDO'),null);assert.equal(nextStage('COMPARATIVO'),'DOCUMENTACION');
 });

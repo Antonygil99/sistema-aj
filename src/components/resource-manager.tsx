@@ -1,7 +1,8 @@
 'use client';
 import {useBrokerScope} from './ui/broker-scope';
 import {actorLines,canOperateLine,defaultLine} from '@/modules/areas/policy';
-import {nextStage} from '@/modules/prospectos/pipeline';
+import {nextClaimStages,isAutoClaimStage} from '@/modules/siniestros/pipeline';
+import {nextStages} from '@/modules/prospectos/pipeline';
 
 import {PolicyCatalogFields} from './policy-catalog-fields';
 import {productCompanyImage} from '@/modules/productos/images';
@@ -44,6 +45,8 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
   const [draft, setDraft] = useState<Filters>({ q: initialQuery, status: '', archived: false,line:'' });
   const [applied, setApplied] = useState<Filters>({ q: initialQuery, status: '', archived: false,line:'' });
   const [loading, setLoading] = useState(false);
+  const [advancing,setAdvancing]=useState(false);
+  const advanceLock=useRef(false);
   const [editing, setEditing] = useState<Row | 'new' | null>(editorOnly?'new':initialRow);
   const [modalOpen, setModalOpen] = useState(editorOnly||Boolean(initialRow));
   const [values, setValues] = useState<Record<string, string>>(() => ({...rowToForm(config,initialRow),...(!initialRow?initialValues:{})}));
@@ -79,10 +82,10 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
   }, [slug, toast,insurerId]);
   // A teammate changed this module: refresh quietly unless the user is in the middle of editing.
   useEffect(() => {
-    const onRemote = (event: Event) => { if (((event as CustomEvent<{ module: string }>).detail.module === slug||(slug==='actividades'&&(event as CustomEvent<{module:string}>).detail.module==='polizas')||(slug==='productos'&&(event as CustomEvent<{module:string}>).detail.module==='aseguradoras')) && !modalOpen) void load(skip, applied, true); };
+    const onRemote = (event: Event) => { if (((event as CustomEvent<{ module: string }>).detail.module === slug||(slug==='actividades'&&(event as CustomEvent<{module:string}>).detail.module==='polizas')||(slug==='productos'&&(event as CustomEvent<{module:string}>).detail.module==='aseguradoras')) && !modalOpen) void load(skip, applied, true, view==='board'?100:PAGE); };
     window.addEventListener('aj:remote-change', onRemote);
     return () => window.removeEventListener('aj:remote-change', onRemote);
-  }, [slug, modalOpen, load, skip, applied]);
+  }, [slug, modalOpen, load, skip, applied,view]);
   useEffect(() => {
     if (!openId) return;
     // Drop ?open from the address so a refresh does not reopen the card.
@@ -202,12 +205,14 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
   const boardTake = view === 'board' ? 100 : PAGE;
   // Moves a record to the next board column with a full-form update (same rules and concurrency as the editor).
   async function advance(row: Row, next: string) {
+    if(advanceLock.current)return;advanceLock.current=true;setAdvancing(true);
     const body = formToBody(config, { ...rowToForm(config, row), status: next });
     try {
       await apiFetch(`/api/crm/${slug}/${encodeURIComponent(row.id)}`, { method: 'PATCH', json: { ...body, expectedUpdatedAt: row.updatedAt } });
       toast({ kind: 'success', title: `${config.title(row)} avanzó`, message: config.statuses?.[next] });
       await load(0, applied, true, boardTake);
     } catch (error) { toast({ kind: 'error', title: 'No se pudo avanzar', message: error instanceof Error ? error.message : undefined }); }
+    finally {advanceLock.current=false;setAdvancing(false);}
   }
   const statusOf = (row: Row) => typeof row.status === 'string' && config.statuses ? { label: config.statuses[row.status] ?? row.status, tone: config.statusTones?.[row.status] ?? 'neutral' } : null;
   return <div className="resource" hidden={editorOnly}>
@@ -218,7 +223,7 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
         <button type="button" role="tab" aria-selected={applied.archived} disabled={loading} onClick={() => { const next = { ...draft, archived: true }; setDraft(next); void load(0, next); }}>Archivados</button>
       </div>
       {config.board && !applied.archived ? <div className="segmented" role="group" aria-label="Forma de ver">
-        <button type="button" aria-pressed={view === 'board'} onClick={() => { chooseView('board'); const next = { ...draft, status: '' }; setDraft(next); void load(0, next, false, 100); }}><Kanban aria-hidden="true"/>Embudo</button>
+        <button type="button" aria-pressed={view === 'board'} onClick={() => { chooseView('board'); const next = { ...draft, status: '' }; setDraft(next); void load(0, next, false, 100); }}><Kanban aria-hidden="true"/>{slug==='siniestros'?'Tablero':'Embudo'}</button>
         <button type="button" aria-pressed={view === 'list'} onClick={() => { chooseView('list'); void load(0, applied); }}><RowVertical aria-hidden="true"/>Lista</button>
       </div> : null}
       <span className="resource-count">{page.total} {page.total === 1 ? config.singular : config.plural}</span>
@@ -230,18 +235,18 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
       {['prospectos','polizas','cotizaciones','productos'].includes(slug)?<label className="sr-label"><span className="sr-only">Ramo</span><Select value={draft.line} onChange={event=>{const next={...draft,line:event.target.value};setDraft(next);void load(0,next);}}><option value="">Todos los ramos</option>{(slug==='productos'?Object.keys(productLineLabels):actorLines(actor)).map(line=><option key={line} value={line}>{productLineLabels[line as keyof typeof productLineLabels]}</option>)}</Select></label>:null}
       {config.statuses && !(config.board && view === 'board') ? <label className="sr-label"><span className="sr-only">Estado</span><Select value={draft.status} onChange={event => { const next = { ...draft, status: event.target.value }; setDraft(next); void load(0, next); }}><option value="">Todos los estados</option>{Object.entries(config.statuses).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</Select></label> : null}
       <button className="button button-soft" disabled={loading}>Buscar</button>
-      <button type="button" className="icon-button" aria-label="Actualizar listado" disabled={loading} onClick={() => void load(skip, applied)}><Refresh2 aria-hidden="true" className={loading ? 'is-spinning' : ''}/></button>
+      <button type="button" className="icon-button" aria-label="Actualizar listado" disabled={loading} onClick={() => void load(skip, applied, false, boardTake)}><Refresh2 aria-hidden="true" className={loading ? 'is-spinning' : ''}/></button>
     </form>
     <div ref={listRef} className="resource-list" aria-busy={loading}>
       {page.data.length && config.board && view === 'board' && !applied.archived ? <>
-        <div className="delivery-board pipeline-board">{config.board.columns.filter(column=>!config.board?.legacy?.includes(column)||page.data.some(row=>row.status===column)).map(column => { const items = page.data.filter(row => row.status === column); return <section key={column} className="delivery-column" aria-label={`${config.statuses?.[column] ?? column}: ${items.length}`}>
+        <div className="delivery-board pipeline-board">{config.board.columns.filter(column=>!config.board?.legacy?.includes(column)||page.data.some(row=>row.status===column)).map(column => { const items = page.data.filter(row => row.status === column); return <section key={column} className="delivery-column" data-tone={config.statusTones?.[column]??'neutral'} aria-label={`${config.statuses?.[column] ?? column}: ${items.length}`}>
           <header><strong>{config.statuses?.[column] ?? column}</strong><span className="delivery-count">{items.length}</span></header>
-          <div className="delivery-column-body">{items.map(row => { const progress = config.progress?.(row); const index = config.board!.columns.indexOf(column); const next = slug==='prospectos'?nextStage(String(row.status)):config.board!.columns[index + 1]; const owner = typeof row.ownerEmail === 'string' ? row.ownerEmail : null; return <article key={row.id} className="delivery-card pipeline-card">
+          <div className="delivery-column-body">{items.map(row => { const progress = config.progress?.(row); const index = config.board!.columns.indexOf(column); const next = slug==='prospectos'?nextStages(String(row.status)):slug==='siniestros'?nextClaimStages(String(row.status),(row.policy as Record<string,unknown>|undefined)?.line):config.board!.columns[index + 1]?[config.board!.columns[index + 1]]:[]; const policyOwner=(row.policy as Record<string,unknown>|undefined)?.ownerEmail; const owner = typeof row.ownerEmail === 'string' ? row.ownerEmail : typeof policyOwner==='string'?policyOwner:null; return <article key={row.id} className="delivery-card pipeline-card">
             <button type="button" className="pipeline-card-main" onClick={() => openEditor(row)}>
               <span className="delivery-card-top"><span className="delivery-card-title"><strong>{config.title(row)}</strong><small>{config.columns[0].detail?.(row) || config.columns[1]?.value(row)}</small></span><span className="delivery-owner" title={teammateLabel(team, owner)}>{owner ? initials(teammateLabel(team, owner)) : '—'}</span></span>
               {progress ? <><span className="delivery-progress" aria-hidden="true"><i style={{ width: `${Math.round(progress.done / progress.total * 100)}%` }}/></span><span className="delivery-card-meta">{progress.label}</span></> : null}
             </button>
-            {canEdit && next ? <button type="button" className="text-button pipeline-advance" onClick={() => void advance(row, next)}>Pasar a {config.statuses?.[next] ?? next}<ArrowRight aria-hidden="true"/></button> : null}
+            {canEditRow(row) ? next.map(target=><button key={target} type="button" disabled={advancing} className="text-button pipeline-advance" onClick={() => void advance(row, target)}>Pasar a {config.statuses?.[target] ?? target}<ArrowRight aria-hidden="true"/></button>) : null}
           </article>; })}{!items.length ? <p className="delivery-empty">Nadie en esta etapa</p> : null}</div>
         </section>; })}</div>
         <p className="lead-small">{config.board.hidden}</p>
@@ -262,7 +267,7 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
         message={filtered ? 'Prueba con otra búsqueda o quita los filtros.' : applied.archived ? 'Lo que archives aparecerá aquí para restaurarlo cuando lo necesites.' : config.emptyMessage}
         action={filtered ? <button type="button" className="button button-soft" onClick={() => { const next = { q: '', status: '', archived: applied.archived,line:'' }; setDraft(next); void load(0, next); }}>Limpiar filtros</button> : mayCreate && !applied.archived ? <button type="button" className="button" onClick={() => openEditor('new')}><Add aria-hidden="true"/>{slug==='pagos'?'Preparar calendario':`Registrar ${config.article} ${config.singular}`}</button> : undefined}/>}
     </div>
-    {page.total > PAGE && view === 'list' ? <div className="document-pagination"><button type="button" className="text-button" disabled={loading || skip === 0} onClick={() => void load(Math.max(0, skip - PAGE), applied)}>Anterior</button><span>{skip + 1}–{Math.min(skip + PAGE, page.total)} de {page.total}</span><button type="button" className="text-button" disabled={loading || skip + PAGE >= page.total} onClick={() => void load(skip + PAGE, applied)}>Siguiente</button></div> : null}
+    {page.total > boardTake ? <div className="document-pagination"><button type="button" className="text-button" disabled={loading || skip === 0} onClick={() => void load(Math.max(0, skip - boardTake), applied, false, boardTake)}>Anterior</button><span>{skip + 1}–{Math.min(skip + boardTake, page.total)} de {page.total}</span><button type="button" className="text-button" disabled={loading || skip + boardTake >= page.total} onClick={() => void load(skip + boardTake, applied, false, boardTake)}>Siguiente</button></div> : null}
     <Modal onAfterClose={editorOnly?()=>{if(savedInEditor.current)onSaved?.();else onDismiss?.();}:undefined} icon={readOnly?Eye:editingRow?Edit2:Add} open={modalOpen} onClose={() => void requestClose()} busy={saving} size="lg"
       title={creatingSchedule?'Preparar calendario':editing === 'new' ? `Nuev${config.article === 'una' ? 'a' : 'o'} ${config.singular}` : readOnly ? capitalize(config.singular) : `Editar ${config.singular}`}
       description={editingRow?.archivedAt ? 'Archivado: restáuralo para poder editarlo.' : editingRow ? `Registrado el ${new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium' }).format(new Date(editingRow.createdAt))}` : 'Los campos marcados con * son obligatorios.'}
@@ -274,7 +279,7 @@ export function ResourceManager({ slug, initial, canEdit, canDelete, initialQuer
         {!readOnly&&!creatingSchedule ? <button type="submit" form={`form-${slug}`} className="button" disabled={saving || needsPaymentConfirmation || needsRenewalFlow}><TickCircle aria-hidden="true"/>{saving ? 'Guardando…' : 'Guardar'}</button> : null}</>}>
       <form id={`form-${slug}`} className="resource-form" onSubmit={save} noValidate={false}>
         {config.guide?.(values.status ?? '') ? <blockquote className="delivery-guide form-guide"><MessageText aria-hidden="true"/><span><small>Mensaje guía · {config.statuses?.[values.status] ?? ''}</small>{config.guide(values.status ?? '')}</span></blockquote> : null}
-        {config.fields.filter(field => (!creatingSchedule||field.name==='policyId') && !(slug==='polizas'&&['insurer','product'].includes(field.name)) && !(needsPaymentConfirmation && field.name === 'paidAt') && (!field.showWhen || field.showWhen.values.includes(values[field.showWhen.field] ?? ''))).flatMap((field, index) => [field.section ? <h3 key={`section-${field.name}`} className="form-section">{field.section}{config.progress ? <span className="delivery-score">{config.progress(values as unknown as Row).done}/{config.progress(values as unknown as Row).total}</span> : null}</h3> : null, slug==='polizas'&&field.name==='productId'?<PolicyCatalogFields key={field.name} values={{insurer:values.insurer??'',product:values.product??'',productId:values.productId??'',ownerEmail:values.ownerEmail,line:values.line}} label={labels.productId} disabled={readOnly||saving} error={fieldErrors.productId||fieldErrors.insurer||fieldErrors.product} onChange={(patch,label)=>{setValues(current=>({...current,...patch}));if(label!==undefined)setLabels(current=>({...current,productId:label}));setFieldErrors(current=>Object.fromEntries(Object.entries(current).filter(([key])=>!['productId','insurer','product'].includes(key))));}}/>:<FieldInput key={field.name} field={slug==='prospectos'&&field.name==='status'&&values.line!=='MEDICAL'?{...field,hint:'Actualiza la etapa según el seguimiento real de esta oportunidad.'}:field} value={values[field.name] ?? ''} label={labels[field.name] ?? ''} disabled={readOnly || saving || (slug==='prospectos'&&Boolean(values.clientId)&&['name','email','phone'].includes(field.name)) || (!!editingRow&&['pagos','renovaciones'].includes(slug)&&field.name==='policyId')} autoFocus={index === 0 && !readOnly && field.type !== 'image'}
+        {config.fields.filter(field => (!creatingSchedule||field.name==='policyId') && !(slug==='polizas'&&['insurer','product'].includes(field.name)) && !(needsPaymentConfirmation && field.name === 'paidAt') && (!field.showWhen || field.showWhen.values.includes(values[field.showWhen.field] ?? ''))).flatMap((field, index) => [field.section ? <h3 key={`section-${field.name}`} className="form-section">{field.section}{config.progress ? <span className="delivery-score">{config.progress(values as unknown as Row).done}/{config.progress(values as unknown as Row).total}</span> : null}</h3> : null, slug==='polizas'&&field.name==='productId'?<PolicyCatalogFields key={field.name} values={{insurer:values.insurer??'',product:values.product??'',productId:values.productId??'',ownerEmail:values.ownerEmail,line:values.line}} label={labels.productId} disabled={readOnly||saving} error={fieldErrors.productId||fieldErrors.insurer||fieldErrors.product} onChange={(patch,label)=>{setValues(current=>({...current,...patch}));if(label!==undefined)setLabels(current=>({...current,productId:label}));setFieldErrors(current=>Object.fromEntries(Object.entries(current).filter(([key])=>!['productId','insurer','product'].includes(key))));}}/>:<FieldInput key={field.name} field={slug==='siniestros'&&field.name==='status'&&(values._policyLine??(editingRow?.policy as Record<string,unknown>|undefined)?.line)!=='AUTO'?{...field,hiddenOptions:Object.keys(config.statuses??{}).filter(isAutoClaimStage)}:slug==='prospectos'&&field.name==='status'&&values.line!=='MEDICAL'?{...field,hint:'Actualiza la etapa según el seguimiento real de esta oportunidad.'}:field} value={values[field.name] ?? ''} label={labels[field.name] ?? ''} disabled={readOnly || saving || (slug==='prospectos'&&Boolean(values.clientId)&&['name','email','phone'].includes(field.name)) || (!!editingRow&&['pagos','renovaciones'].includes(slug)&&field.name==='policyId')} autoFocus={index === 0 && !readOnly && field.type !== 'image'}
           team={['productos','polizas','prospectos'].includes(slug)?team.filter(member=>member.role==='SUPERADMIN'||member.role==='ADMIN'&&member.productLines?.includes(values.line)):team} error={fieldErrors[field.name]} image={field.type === 'image' ? { current: !editingRow?null:removeImage?productCompanyImage(editingRow):config.image?.(editingRow)??null, inherited:!!productCompanyImage(editingRow)&&(removeImage||!editingRow?.imageType),hasOwnImage:!!editingRow?.imageType&&!removeImage,file: imageFile, onFile: file => { setImageFile(file); setRemoveImage(false); }, onRemove: () => { setImageFile(null); setRemoveImage(true); } } : undefined}
           onChange={(value, label, related) => { if (fieldErrors[field.name]) setFieldErrors(current => { const next = { ...current }; delete next[field.name]; return next; }); setValues(current => ({ ...current, ...(field.name==='line'&&slug==='polizas'?{productId:'',product:'',insurer:'',ownerEmail:actor?.email??''}:{}),[field.name]: value, ...(related && config.prefill ? config.prefill(field.name, related, current) : {}) })); if (label !== undefined) setLabels(current => ({ ...current, [field.name]: label })); }}/>])}
         {creatingSchedule||needsRenewalFlow?<div role="note" className="payment-next-step"><span className="payment-next-step-icon"><TickCircle aria-hidden="true"/></span><div><h3>{creatingSchedule?'Prepara todos los recibos juntos':'Completa el cierre desde su expediente'}</h3><p>{creatingSchedule?'Elige la póliza y revisa su calendario completo. Los recibos deben sumar la prima y conservar su moneda.':'Registra la nueva vigencia o el motivo de no renovación. El seguimiento, la actividad y los eventos se actualizarán con el flujo correspondiente.'}</p><button type="button" className="button button-soft" disabled={!values.policyId||openingPayment||saving} onClick={()=>void openContractFlow()}>{openingPayment?'Abriendo…':creatingSchedule?'Preparar calendario en el expediente':'Ir a la renovación'}<ArrowRight aria-hidden="true"/></button></div></div>:null}
@@ -374,7 +379,7 @@ function ImageField({ control, disabled }: { control: ImageControl; disabled: bo
 // Visual catalog card (products): image, name, insurer, line and responsible.
 function CatalogCard({ row, config, team, canEdit, edit, archive, remove }: { row: Row; config: (typeof resources)[ResourceSlug]; team: Teammate[]; canEdit: boolean; edit: () => void; archive: () => void; remove?: () => void }) {
   const image = config.image?.(row) ?? null;
-  const owner = typeof row.ownerEmail === 'string' ? row.ownerEmail : null;
+  const policyOwner=(row.policy as Record<string,unknown>|undefined)?.ownerEmail; const owner = typeof row.ownerEmail === 'string' ? row.ownerEmail : typeof policyOwner==='string'?policyOwner:null;
   const ownerName = teammateLabel(team, owner);
   return <article className="catalog-card" data-row>
     <button type="button" className="catalog-card-main" onClick={edit} aria-label={`${canEdit && !row.archivedAt ? 'Editar' : 'Ver'} ${config.title(row)}`}>

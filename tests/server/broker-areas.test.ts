@@ -9,6 +9,16 @@ import type {Prisma} from '../../src/generated/prisma/client';
 import {getDb} from '../../src/lib/db';
 const actor={role:'ADMIN',email:'auto@example.invalid',productLines:['AUTO']};
 const asDb=(value:unknown)=>value as Prisma.TransactionClient;
+
+test('auto claim stages require an Auto policy, including partial MCP updates',async()=>{
+ const db=(line:string)=>asDb({policy:{findUnique:async()=>({line}),findFirst:async()=>({id:'p',line})}});
+ for(const status of ['TALLER','PAGADO','ENTREGADO']){
+  await assert.rejects(()=>prepareAreaWrite(db('MEDICAL'),'siniestros',{status},actor,{policyId:'p'}),{code:'CLAIM_AUTO_STAGE_ONLY'});
+  assert.equal((await prepareAreaWrite(db('AUTO'),'siniestros',{status},actor,{policyId:'p'})).status,status);
+ }
+ assert.equal((await prepareAreaWrite(db('MEDICAL'),'siniestros',{status:'CLOSED'},actor,{policyId:'p'})).status,'CLOSED');
+ await assert.rejects(()=>prepareAreaWrite(db('LIFE'),'siniestros',{policyId:'other'},actor,{policyId:'p',status:'TALLER'}),{code:'CLAIM_AUTO_STAGE_ONLY'});
+});
 test('shared brokers receive prospect events for referrals without other private event streams',()=>{
  const shared={...actor,productLines:businessLines};
  const scope=(areaReadArguments('crmEvent',{},shared).where as {AND:unknown[]}).AND[1];

@@ -1,4 +1,5 @@
 import 'server-only';
+import {isAutoClaimStage} from '../siniestros/pipeline';
 import {getDb} from '@/lib/db';
 import {ResourceError} from '@/modules/resources/rules';
 import {actorLines,canOperateLine,defaultLine,scopedWhere,unrestrictedAreas,type AreaActor} from './policy';
@@ -17,6 +18,11 @@ export function assertLine(actor:AreaActor|undefined,line:unknown){if(!canOperat
 // Normalizes a server-owned area before the final write; UI selection is never authority.
 export async function prepareAreaWrite(db:Db,resource:string,input:Record<string,unknown>,actor?:AreaActor,previous?:Record<string,unknown>){
  const data={...input};
+ if(resource==='siniestros'&&isAutoClaimStage(data.status??previous?.status)){
+  const policy=await db.policy.findUnique({where:{id:String(data.policyId??previous?.policyId??'')},select:{line:true}});
+  if(policy?.line!=='AUTO')throw new ResourceError('CLAIM_AUTO_STAGE_ONLY',422);
+ }
+
  for(const [field,related] of [['policyId','polizas'],['prospectId','prospectos'],['claimId','siniestros']] as const){
   if(data[field])await assertRecordArea(db,related,String(data[field]),actor);
  }

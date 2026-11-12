@@ -29,6 +29,7 @@ const emailOptions: { key: SwitchKey; label: string; hint: string }[] = [
 ];
 const viewLabels: Record<string, Record<string, string>> = {
   clientes: { dossiers: 'Clientes como expedientes', list: 'Clientes como lista' },
+  siniestros: {board:'Siniestros como tablero',list:'Siniestros como lista'},
   prospectos: { board: 'Prospectos como embudo', list: 'Prospectos como lista' },
   documentos: { grid: 'Documentos como tarjetas', list: 'Documentos como lista' },
 };

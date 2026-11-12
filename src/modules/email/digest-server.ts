@@ -1,3 +1,4 @@
+import {completedClaimStatuses} from '@/modules/siniestros/pipeline';
 import {getRequestDb} from '@/modules/areas/db';
 import 'server-only';
 
@@ -29,7 +30,7 @@ export async function sendDailyDigests(now = new Date()) {
     db.policy.findMany({ where: { status: 'ACTIVE', archivedAt: null, endDate: { gte: midnight(today), lte: midnight(shift(today, 180)) }, nextPolicy:null, renewalPreparation:{isNot:{status:{in:['RENEWED','NOT_RENEWED']}}} }, orderBy: { endDate: 'asc' }, select: { id: true, number: true, endDate: true, ownerEmail: true, client: { select: { name: true } } } }),
     db.payment.findMany({ where: { status: { not: 'PAID' }, archivedAt: null, dueDate: { gte: midnight(shift(today, -30)), lte: midnight(shift(today, 7)) }, policy: { archivedAt: null, status: { not: 'CANCELLED' } } }, orderBy: { dueDate: 'asc' }, select: { id: true, amount: true, currency: true, dueDate: true, policy: { select: { number: true, ownerEmail: true, client: { select: { name: true } } } } } }),
     db.activity.findMany({ where: { kind: { not: null }, status: 'PENDING', archivedAt: null, dueDate: { lte: midnight(today) } }, orderBy: { dueDate: 'asc' }, select: { title: true, dueDate: true, ownerEmail: true, policyId: true, kind:true } }),
-    db.claim.findMany({ where: { status: { not: 'CLOSED' }, archivedAt: null }, orderBy: { createdAt: 'asc' }, select: { id: true, reference: true, createdAt: true, policy: { select: { ownerEmail: true, client: { select: { name: true } } } } } }),
+    db.claim.findMany({ where: { status: { notIn: completedClaimStatuses }, archivedAt: null }, orderBy: { createdAt: 'asc' }, select: { id: true, reference: true, createdAt: true, policy: { select: { ownerEmail: true, client: { select: { name: true } } } } } }),
   ]);
   // Mine = assigned to me, or assigned to nobody (visible to every administrator).
   const mine = (owner: string | null, email: string) => !owner || normalizeAddress(owner) === email;

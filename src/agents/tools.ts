@@ -1,3 +1,4 @@
+import {completedClaimStatuses} from '@/modules/siniestros/pipeline';
 import {matchesSearch} from '@/modules/smart-search';
 import {smartSearchWhere} from '@/modules/smart-search-server';
 import 'server-only';
@@ -69,7 +70,7 @@ const tools = {
       const client = await (await db()).client.findUnique({ where: { id: input.cliente_id }, select: {
         id: true, name: true, email: true, phone: true, archivedAt: true,
         policies: { where: { archivedAt: null }, orderBy: { endDate: 'desc' }, take: 15, select: { id: true, number: true, product: true, insurer: true, status: true, startDate: true, endDate: true, premium: true, currency: true, ownerEmail: true, deliveredAt: true,
-          payments: { where: { archivedAt: null, status: { not: 'PAID' } }, select: { amount: true, currency: true, dueDate: true } }, claims: { where: { archivedAt: null, status: { not: 'CLOSED' } }, select: { id: true, reference: true } } } },
+          payments: { where: { archivedAt: null, status: { not: 'PAID' } }, select: { amount: true, currency: true, dueDate: true } }, claims: { where: { archivedAt: null, status: { notIn: completedClaimStatuses } }, select: { id: true, reference: true } } } },
         contacts: { select: { name: true, role: true, email: true, phone: true } },
         activities: { where: { archivedAt: null, status: 'PENDING' }, take: 10, orderBy: { dueDate: 'asc' }, select: { title: true, dueDate: true } },
         emails: { take: 5, orderBy: { createdAt: 'desc' }, select: { subject: true, status: true, createdAt: true } },
@@ -134,7 +135,7 @@ const tools = {
     input: z.object({ estado: z.enum(['abiertos', 'cerrados', 'todos']).optional().describe('Por defecto abiertos.'), cliente_id: z.string().max(100).optional(), limite: limit }),
     label: input => input.estado === 'cerrados' ? 'Buscando siniestros cerrados' : 'Buscando siniestros abiertos',
     run: async (input, ctx) => {
-      const where = { archivedAt: null, ...(input.estado === 'cerrados' ? { status: 'CLOSED' as const } : input.estado === 'todos' ? {} : { status: { not: 'CLOSED' as const } }), ...(input.cliente_id ? { policy: { clientId: input.cliente_id } } : {}) };
+      const where = { archivedAt: null, ...(input.estado === 'cerrados' ? { status: {in:completedClaimStatuses} } : input.estado === 'todos' ? {} : { status: { notIn: completedClaimStatuses } }), ...(input.cliente_id ? { policy: { clientId: input.cliente_id } } : {}) };
       const rows = await (await db()).claim.findMany({ where, take: input.limite ?? 15, orderBy: { createdAt: 'asc' }, select: { id: true, reference: true, status: true, occurredAt: true, createdAt: true, policy: { select: { number: true, product: true, insurer: true, ownerEmail: true, client: { select: { id: true, name: true } } } } } });
       return { siniestros: rows.map(row => ({ referencia: row.reference, estado: row.status, cliente: row.policy.client.name, poliza: row.policy.number, producto: row.policy.product, aseguradora: row.policy.insurer, responsable: row.policy.ownerEmail, ocurrio: day(row.occurredAt), dias_abierto: daysBetween(mexicoDay(row.createdAt), today(ctx)), enlace: links.claim(row.id), expediente: links.client(row.policy.client.id) })) };
     },

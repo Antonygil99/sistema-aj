@@ -68,6 +68,7 @@ export const errorMessages: Record<string, string> = {
   WA_ACCOUNT_ACCESS: 'No se pudo confirmar el acceso al número empresarial configurado. Revisa el Phone Number ID y su cuenta en Meta.',
   WA_CONNECTION_UNAVAILABLE: 'Meta no respondió a la comprobación. No se envió ningún mensaje; puedes comprobar de nuevo.',
   WA_SEND_NOT_CONFIGURED: 'Falta configurar el envío para este número empresarial.',
+  CLAIM_AUTO_STAGE_ONLY: 'Esta etapa corresponde a un siniestro de Autos. Selecciona Abierto, En revisión o Cerrado para otros ramos.',
   WA_WINDOW_CLOSED: 'Pasaron 24 horas desde el último mensaje del contacto. Necesitas una plantilla aprobada.',
   WA_REQUEST_CONFLICT: 'Esta solicitud ya corresponde a otro mensaje. Actualiza la conversación.',
   WA_IN_PROGRESS: 'Este mensaje ya se está enviando. Espera su confirmación.',

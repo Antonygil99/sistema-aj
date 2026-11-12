@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { applyProspectRules, diagnosisProgress, isDiagnosed, nextStage, stageMessage } from '../src/modules/prospectos/pipeline';
+import { applyProspectRules, diagnosisProgress, isDiagnosed, nextStage, nextStages, stageMessage } from '../src/modules/prospectos/pipeline';
 import { createSchema } from '../src/modules/prospectos/schema';
 const answers = { diagProtect: 'A mis hijos', diagDependents: 'Dos hijos', diagCare: 'Hospital Faro del Mayab', diagCoverage: 'IMSS', diagPain: 'DECIDIR' };
 
@@ -33,4 +33,14 @@ test('el prospecto guarda antecedentes solo como existencia y no acepta marcarse
   assert.equal(createSchema.safeParse({ name: 'Ana', status: 'CLIENTE' }).success, false);
   assert.equal(createSchema.safeParse({ name: 'Ana', convertedClientId: 'c1' }).success, false);
   assert.equal(createSchema.parse({ name: 'Ana' }).status, 'CURIOSO');
+});
+
+test('emisión supports the requested branches without automatically losing a lead',()=>{
+ assert.deepEqual(nextStages('DOCUMENTACION'),['EMISION_SOLICITADA','EMITIDA']);
+ assert.deepEqual(nextStages('EMISION_SOLICITADA'),['INFORMACION_ADICIONAL','FIRMA']);
+ assert.deepEqual(nextStages('INFORMACION_ADICIONAL'),['REENVIO_EMISION']);
+ assert.deepEqual(nextStages('REENVIO_EMISION'),['INFORMACION_ADICIONAL','FIRMA']);
+ assert.deepEqual(nextStages('FIRMA'),['EMITIDA']);
+ for(const status of ['EMISION','EMITIDA','PERDIDO','CLIENTE'])assert.deepEqual(nextStages(status),[]);
+ for(const status of ['EMISION_SOLICITADA','INFORMACION_ADICIONAL','REENVIO_EMISION','FIRMA'])assert.equal(createSchema.safeParse({name:'Test',status}).success,true);
 });

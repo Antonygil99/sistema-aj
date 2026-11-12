@@ -19,7 +19,7 @@ type Delegate = {
   findMany(args: object): Promise<Stored[]>; count(args: object): Promise<number>; findUnique(args: object): Promise<Stored | null>;
   create(args: object): Promise<Stored>; updateMany(args: object): Promise<{ count: number }>; delete(args: object): Promise<Stored>;
 };
-const policyWithClient = { select: { id: true, number: true, client: { select: { id: true, name: true } } } };
+const policyWithClient = { select: { id: true, number: true, line: true, ownerEmail: true, client: { select: { id: true, name: true } } } };
 const productSummary = { select: { id: true, name: true, insurer: true, imageType: true, updatedAt: true,insurerProfile:insurerImageMetadata } };
 const definitions: Record<ResourceSlug, { model: string; include?: object; omit?: object; orderBy: object[] }> = {
   prospectos: { model: 'prospect', include: { client:{select:{id:true,name:true}},referredBy: { select: { id: true, name: true } }, convertedClient: { select: { id: true, name: true } } }, orderBy: [{ createdAt: 'desc' }] },

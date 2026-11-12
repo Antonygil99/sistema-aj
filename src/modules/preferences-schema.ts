@@ -5,7 +5,7 @@ import { MAX_SEEN, REMINDER_KEY, TOUR_ID, modelIds, themeOptions, viewOptions, t
 export const preferencesPatch: z.ZodType<PreferencesPatch> = z.object({
   noticeSchedule:z.object({renewal:z.array(z.number().int().min(1).max(180)).min(1).max(5).refine(v=>new Set(v).size===v.length),payment:z.array(z.number().int().min(0).max(180)).min(1).max(5).refine(v=>new Set(v).size===v.length),claimEveryDays:z.number().int().min(1).max(90)}).strict().optional(),
   renewalDays:z.array(z.number().int().min(1).max(180)).min(1).max(5).refine(v=>new Set(v).size===v.length,'No repitas días de anticipación.').optional(),
-  views: z.object({ clientes: z.enum(viewOptions.clientes), documentos: z.enum(viewOptions.documentos), prospectos: z.enum(viewOptions.prospectos) }).partial().strict().optional(),
+  views: z.object({ clientes: z.enum(viewOptions.clientes), documentos: z.enum(viewOptions.documentos), prospectos: z.enum(viewOptions.prospectos), siniestros: z.enum(viewOptions.siniestros) }).partial().strict().optional(),
   resetViews: z.literal(true).optional(),
   tours: z.object({ enabled: z.boolean().optional(), seen: z.array(z.string().regex(TOUR_ID)).max(MAX_SEEN).optional() }).strict().optional(),
   theme: z.enum(themeOptions).optional(),

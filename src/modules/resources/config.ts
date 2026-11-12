@@ -1,3 +1,4 @@
+import {claimStatuses,claimLabels} from '../siniestros/pipeline';
 import {businessLineLabels} from '../areas/policy';
 import {productImage} from '../productos/images';
 import { autoProfileFields, diagnosisProgress, diagnosisQuestions, prospectStages, stageLabels, stageMessage } from '../prospectos/pipeline';
@@ -69,12 +70,12 @@ export const resources: Record<ResourceSlug, ResourceConfig> = {
     slug: 'prospectos', singular: 'prospecto', plural: 'prospectos', article: 'un', illustration: 'prospectos',
     emptyTitle: 'Tu primera oportunidad empieza aquí', emptyMessage: 'Registra a las personas interesadas y acompáñalas de curiosas a clientes recomendadoras.', searchHint: 'Nombre, correo o teléfono',
     statuses: stageLabels,
-    statusTones: { INFORMACION_RECIBIDA:'blue',PROPUESTA_ENVIADA:'sand',DOCUMENTACION:'lilac', CURIOSO: 'lilac', DIAGNOSTICADO: 'blue', COMPARATIVO: 'sand', EMISION: 'green', CLIENTE: 'green', PERDIDO: 'red' },
-    board: { columns: [...prospectStages.slice(0,3).map(s=>s.id),'COMPARATIVO',...prospectStages.slice(3).map(s=>s.id),'PERDIDO'],legacy:['COMPARATIVO'], hidden:'Las oportunidades convertidas en cliente se conservan en la vista de lista. Las etapas anteriores no se modifican automáticamente.' },
+    statusTones: { EMISION_SOLICITADA:'blue',INFORMACION_ADICIONAL:'sand',REENVIO_EMISION:'lilac',FIRMA:'sand', INFORMACION_RECIBIDA:'blue',PROPUESTA_ENVIADA:'sand',DOCUMENTACION:'lilac', CURIOSO: 'lilac', DIAGNOSTICADO: 'blue', COMPARATIVO: 'sand', EMITIDA:'green', EMISION: 'green', CLIENTE: 'green', PERDIDO: 'red' },
+    board: { columns: [...prospectStages.slice(0,3).map(s=>s.id),'COMPARATIVO',...prospectStages.slice(3).map(s=>s.id),'EMISION','PERDIDO'],legacy:['COMPARATIVO','EMISION'], hidden:'Las oportunidades convertidas en cliente se conservan en la vista de lista. Las etapas anteriores no se modifican automáticamente.' },
     progress: row => ['AUTO','MEDICAL'].includes(String(row.line))?({ done: diagnosisProgress(row), total: row.line==='AUTO'?autoProfileFields.length:diagnosisQuestions.length, label: `${row.line==='AUTO'?'Ficha de Autos':'Diagnóstico'} ${diagnosisProgress(row)}/${row.line==='AUTO'?autoProfileFields.length:diagnosisQuestions.length}` }):({done:row.status==='CURIOSO'?0:1,total:1,label:'Seguimiento comercial'}),
     guide: status => stageMessage(status),
     modalLinks: row => row.convertedClientId ? [{ label: 'Ver cliente', href: `/crm/clientes/${encodeURIComponent(String(row.convertedClientId))}` }]
-      : row.clientId ? [{label:'Continuar contratación en su expediente',href:`/crm/clientes/nuevo?prospect=${encodeURIComponent(row.id)}`,primary:row.status==='EMISION'},{label:'Ver cliente',href:`/crm/clientes/${encodeURIComponent(String(row.clientId))}`}] : row.status === 'PERDIDO' ? [] : [{ label: 'Convertir en cliente', href: `/crm/clientes/nuevo?prospect=${encodeURIComponent(row.id)}`, primary: row.status === 'EMISION' }],
+      : row.clientId ? [{label:'Continuar contratación en su expediente',href:`/crm/clientes/nuevo?prospect=${encodeURIComponent(row.id)}`,primary:['EMISION','EMITIDA'].includes(String(row.status))},{label:'Ver cliente',href:`/crm/clientes/${encodeURIComponent(String(row.clientId))}`}] : row.status === 'PERDIDO' ? [] : [{ label: 'Convertir en cliente', href: `/crm/clientes/nuevo?prospect=${encodeURIComponent(row.id)}`, primary: ['EMISION','EMITIDA'].includes(String(row.status)) }],
     prefill:(field,related):Record<string,string>=>field==='clientId'?{name:String(related.name??''),email:String(related.email??''),phone:String(related.phone??'')}:{},
     fields: [
       {name:'line',label:'Seguro de interés',type:'select',required:true,options:businessLineLabels,defaultValue:'MEDICAL'},
@@ -89,7 +90,7 @@ export const resources: Record<ResourceSlug, ResourceConfig> = {
       {name:'paymentFrequency',label:'Periodicidad de pago',type:'select',options:frequencies,showWhen:{field:'line',values:['AUTO']}},
       {name:'paymentMethod',label:'Medio de pago',type:'select',options:{TARJETA:'Tarjeta',TRANSFERENCIA:'Transferencia',DOMICILIACION:'Domiciliación',EFECTIVO:'Efectivo',POR_DEFINIR:'Por definir'},showWhen:{field:'line',values:['AUTO']}},
       { name: 'source', label: 'Origen', type: 'text', required: true, maxLength: 250, defaultValue: 'manual', placeholder: 'Referido, WhatsApp, sitio web…' },
-      { name: 'status', label: 'Etapa', type: 'select', required: true, defaultValue: 'CURIOSO', hiddenOptions: ['CLIENTE','COMPARATIVO'], hint: 'Al responder las 5 preguntas pasa solo a Diagnosticado.' },
+      { name: 'status', label: 'Etapa', type: 'select', required: true, defaultValue: 'CURIOSO', hiddenOptions: ['CLIENTE','COMPARATIVO','EMISION'], hint: 'Al responder las 5 preguntas pasa solo a Diagnóstico.' },
       owner(),
       { name: 'referredByClientId', label: 'Referido por', type: 'relation', relation: 'clientes', hint: 'Cliente que lo recomendó.' },
       { name: 'notes', label: 'Notas', type: 'textarea', maxLength: 5000, wide: true },
@@ -209,7 +210,10 @@ export const resources: Record<ResourceSlug, ResourceConfig> = {
   siniestros: {
     slug: 'siniestros', singular: 'siniestro', plural: 'siniestros', article: 'un', illustration: 'siniestros',
     emptyTitle: 'Sin siniestros reportados', emptyMessage: 'Cuando un cliente reporte un incidente, regístralo para acompañar su caso.', searchHint: 'Referencia, descripción o póliza',
-    statuses: { OPEN: 'Abierto', IN_REVIEW: 'En revisión', CLOSED: 'Cerrado' }, statusTones: { OPEN: 'red', IN_REVIEW: 'sand', CLOSED: 'green' },
+    statuses: claimLabels,
+    statusTones: {OPEN:'lilac',IN_REVIEW:'sand',TRANSITO:'red',TALLER:'blue',ASISTENCIA_VIAL:'blue',VALUACION_AUTORIZADA:'lilac',REFACCIONES:'sand',REPARACION:'blue',ENTREGADO:'green',PAGO_DANOS:'sand',DOCUMENTACION_DANOS:'lilac',PAGADO:'green',CLOSED:'green'},
+    board: {columns:[...claimStatuses],hidden:'Autos: reparación y entrega, o pago de daños. Los demás ramos conservan Abierto, En revisión y Cerrado. Los cambios de etapa no registran pagos automáticamente.'},
+    prefill:(field,related):Record<string,string>=>field==='policyId'?{_policyLine:String(related.line??''),status:'OPEN'}:{},
     fields: [
       { name: 'reference', label: 'Referencia', type: 'text', required: true, maxLength: 250 },
       { name: 'policyId', label: 'Póliza', type: 'relation', relation: 'polizas', required: true },

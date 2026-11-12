@@ -5,6 +5,7 @@ export const viewOptions = {
   clientes: ['dossiers', 'list'],
   documentos: ['grid', 'list'],
   prospectos: ['board', 'list'],
+  siniestros: ['board', 'list'],
 } as const;
 export const themeOptions = ['light', 'dark', 'system', 'gradient'] as const;
 // Models the assistants can use (src/agents/server.ts reads the user's choice): light and inexpensive ones only,

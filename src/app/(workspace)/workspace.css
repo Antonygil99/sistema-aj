@@ -659,3 +659,14 @@
 .payment-next-step-icon svg{width:22px;height:22px}.payment-next-step h3{margin:0 0 7px;font-size:15px;letter-spacing:normal}.payment-next-step p{margin:0 0 14px;color:var(--muted);font-size:14px;line-height:1.6}.payment-next-step .button{gap:10px}
 .finance-panel{scroll-margin-top:100px}.finance-target-receipt{background:var(--surface-2);outline:2px solid var(--accent);outline-offset:-2px;scroll-margin-top:100px}.finance-target-label{display:block;color:var(--muted);font-size:11px;margin-top:5px}
 @media(max-width:600px){.payment-next-step{padding:16px;gap:10px}.payment-next-step .button{width:100%;justify-content:center;white-space:normal}}
+
+/* Stage color stays secondary to the label and count, including in dark mode. */
+.workspace .pipeline-board .delivery-column{--stage-accent:var(--c-71817a);border-top:3px solid var(--stage-accent)}
+.workspace .pipeline-board .delivery-column[data-tone=blue]{--stage-accent:var(--c-5188bc)}
+.workspace .pipeline-board .delivery-column[data-tone=lilac]{--stage-accent:var(--c-a17bb4)}
+.workspace .pipeline-board .delivery-column[data-tone=sand]{--stage-accent:var(--c-bd923e)}
+.workspace .pipeline-board .delivery-column[data-tone=green]{--stage-accent:var(--c-4b9875)}
+.workspace .pipeline-board .delivery-column[data-tone=red]{--stage-accent:var(--c-ce788d)}
+.workspace .pipeline-board .delivery-column>header{border-radius:10px;background:color-mix(in srgb,var(--stage-accent) 12%,transparent);margin-bottom:10px;padding:10px}
+.workspace .pipeline-board .delivery-count{background:color-mix(in srgb,var(--stage-accent) 20%,var(--c-f3f5f4))}
+.workspace .pipeline-advance{white-space:normal;text-align:left;min-height:40px}

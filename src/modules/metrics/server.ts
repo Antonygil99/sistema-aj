@@ -1,3 +1,4 @@
+import {completedClaimStatuses} from '@/modules/siniestros/pipeline';
 import {getRequestDb} from '@/modules/areas/db';
 import 'server-only';
 
@@ -38,8 +39,8 @@ export async function dashboardMetrics(ownerEmail: string | null, now = new Date
     db.activity.count({ where: { archivedAt: null, status: 'PENDING', kind: { in: followUps.map(item => item.kind) }, dueDate: { lt: period.today }, ...(ownerEmail ? { ownerEmail } : {}) } }),
     db.payment.count({ where: overdue }),
     db.payment.groupBy({ by: ['currency'], where: overdue, _sum: { amount: true } }),
-    db.claim.count({ where: { archivedAt: null, status: { in: ['OPEN', 'IN_REVIEW'] }, ...viaPolicy } }),
-    db.claim.count({ where: { archivedAt: null, status: 'CLOSED', updatedAt: month, ...viaPolicy } }),
+    db.claim.count({ where: { archivedAt: null, status: { notIn: completedClaimStatuses }, ...viaPolicy } }),
+    db.claim.count({ where: { archivedAt: null, status: {in:completedClaimStatuses}, updatedAt: month, ...viaPolicy } }),
     db.prospect.count({ where: { archivedAt: null, referredByClientId: { not: null }, createdAt: month, ...prospectOwner } }),
     db.prospect.count({ where: { archivedAt: null, referredByClientId: { not: null }, createdAt: previous, ...prospectOwner } }),
     db.prospect.count({ where: { archivedAt: null, referredByClientId: { not: null }, ...prospectOwner } }),

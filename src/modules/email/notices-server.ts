@@ -1,3 +1,4 @@
+import {completedClaimStatuses} from '@/modules/siniestros/pipeline';
 import {getRequestDb} from '@/modules/areas/db';
 import {readPreferences,defaultNoticeSchedule} from '@/modules/preferences';
 import 'server-only';
@@ -23,7 +24,7 @@ export async function refreshNotices(now = new Date()) {
   const [policies, payments, claims] = await Promise.all([
     db.policy.findMany({ where: { status: 'ACTIVE', archivedAt: null, client: openClient,nextPolicy:null,renewalPreparation:{isNot:{status:{in:['RENEWED','NOT_RENEWED']}}}, endDate: { gte: midnight(today), lte: midnight(shift(today, 180)) } }, select: { id: true, clientId: true, endDate: true, ownerEmail: true, renewals: { where: { status: 'RENEWED', archivedAt: null }, select: { id: true }, take: 1 } } }),
     db.payment.findMany({ where: { status: { not: 'PAID' }, archivedAt: null, dueDate: { gte: midnight(shift(today, -PAYMENT_GRACE_DAYS)), lte: midnight(shift(today, 180)) }, policy: { archivedAt: null, status: { not: 'CANCELLED' }, client: openClient } }, select: { id: true, policyId: true, dueDate: true, policy: { select: { clientId: true, ownerEmail: true } } } }),
-    db.claim.findMany({ where: { status: { not: 'CLOSED' }, archivedAt: null, policy: { client: openClient } }, select: { id: true, policyId: true, createdAt: true, policy: { select: { clientId: true, ownerEmail: true } } } }),
+    db.claim.findMany({ where: { status: { notIn: completedClaimStatuses }, archivedAt: null, policy: { client: openClient } }, select: { id: true, policyId: true, createdAt: true, policy: { select: { clientId: true, ownerEmail: true } } } }),
   ]);
   const ownerEmails=[...new Set([...policies.map(p=>p.ownerEmail),...payments.map(p=>p.policy.ownerEmail),...claims.map(p=>p.policy.ownerEmail)].flatMap(e=>e?[e.toLowerCase()]:[]))];
   const preferences=await db.userPreference.findMany({where:{email:{in:ownerEmails}},select:{email:true,data:true}});const schedules=new Map(preferences.map(p=>[p.email.toLowerCase(),readPreferences(p.data).noticeSchedule]));
