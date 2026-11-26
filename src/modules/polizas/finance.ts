@@ -14,7 +14,13 @@ export function scheduleIssues(policy: { premium: number; startDate: string; end
   if (rows.some((row,i) => !z.iso.date().safeParse(row.dueDate).success || row.dueDate < policy.startDate || row.dueDate > policy.endDate || (i > 0 && row.dueDate <= rows[i-1].dueDate))) return 'Los vencimientos deben estar ordenados y dentro de la vigencia.';
   return null;
 }
-export const confirmationInput = z.object({ expectedUpdatedAt: version, paidAt: z.iso.date(), reference: z.string().trim().min(1).max(250), evidenceDocumentId: z.string().min(1).max(100), reviewed: z.literal(true) }).strict();
+export const confirmationInput = z.object({
+  expectedUpdatedAt: version,
+  paidAt: z.iso.date(),
+  reference: z.string().trim().max(250).optional(),
+  evidenceDocumentId: z.string().trim().min(1).max(100).optional(),
+  reviewed: z.literal(true),
+}).strict();
 export const renewalInput = z.object({ expectedUpdatedAt: version, number: z.string().trim().min(1).max(250), premium: amount,
   startDate: z.iso.date(), endDate: z.iso.date(), reviewed: z.literal(true) }).strict().refine(input => input.endDate > input.startDate, 'Revisa las fechas de la nueva vigencia');
 export const policyDay = (date: Date) => date.toISOString().slice(0,10);

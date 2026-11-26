@@ -11,10 +11,15 @@ test('calendar preserves cents and end-of-month dates; a mismatched sum or date 
   assert.ok(scheduleIssues(policy,[{amount:1000,dueDate:'2027-02-01'}],'ONCE'));
   assert.ok(scheduleIssues(policy,[{amount:500,dueDate:'2026-01-01'},{amount:500,dueDate:'2026-01-01'}],'MONTHLY'));
 });
-test('payment confirmation requires reference, document and explicit review; renewal requires valid new dates',()=>{
-  const payment={expectedUpdatedAt:'2026-10-26T12:00:00Z',paidAt:'2026-10-26',reference:'TRANSFER-TEST',evidenceDocumentId:'doc-test',reviewed:true};
+test('payment confirmation accepts an optional reference and document but requires a date and explicit review',()=>{
+  const payment={expectedUpdatedAt:'2026-10-26T12:00:00Z',paidAt:'2026-10-26',reviewed:true};
   assert.equal(confirmationInput.safeParse(payment).success,true);
-  assert.equal(confirmationInput.safeParse({...payment,reference:''}).success,false);
+  assert.equal(confirmationInput.safeParse({...payment,reference:'TRANSFER-TEST',evidenceDocumentId:'doc-test'}).success,true);
+  assert.equal(confirmationInput.safeParse({...payment,reference:'',evidenceDocumentId:'drive:linked-test'}).success,true);
+  assert.equal(confirmationInput.safeParse({...payment,evidenceDocumentId:' '}).success,false);
+  assert.equal(confirmationInput.safeParse({...payment,paidAt:''}).success,false);
   assert.equal(confirmationInput.safeParse({...payment,reviewed:false}).success,false);
-  assert.equal(renewalInput.safeParse({expectedUpdatedAt:payment.expectedUpdatedAt,number:'SAME-NUMBER',premium:1000,startDate:'2027-01-01',endDate:'2026-01-01',reviewed:true}).success,false);
+});
+test('renewal requires valid new dates',()=>{
+  assert.equal(renewalInput.safeParse({expectedUpdatedAt:'2026-10-26T12:00:00Z',number:'SAME-NUMBER',premium:1000,startDate:'2027-01-01',endDate:'2026-01-01',reviewed:true}).success,false);
 });

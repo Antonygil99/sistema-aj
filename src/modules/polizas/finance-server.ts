@@ -1,7 +1,5 @@
 import {getRequestDb} from '@/modules/areas/db';
 import 'server-only';
-import {verifyDriveEvidence} from '@/modules/drive/server';
-
 import { ResourceError } from '@/modules/resources/rules';
 import { recordEvent, eventData } from '@/modules/events';
 import type { Actor } from '@/lib/api';
@@ -67,10 +65,14 @@ export async function createPolicySchedule(id: string, input: unknown, actor: Ac
 export async function confirmPayment(id: string, input: unknown, actor: Actor, headers?: Headers) {
   const data = confirmationInput.parse(input), db = (await getRequestDb());
   if (data.paidAt > mexicoDay(new Date())) throw new ResourceError('FINANCE_FUTURE_PAYMENT',422);
-  const driveId = data.evidenceDocumentId.startsWith('drive:') ? data.evidenceDocumentId.slice(6) : null;
+  const evidenceId = data.evidenceDocumentId;
+  const driveId = evidenceId?.startsWith('drive:') ? evidenceId.slice(6) : null;
+  const documentId = driveId === null ? evidenceId : undefined;
   const context = driveId ? await db.payment.findUnique({where:{id},select:{policy:{select:{clientId:true}}}}) : null;
-  const drive = driveId && context && headers ? await verifyDriveEvidence(context.policy.clientId,driveId,actor,headers) : null;
-  if(driveId&&!drive)throw new ResourceError('FINANCE_EVIDENCE_SCOPE',422);
+  const drive = driveId && context && headers
+    ? await (await import('@/modules/drive/server')).verifyDriveEvidence(context.policy.clientId, driveId, actor, headers)
+    : null;
+  if(driveId!==null&&!drive)throw new ResourceError('FINANCE_EVIDENCE_SCOPE',422);
   await db.$transaction(async tx => {
     const initial=await tx.payment.findUnique({where:{id},select:{policyId:true}});
     if(initial)await lockPolicy(tx,initial.policyId);
@@ -85,13 +87,20 @@ export async function confirmPayment(id: string, input: unknown, actor: Actor, h
       const connection=await tx.driveConnection.findFirst({where:{userId:actor.id!,enabled:true,folderId:drive.rootFolderId,updatedAt:drive.connectionUpdatedAt}});
       if(!link||!connection)throw new ResourceError('FINANCE_EVIDENCE_SCOPE',422);
     }
-    const document = !drive ? await tx.document.findUnique({ where: { id: data.evidenceDocumentId } }) : null;
-    const sameScope = document && !document.archivedAt && (document.policyId === payment.policyId || (document.clientId === payment.policy.clientId && !document.policyId && !document.claimId));
-    if (!drive && !sameScope) throw new ResourceError('FINANCE_EVIDENCE_SCOPE',422);
-    const saved = await tx.payment.updateMany({ where: { id, updatedAt: new Date(data.expectedUpdatedAt), status: { not: 'PAID' } }, data: { status: 'PAID', paidAt: new Date(data.paidAt), reference: data.reference, evidenceDocumentId: drive ? null : data.evidenceDocumentId, evidenceDriveLinkId: drive?.linkId ?? null } });
+    if (documentId) {
+      const document = await tx.document.findUnique({ where: { id: documentId } });
+      const sameScope = document && !document.archivedAt && (document.policyId === payment.policyId || (document.clientId === payment.policy.clientId && !document.policyId && !document.claimId));
+      if (!sameScope) throw new ResourceError('FINANCE_EVIDENCE_SCOPE',422);
+    }
+    const saved = await tx.payment.updateMany({
+      where: { id, updatedAt: new Date(data.expectedUpdatedAt), status: { not: 'PAID' } },
+      data: { status: 'PAID', paidAt: new Date(data.paidAt), reference: data.reference || null, evidenceDocumentId: documentId ?? null, evidenceDriveLinkId: drive?.linkId ?? null },
+    });
     if (!saved.count) throw new ResourceError('RECORD_CHANGED',409);
+    const evidence = drive ? 'drive' : documentId ? 'document' : 'none';
+    await tx.crmEvent.create({ data: eventData(actor, 'updated', 'pagos', id,
+      evidence === 'none' ? 'Pago verificado sin comprobante adjunto' : 'Pago confirmado con comprobante', { reviewed: data.reviewed, evidence }) });
   });
-  await recordEvent(actor,'updated','pagos',id,'Pago confirmado con evidencia');
 }
 export async function renewPolicy(id: string, input: unknown, actor: Actor) {
   const data = renewalInput.parse(input), db = (await getRequestDb());

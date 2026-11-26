@@ -55,7 +55,7 @@ export const errorMessages: Record<string, string> = {
   FINANCE_EVIDENCE_SCOPE: 'El comprobante debe ser un documento activo de esta póliza o del expediente de su cliente.',
   FINANCE_RENEWAL_EXISTS: 'Esta vigencia ya tiene una renovación vinculada. Ábrela desde el expediente.',
   FINANCE_RENEWAL_DATES: 'La nueva vigencia debe comenzar al terminar la anterior o después.',
-  FINANCE_USE_CONFIRMATION: 'Confirma el pago desde su expediente para registrar la referencia y el comprobante.',
+  FINANCE_USE_CONFIRMATION: 'Abre el expediente para registrar la fecha efectiva y confirmar que se recibió el pago.',
   FINANCE_PAID_LOCKED: 'Este recibo confirmado conserva su evidencia. Solicita revisión al administrador antes de corregirlo.',
   FINANCE_POLICY_HISTORY: 'Las vigencias vinculadas conservan sus datos contractuales. No cambies su número, prima ni fechas desde el editor general.',
   WA_NOT_FOUND: 'La conversación ya no está disponible.',
